@@ -4,5 +4,7 @@ Set fso = CreateObject("Scripting.FileSystemObject")
 strPath = fso.GetParentFolderName(WScript.ScriptFullName)
 
 WshShell.CurrentDirectory = strPath
-' Run python master_server.py completely hidden (0 = hidden)
+' Run master server completely hidden (0 = hidden)
 WshShell.Run "python master_server.py", 0, False
+' Run port 8096 redirector hidden
+WshShell.Run "python port_8096_redirect.py", 0, False
