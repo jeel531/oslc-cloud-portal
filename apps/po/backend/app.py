@@ -377,6 +377,26 @@ def get_cutting_report(po_no: str = Query(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Serve PO Dashboard React Frontend
+FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
+if FRONTEND_DIR.exists():
+    from fastapi.staticfiles import StaticFiles
+    from fastapi.responses import FileResponse
+    assets_dir = FRONTEND_DIR / "assets"
+    if assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="po_assets")
+
+    @app.get("/")
+    def serve_po_index():
+        return FileResponse(FRONTEND_DIR / "index.html")
+
+    @app.get("/{full_path:path}")
+    def serve_po_fallback(full_path: str):
+        file = FRONTEND_DIR / full_path
+        if file.exists() and file.is_file():
+            return FileResponse(file)
+        return FileResponse(FRONTEND_DIR / "index.html")
+
 if __name__ == "__main__":
     print("[SERVER] Starting OSLC PO Dashboard API on http://0.0.0.0:5050 (LAN accessible)")
     uvicorn.run("app:app", host="0.0.0.0", port=5050, reload=False, log_level="info")
