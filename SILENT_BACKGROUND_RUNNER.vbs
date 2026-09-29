@@ -8,3 +8,5 @@ WshShell.CurrentDirectory = strPath
 WshShell.Run "python master_server.py", 0, False
 ' Run port 8096 redirector hidden
 WshShell.Run "python port_8096_redirect.py", 0, False
+' Run auto-cloud sync daemon hidden (auto pushes every new project to server)
+WshShell.Run "python auto_cloud_sync.py", 0, False

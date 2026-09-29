@@ -220,6 +220,79 @@ master_app.mount("/gatepass", gatepass_app)
 master_app.mount("/mk", mk_app)
 master_app.mount("/barcode", barcode_app)
 
+USER_PROJECTS_DIR = ROOT / "apps" / "user_projects"
+SYNC_STATUS_FILE = ROOT / "portal_ui" / "sync_status.json"
+import mimetypes
+
+@master_app.get("/api/sync-status")
+def get_sync_status():
+    if SYNC_STATUS_FILE.exists():
+        try:
+            import json
+            with open(SYNC_STATUS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {
+        "status": "active",
+        "last_sync": "હમણાં જ (Live)",
+        "message": "ઓટો-ક્લાઉડ સિન્ક સક્રિય છે"
+    }
+
+@master_app.get("/api/user-projects")
+def get_user_projects():
+    projects = []
+    if USER_PROJECTS_DIR.exists():
+        for item in sorted(USER_PROJECTS_DIR.iterdir()):
+            if item.is_dir() and not item.name.startswith("."):
+                index_exists = (item / "index.html").exists()
+                mtime = os.path.getmtime(item)
+                projects.append({
+                    "id": item.name,
+                    "title": item.name.replace("_", " ").replace("-", " ").title(),
+                    "folder": item.name,
+                    "url": f"/live/{item.name}/",
+                    "has_index": index_exists,
+                    "updated_at": time.strftime("%d-%b-%Y %I:%M %p", time.localtime(mtime))
+                })
+    return {"projects": projects, "count": len(projects)}
+
+@master_app.get("/live/{proj_name}")
+@master_app.get("/live/{proj_name}/")
+@master_app.get("/live/{proj_name}/{subpath:path}")
+async def serve_user_project(proj_name: str, subpath: str = ""):
+    proj_dir = USER_PROJECTS_DIR / proj_name
+    if not proj_dir.exists() or not proj_dir.is_dir():
+        return HTMLResponse(
+            f"<h3>પ્રોજેક્ટ '{proj_name}' મળ્યો નથી. કૃપા કરીને Desktop પરના ફોલ્ડરમાં ચેક કરો.</h3>", 
+            status_code=404
+        )
+    
+    if not subpath or subpath == "":
+        subpath = "index.html"
+    
+    file_path = proj_dir / subpath
+    try:
+        resolved = file_path.resolve()
+        if not str(resolved).startswith(str(proj_dir.resolve())):
+            return HTMLResponse("<h3>Access Denied</h3>", status_code=403)
+    except Exception:
+        return HTMLResponse("<h3>Invalid Path</h3>", status_code=400)
+    
+    if resolved.is_dir():
+        file_path = resolved / "index.html"
+    else:
+        file_path = resolved
+
+    if not file_path.exists():
+        return HTMLResponse(
+            f"<h3>ફાઈલ '{subpath}' પ્રોજેક્ટ '{proj_name}' માં મળી નથી.</h3>", 
+            status_code=404
+        )
+    
+    mime_type, _ = mimetypes.guess_type(str(file_path))
+    return FileResponse(file_path, media_type=mime_type or "application/octet-stream")
+
 # ----------------- Master Landing Portal UI -----------------
 PORTAL_UI_DIR = ROOT / "portal_ui"
 if PORTAL_UI_DIR.exists():

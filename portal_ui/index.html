@@ -31,7 +31,11 @@
         </div>
         <div class="badge badge-info" id="dbStatusBadge">
           <span class="dot"></span>
-          <span>DigiCorp SQL Connected</span>
+          <span>DigiCorp SQL: Connected</span>
+        </div>
+        <div class="badge badge-success" id="syncStatusBadge">
+          <span class="dot"></span>
+          <span id="syncStatusText">Auto-Cloud: Live</span>
         </div>
       </div>
     </div>
@@ -156,6 +160,22 @@
         </div>
       </a>
 
+    <!-- Section: Custom User Projects (Auto-Discovered & Auto-Live) -->
+    <div class="section-header" style="margin-top: 48px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h2>🚀 તમારા નવા પ્રોજેક્ટ્સ (Auto-Detected Live)</h2>
+          <p>તમે ડેસ્કટોપ પર બનાવેલા કે મૂકેલા તમામ પ્રોજેક્ટ્સ અહીં આપોઆપ લાઈવ દેખાશે:</p>
+        </div>
+        <button class="btn-copy-link" id="btnRefreshProjects" style="padding: 8px 16px; font-size: 13px;" title="પ્રોજેક્ટ્સ રિફ્રેશ કરો">
+          🔄 રિફ્રેશ કરો
+        </button>
+      </div>
+    </div>
+
+    <!-- User Projects Grid -->
+    <div class="cards-grid" id="userProjectsGrid">
+      <!-- Populated dynamically by app.js -->
     </div>
 
     <!-- Quick Tools & Info -->
