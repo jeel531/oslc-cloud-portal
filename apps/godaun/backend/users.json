@@ -1,0 +1,345 @@
+[
+  {
+    "username": "admin",
+    "password": "admin",
+    "worker_name": "ADMIN",
+    "role": "admin",
+    "created_at": "2026-09-22 11:00:00"
+  },
+  {
+    "username": "sonu",
+    "password": "sonu@123",
+    "worker_name": "SONU",
+    "role": "worker",
+    "created_at": "2026-09-22 11:25:00"
+  },
+  {
+    "username": "amit1",
+    "password": "1234",
+    "worker_name": "AMIT",
+    "role": "worker",
+    "created_at": "2026-09-23 12:35:00"
+  },
+  {
+    "username": "amit",
+    "password": "1234",
+    "worker_name": "AMIT",
+    "role": "worker",
+    "created_at": "2026-09-23 12:35:00"
+  },
+  {
+    "username": "ravi",
+    "password": "1234",
+    "worker_name": "RAVI",
+    "role": "worker",
+    "created_at": "2026-09-23 12:35:00"
+  },
+  {
+    "username": "sekhripan",
+    "password": "1234",
+    "worker_name": "SEKHRIPAN",
+    "role": "worker",
+    "created_at": "2026-09-23 12:35:00"
+  },
+  {
+    "username": "niraj",
+    "password": "1234",
+    "worker_name": "NIRAJ",
+    "role": "worker",
+    "created_at": "2026-09-23 12:35:00"
+  },
+  {
+    "username": "rahulparmar",
+    "password": "1234",
+    "worker_name": "RAHULPARMAR",
+    "role": "worker",
+    "created_at": "2026-09-23 12:35:00"
+  },
+  {
+    "username": "po1",
+    "password": "1234",
+    "worker_name": "PO",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "mayurvaghela1",
+    "password": "1234",
+    "worker_name": "MAYURVAGHELA",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "jeel1",
+    "password": "1234",
+    "worker_name": "JEEL",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "oslc_admin_50101",
+    "password": "1234",
+    "worker_name": "OSLC_ADMIN_5010",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "parveen1",
+    "password": "1234",
+    "worker_name": "PARVEEN",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "lalbabu1",
+    "password": "1234",
+    "worker_name": "LALBABU",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "azahar1",
+    "password": "1234",
+    "worker_name": "AZAHAR",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "lucky1",
+    "password": "1234",
+    "worker_name": "LUCKY",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "bunty1",
+    "password": "1234",
+    "worker_name": "BUNTY",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "yash1",
+    "password": "1234",
+    "worker_name": "YASH",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "barcode21",
+    "password": "1234",
+    "worker_name": "BARCODE2",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "nasir1",
+    "password": "1234",
+    "worker_name": "NASIR",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "tohimul1",
+    "password": "1234",
+    "worker_name": "TOHIMUL",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "bashir1",
+    "password": "1234",
+    "worker_name": "BASHIR",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "uttam1",
+    "password": "1234",
+    "worker_name": "UTTAM",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "hemlata1",
+    "password": "1234",
+    "worker_name": "HEMLATA",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "atikul1",
+    "password": "1234",
+    "worker_name": "ATIKUL",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "dharmesh1",
+    "password": "1234",
+    "worker_name": "DHARMESH",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "sikendar1",
+    "password": "1234",
+    "worker_name": "SIKENDAR",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "nasim21",
+    "password": "1234",
+    "worker_name": "NASIM 2",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "bhumi1",
+    "password": "1234",
+    "worker_name": "BHUMI",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "vinay1",
+    "password": "1234",
+    "worker_name": "VINAY",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "gopal1",
+    "password": "1234",
+    "worker_name": "GOPAL",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "madan1",
+    "password": "1234",
+    "worker_name": "MADAN",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "milan11",
+    "password": "1234",
+    "worker_name": "MILAN1",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "abdul1",
+    "password": "1234",
+    "worker_name": "ABDUL",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "vinaykumar1",
+    "password": "1234",
+    "worker_name": "VINAY KUMAR",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "pratik1",
+    "password": "1234",
+    "worker_name": "PRATIK",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "sneha1",
+    "password": "1234",
+    "worker_name": "SNEHA",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "lalji1",
+    "password": "1234",
+    "worker_name": "LALJI",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "zeel1",
+    "password": "1234",
+    "worker_name": "ZEEL",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "rushant1",
+    "password": "1234",
+    "worker_name": "RUSHANT",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "sanjay21",
+    "password": "1234",
+    "worker_name": "SANJAY2",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "helish1",
+    "password": "1234",
+    "worker_name": "HELISH",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "abzal1",
+    "password": "1234",
+    "worker_name": "ABZAL",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "brijeshadabhi1",
+    "password": "1234",
+    "worker_name": "BRIJESHA DABHI",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "rahul1",
+    "password": "1234",
+    "worker_name": "RAHUL",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "madankhambhu1",
+    "password": "1234",
+    "worker_name": "MADANKHAMBHU",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "lumora_admin_50101",
+    "password": "1234",
+    "worker_name": "LUMORA_ADMIN_5010",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "amir1",
+    "password": "1234",
+    "worker_name": "AMIR",
+    "role": "worker",
+    "created_at": "2026-09-23 12:56:43"
+  },
+  {
+    "username": "mayur1",
+    "password": "mayur@1234",
+    "worker_name": "MAYUR",
+    "role": "worker",
+    "created_at": "2026-09-24 18:48:27"
+  }
+]

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Stock Report - DigiCorp | OSLC</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css?v=2.0">
+</head>
+<body>
+  <div class="app-shell">
+    
+    <!-- Top DigiCorp Header (Exact Replica of DigiCorp Header) -->
+    <header class="digi-header">
+      <div class="header-inner">
+        
+        <!-- Left: DigiCorp Logo & Title -->
+        <div class="brand-group">
+          <div class="digi-logo-grid">
+            <span class="box green"></span>
+            <span class="box red"></span>
+            <span class="box yellow"></span>
+            <span class="box blue"></span>
+          </div>
+          <div class="digi-title-col">
+            <div class="digi-corp-name">
+              <span class="corp-bold">DigiCorp</span>
+              <span class="corp-sub">Agile.Mobile.Cloud</span>
+            </div>
+            <h1 class="screen-title">Stock Report</h1>
+          </div>
+        </div>
+
+        <!-- Right: Creator Badge & Live Status -->
+        <div class="header-meta">
+          <div class="creator-badge" title="Developer & System Architect">
+            <span class="creator-star">⭐</span>
+            <span class="creator-label">Created by</span>
+            <span class="creator-name">Jeel Vaghani</span>
+          </div>
+          
+          <div class="live-pill" id="liveStatusPill">
+            <span class="pulse-dot"></span>
+            <span id="liveStatusText">DigiBizz LIVE</span>
+          </div>
+
+          <div class="header-btns">
+            <button id="btnExcelExport" class="btn btn-excel" title="Download Excel (.xlsx)">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Excel</span>
+            </button>
+            
+            <button id="btnRefresh" class="btn btn-refresh" title="Refresh Live Data">
+              <svg id="refreshIcon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+              </svg>
+            </button>
+
+            <!-- Mode Selector (Visible in Android APK) -->
+            <button id="btnAppMode" class="btn btn-mode hidden" title="Connection Settings">
+              ⚙️
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- DigiCorp Grouping Strip: 'Drag a column header here to group by that column' -->
+    <div class="group-strip">
+      <div class="group-strip-inner">
+        <span class="group-drag-hint">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="8" y1="6" x2="21" y2="6"></line>
+            <line x1="8" y1="12" x2="21" y2="12"></line>
+            <line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+          </svg>
+          Drag a column header here to group by that column:
+        </span>
+        <div class="group-chips" id="groupChipsContainer">
+          <button class="chip-btn active" data-group="none">Flat View</button>
+          <button class="chip-btn" data-group="DESIGN_NO">Group: Design</button>
+          <button class="chip-btn" data-group="SHELF_NO">Group: Shelf</button>
+          <button class="chip-btn" data-group="SIZE">Group: Size</button>
+          <button class="chip-btn" data-group="PORTAL">Group: Portal</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary KPI Cards -->
+    <section class="kpi-grid">
+      <div class="kpi-card fresh">
+        <div class="kpi-icon">📦</div>
+        <div class="kpi-data">
+          <span class="kpi-label">FRESH PIECES</span>
+          <span class="kpi-value" id="kpiFresh">--</span>
+        </div>
+      </div>
+
+      <div class="kpi-card balance">
+        <div class="kpi-icon">⚖️</div>
+        <div class="kpi-data">
+          <span class="kpi-label">BALANCE PIECES</span>
+          <span class="kpi-value" id="kpiBalance">--</span>
+        </div>
+      </div>
+
+      <div class="kpi-card skus">
+        <div class="kpi-icon">🏷️</div>
+        <div class="kpi-data">
+          <span class="kpi-label">UNIQUE SKUS</span>
+          <span class="kpi-value" id="kpiSkus">--</span>
+        </div>
+      </div>
+
+      <div class="kpi-card designs">
+        <div class="kpi-icon">🎨</div>
+        <div class="kpi-data">
+          <span class="kpi-label">DESIGNS</span>
+          <span class="kpi-value" id="kpiDesigns">--</span>
+        </div>
+      </div>
+
+      <div class="kpi-card shelves">
+        <div class="kpi-icon">📍</div>
+        <div class="kpi-data">
+          <span class="kpi-label">ACTIVE SHELVES</span>
+          <span class="kpi-value" id="kpiShelves">--</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Super-Fast Instant 0.01s Search Bar -->
+    <section class="search-section">
+      <div class="search-wrapper">
+        <svg class="search-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input 
+          type="text" 
+          id="stockSearchInput" 
+          class="search-input" 
+          placeholder="Digi Search: Type SKU Code, Design, Size, Shelf (Instant 0.01s Filter)..."
+          autocomplete="off"
+          spellcheck="false"
+        >
+        <button id="btnClearSearch" class="btn-clear-search hidden" title="Clear Search">✕</button>
+      </div>
+
+      <!-- Live Speed & Result Banner -->
+      <div class="search-meta-bar">
+        <div class="search-speed-badge">
+          <span class="bolt-icon">⚡</span>
+          <span id="speedTimer">0.003s</span>
+          <span class="speed-label">(Fast 0.01s Search)</span>
+        </div>
+        <div class="search-count-badge">
+          Showing: <strong id="matchCount">0</strong> / <span id="totalCount">0</span> records
+        </div>
+      </div>
+    </section>
+
+    <!-- Data Grid / Stock Table Area -->
+    <main class="grid-container">
+      <div class="table-responsive" id="tableScrollArea">
+        <table class="digi-stock-table" id="stockTable">
+          <thead>
+            <tr>
+              <th data-sort="SKU_CODE" class="sortable">
+                <span>SKU Code</span>
+                <span class="sort-arrow">↕</span>
+              </th>
+              <th data-sort="DESIGN_NO" class="sortable">
+                <span>Design No</span>
+                <span class="sort-arrow">↕</span>
+              </th>
+              <th data-sort="SIZE" class="sortable">
+                <span>Size</span>
+                <span class="sort-arrow">↕</span>
+              </th>
+              <th data-sort="SHELF_NO" class="sortable">
+                <span>Shelf No</span>
+                <span class="sort-arrow">↕</span>
+              </th>
+              <th data-sort="FRESH_PCS" class="sortable num-col">
+                <span>Fresh Pcs.</span>
+                <span class="sort-arrow">↕</span>
+              </th>
+              <th data-sort="BALANCE_PIECES" class="sortable num-col">
+                <span>Balance Pcs.</span>
+                <span class="sort-arrow">↕</span>
+              </th>
+              <th data-sort="BLOCK_PCS" class="sortable num-col">
+                <span>Block Pcs.</span>
+                <span class="sort-arrow">↕</span>
+              </th>
+              <th data-sort="PORTAL" class="sortable">
+                <span>Portal</span>
+                <span class="sort-arrow">↕</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody id="stockTableBody">
+            <!-- Dynamic Rows / Groups Rendered by app.js -->
+            <tr>
+              <td colspan="8" class="empty-state">
+                <div class="spinner"></div>
+                <p>Loading Live DigiBizz Stock Data...</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination / Footer Bar -->
+      <div class="table-footer">
+        <div class="rows-per-page">
+          <label for="selectPageSize">Rows per page:</label>
+          <select id="selectPageSize" class="styled-select">
+            <option value="50">50</option>
+            <option value="100" selected>100</option>
+            <option value="250">250</option>
+            <option value="500">500</option>
+            <option value="1000">1000</option>
+            <option value="999999">Show All</option>
+          </select>
+        </div>
+
+        <div class="pagination-controls" id="paginationControls">
+          <button id="btnPrevPage" class="pag-btn" disabled>‹ Prev</button>
+          <span id="pageInfo">Page 1 of 1</span>
+          <button id="btnNextPage" class="pag-btn">Next ›</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- App Bottom Footer -->
+    <footer class="app-footer">
+      <div class="footer-left">
+        <span>DigiCorp Stock Report</span>
+        <span class="dot-sep">•</span>
+        <span id="footerUpdateTime">Last updated: Just now</span>
+      </div>
+      <div class="footer-right">
+        <div class="footer-creator">
+          <span>Architected &amp; Built by</span>
+          <strong class="author-name">Jeel Vaghani</strong>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <script src="app.js?v=2.0"></script>
+</body>
+</html>

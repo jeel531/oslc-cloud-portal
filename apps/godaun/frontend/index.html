@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>OSLC IN OUT REPORT - Live Stock &amp; Piece Rate</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=4.0">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-box">
+          <span class="logo-text">OSLC</span>
+        </div>
+        <div class="header-title-wrap">
+          <h1 class="main-title">OSLC IN OUT REPORT</h1>
+          <div class="subtitle-badge">
+            <span class="live-dot"></span>
+            <span class="subtitle-text">DigiBizz Live Connected</span>
+          </div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <!-- User ID Management Button (Admin Only) -->
+        <button id="btnOpenUserMgmt" class="action-btn user-mgmt-btn hidden" title="યુઝર આઈડી બનાવો / મેનેજ કરો" aria-label="યુઝર આઈડી બનાવો / મેનેજ કરો">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="8.5" cy="7" r="4"></circle>
+            <line x1="20" y1="8" x2="20" y2="14"></line>
+            <line x1="23" y1="11" x2="17" y2="11"></line>
+          </svg>
+          <span class="head-btn-text">ID મેનેજ</span>
+        </button>
+
+        <!-- Current User Profile Badge -->
+        <div id="userBadgeWrap" class="user-badge-chip" title="હાલનું લોગિન">
+          <span id="userBadgeIcon" class="user-badge-icon">👑</span>
+          <span id="userBadgeName" class="user-badge-name">ADMIN</span>
+        </div>
+
+        <!-- Excel Download Button -->
+        <button id="headerExcelBtn" class="action-btn excel-head-btn" title="એક્સેલ ડાઉનલોડ કરો" aria-label="એક્સેલ ડાઉનલોડ કરો">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+        </button>
+
+        <!-- Refresh Button -->
+        <button id="refreshBtn" class="action-btn" title="લાઈવ ડેટા રિફ્રેશ કરો" aria-label="લાઈવ ડેટા રિફ્રેશ કરો">
+          <svg class="refresh-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+          </svg>
+        </button>
+
+        <!-- Logout Button -->
+        <button id="btnLogout" class="action-btn logout-head-btn" title="લોગઆઉટ કરો" aria-label="લોગઆઉટ કરો">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main View Switcher Tabs -->
+    <nav class="main-view-tabs" aria-label="View Navigation">
+      <button class="main-tab-btn active" id="tabViewSalary" data-view="salary">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="3" y1="9" x2="21" y2="9"></line>
+          <line x1="9" y1="21" x2="9" y2="9"></line>
+        </svg>
+        <span>પીસ રેટ હિસાબ (Piece Rate)</span>
+      </button>
+      <button class="main-tab-btn" id="tabViewLive" data-view="live">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        <span>લાઈવ સ્કેનિંગ (Live Scan)</span>
+      </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="app-content">
+
+      <!-- ============================================== -->
+      <!-- VIEW 1: PIECE RATE REPORT (MATCHES PHOTO)      -->
+      <!-- ============================================== -->
+      <section id="viewSalaryReport" class="view-panel active">
+        
+        <!-- ============================================== -->
+        <!-- PROMINENT DATE RANGE SELECTION (ક્યાંથી ક્યાં સુધી) -->
+        <!-- ============================================== -->
+        <div class="filter-card date-selection-card">
+          <div class="filter-title-row">
+            <div class="date-main-title-wrap">
+              <span class="date-icon-badge">📅</span>
+              <div>
+                <h2 class="date-selection-heading">તારીખ પસંદ કરો (ક્યાંથી ક્યાં સુધીનું જોવું છે?)</h2>
+                <p class="date-selection-sub">તારીખ બદલીને 'રિપોર્ટ જુઓ' બટન દબાવો</p>
+              </div>
+            </div>
+            <span class="live-clock-text" id="liveClockTime">--:--:--</span>
+          </div>
+
+          <!-- Date Input Boxes (From Date & To Date) -->
+          <div class="date-range-grid">
+            <div class="date-box" id="boxFromDate">
+              <div class="date-box-header">
+                <span class="date-box-label">કઈ તારીખથી (FROM DATE):</span>
+                <span class="date-box-val-text" id="dispFromDate">21/09/2026</span>
+              </div>
+              <div class="date-input-wrapper">
+                <input type="date" id="salaryFromDate" class="styled-date-input big-date" value="2026-09-21" title="શરૂઆત તારીખ (From Date)" aria-label="શરૂઆત તારીખ (From Date)">
+                <button type="button" class="date-cal-btn" id="btnPickFrom" aria-label="Open From Date Calendar">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="date-box" id="boxToDate">
+              <div class="date-box-header">
+                <span class="date-box-label">કઈ તારીખ સુધી (TO DATE):</span>
+                <span class="date-box-val-text" id="dispToDate">21/09/2026</span>
+              </div>
+              <div class="date-input-wrapper">
+                <input type="date" id="salaryToDate" class="styled-date-input big-date" value="2026-09-21" title="અંતિમ તારીખ (To Date)" aria-label="અંતિમ તારીખ (To Date)">
+                <button type="button" class="date-cal-btn" id="btnPickTo" aria-label="Open To Date Calendar">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Get Report Action Button & Quick Range Pills -->
+          <div class="date-actions-row">
+            <button type="button" id="btnApplyDateRange" class="btn-get-report" aria-label="રિપોર્ટ જુઓ">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <span>રિપોર્ટ જુઓ (GET REPORT)</span>
+            </button>
+
+            <!-- Quick Date Range Pills -->
+            <div class="quick-pills-row">
+              <button type="button" class="pill-btn active" id="rangePillToday">આજે (Today)</button>
+              <button type="button" class="pill-btn" id="rangePillYesterday">ગઈકાલે</button>
+              <button type="button" class="pill-btn" id="rangePill7Days">છેલ્લા ૭ દિવસ</button>
+              <button type="button" class="pill-btn" id="rangePillMonth">આ મહિનો</button>
+              <button type="button" class="pill-btn" id="rangePillLastMonth">ગયો મહિનો</button>
+            </div>
+          </div>
+
+          <!-- Current Active Date Range Display Banner -->
+          <div class="active-range-banner">
+            <span class="range-live-dot"></span>
+            <span class="range-banner-text">હાલનો રિપોર્ટ: <strong id="currentRangeText">21/09/2026 થી 21/09/2026</strong> નો લાઈવ ડેટા</span>
+          </div>
+        </div>
+
+        <!-- Filter & Multiplier Controls Card -->
+        <div class="controls-card">
+          <!-- Search Box -->
+          <div class="search-box-wrap">
+            <label for="salarySearchInput" class="visually-hidden">કર્મચારીનું નામ શોધો</label>
+            <div class="search-input-inner">
+              <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="text" id="salarySearchInput" placeholder="નામ શોધો (Search Employee Name)..." class="styled-search-input" title="કર્મચારીનું નામ શોધો" aria-label="કર્મચારીનું નામ શોધો">
+              <button id="salarySearchClearBtn" class="clear-search-btn hidden" aria-label="Clear search">&times;</button>
+            </div>
+          </div>
+
+          <!-- ======================================================== -->
+          <!-- RATE MULTIPLIERS (0.20, 0.25, 0.30 ... WITH OTHER SAVE) -->
+          <!-- ======================================================== -->
+          <div class="rate-settings-card">
+            
+            <!-- INWARD RATE OPTIONS -->
+            <div class="rate-group-box in-group-box">
+              <div class="rate-group-header">
+                <div class="rate-header-left">
+                  <span class="rate-type-dot in-dot"></span>
+                  <span class="rate-group-title">INWARD રેટ (ઇનવર્ડ પીસ રેટ):</span>
+                </div>
+                <div class="rate-active-badge in-active-badge">
+                  <span>હાલનો રેટ: ₹</span><strong id="activeInRateText">0.20</strong>
+                </div>
+              </div>
+
+              <!-- 5-6 Options Pills for Inward -->
+              <div class="rate-options-pills" id="inRatePills">
+                <button type="button" class="rate-chip active" data-val="0.20">₹0.20</button>
+                <button type="button" class="rate-chip" data-val="0.25">₹0.25</button>
+                <button type="button" class="rate-chip" data-val="0.30">₹0.30</button>
+                <button type="button" class="rate-chip" data-val="0.35">₹0.35</button>
+                <button type="button" class="rate-chip" data-val="0.40">₹0.40</button>
+                <button type="button" class="rate-chip" data-val="0.50">₹0.50</button>
+                <button type="button" class="rate-chip chip-other" data-val="other">Other (બીજો રેટ)</button>
+              </div>
+
+              <!-- Other Custom Input Box for Inward -->
+              <div class="custom-rate-input-row" id="inOtherRow">
+                <label for="inRateInput" class="custom-rate-label">Other IN રેટ (અહીં રકમ લખો):</label>
+                <div class="custom-input-wrap">
+                  <span class="custom-cur-prefix">₹</span>
+                  <input type="number" id="inRateInput" step="0.01" min="0" value="0.20" class="custom-rate-input" placeholder="0.20" title="Inward Custom Rate" aria-label="Inward Custom Rate">
+                  <span class="rate-saved-hint" id="inRateSavedMsg">✓ સેવ થઈ ગયું</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- OUTWARD RATE OPTIONS -->
+            <div class="rate-group-box out-group-box">
+              <div class="rate-group-header">
+                <div class="rate-header-left">
+                  <span class="rate-type-dot out-dot"></span>
+                  <span class="rate-group-title">OUTWARD રેટ (આઉટવર્ડ પીસ રેટ):</span>
+                </div>
+                <div class="rate-active-badge out-active-badge">
+                  <span>હાલનો રેટ: ₹</span><strong id="activeOutRateText">0.35</strong>
+                </div>
+              </div>
+
+              <!-- 5-6 Options Pills for Outward -->
+              <div class="rate-options-pills" id="outRatePills">
+                <button type="button" class="rate-chip" data-val="0.20">₹0.20</button>
+                <button type="button" class="rate-chip" data-val="0.25">₹0.25</button>
+                <button type="button" class="rate-chip" data-val="0.30">₹0.30</button>
+                <button type="button" class="rate-chip active" data-val="0.35">₹0.35</button>
+                <button type="button" class="rate-chip" data-val="0.40">₹0.40</button>
+                <button type="button" class="rate-chip" data-val="0.50">₹0.50</button>
+                <button type="button" class="rate-chip chip-other" data-val="other">Other (બીજો રેટ)</button>
+              </div>
+
+              <!-- Other Custom Input Box for Outward -->
+              <div class="custom-rate-input-row" id="outOtherRow">
+                <label for="outRateInput" class="custom-rate-label">Other OUT રેટ (અહીં રકમ લખો):</label>
+                <div class="custom-input-wrap">
+                  <span class="custom-cur-prefix">₹</span>
+                  <input type="number" id="outRateInput" step="0.01" min="0" value="0.35" class="custom-rate-input" placeholder="0.35" title="Outward Custom Rate" aria-label="Outward Custom Rate">
+                  <span class="rate-saved-hint" id="outRateSavedMsg">✓ સેવ થઈ ગયું</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Download Excel Button -->
+            <div class="excel-action-wrap">
+              <button type="button" id="btnDownloadExcel" class="btn-download-excel full-width" aria-label="Download Excel Sheet">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>📥 આખો રિપોર્ટ એક્સેલ ડાઉનલોડ કરો (DOWNLOAD EXCEL)</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Metric KPI Cards Summary -->
+        <div class="kpi-cards-grid">
+          <div class="kpi-card kpi-inward">
+            <span class="kpi-title">INWARD (0.20)</span>
+            <div class="kpi-numbers">
+              <span class="kpi-pcs" id="kpiInPcs">0</span>
+              <span class="kpi-amt" id="kpiInAmt">₹0.00</span>
+            </div>
+          </div>
+          <div class="kpi-card kpi-outward">
+            <span class="kpi-title">OUTWARD (0.35)</span>
+            <div class="kpi-numbers">
+              <span class="kpi-pcs" id="kpiOutPcs">0</span>
+              <span class="kpi-amt" id="kpiOutAmt">₹0.00</span>
+            </div>
+          </div>
+          <div class="kpi-card kpi-total">
+            <span class="kpi-title">TOTAL HISSAB</span>
+            <div class="kpi-numbers">
+              <span class="kpi-pcs" id="kpiTotalPcs">0 Pcs</span>
+              <span class="kpi-amt highlight" id="kpiTotalAmt">₹0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- TOP 1 TO TOP 5 DASHBOARD LEADERBOARD           -->
+        <!-- ============================================== -->
+        <div class="top-leaderboard-card" id="topLeaderboardCard">
+          <div class="leaderboard-header">
+            <div class="leaderboard-title-left">
+              <span class="leaderboard-icon">🏆</span>
+              <div>
+                <h3 class="leaderboard-title">ટોપ ૫ કર્મચારી ડેશબોર્ડ (TOP 1 TO 5 PERFORMERS)</h3>
+                <p class="leaderboard-sub">સૌથી વધુ કામ / કમાણી કરનાર વર્કર્સ (Top 1 થી Top 5 Leaderboard)</p>
+              </div>
+            </div>
+            <div class="leaderboard-pill">
+              <span class="pulse-dot"></span>
+              <span>સૌથી વધુ કામ ➔ સૌથી ઓછું કામ</span>
+            </div>
+          </div>
+
+          <!-- Cards Grid for Top 1 to Top 5 -->
+          <div class="top5-grid" id="top5CardsContainer">
+            <!-- Dynamically populated via app.js -->
+          </div>
+        </div>
+
+        <!-- Section Info & Hint -->
+        <div class="table-info-bar">
+          <div class="table-info-left">
+            <span class="table-heading-title">કર્મચારી હિસાબ લિસ્ટ</span>
+            <span class="user-counter-pill" id="salaryUserCount">0 વ્યક્તિ</span>
+          </div>
+          <span class="click-hint-text">👉 તારીખ વાઈઝ રિપોર્ટ જોવા નામ પર ક્લિક કરો</span>
+        </div>
+
+        <!-- Main Photo-Styled Table -->
+        <div class="photo-table-container">
+          <table class="photo-styled-table" id="salaryTable">
+            <thead>
+              <tr>
+                <th class="th-name">NAME</th>
+                <th class="th-in">IN</th>
+                <th class="th-in-rate" id="thInRateLabel">0.20</th>
+                <th class="th-out">OUT</th>
+                <th class="th-out-rate" id="thOutRateLabel">0.35</th>
+                <th class="th-total-pc">TOTAL PC</th>
+                <th class="th-total-amt">TOTAL AMT</th>
+              </tr>
+            </thead>
+            <tbody id="salaryTableBody">
+              <tr>
+                <td colspan="7" class="loading-cell">
+                  <div class="table-spinner"></div>
+                  <span>લાઈવ ડેટા મેળવી રહ્યા છીએ...</span>
+                </td>
+              </tr>
+            </tbody>
+            <tfoot id="salaryTableFoot">
+              <!-- Dynamically rendered total row matching photo -->
+            </tfoot>
+          </table>
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 2: LIVE SCANNING / VOUCHERS LIST          -->
+      <!-- ============================================== -->
+      <section id="viewLiveScanning" class="view-panel hidden">
+        
+        <!-- Live Single Date Selector -->
+        <div class="filter-card">
+          <div class="date-header-row">
+            <div class="date-label-wrap">
+              <span class="date-tag">તારીખ પસંદ કરો (SELECT DATE)</span>
+              <h2 class="active-date-display" id="liveSingleDateDisplay">21/09/2026</h2>
+            </div>
+            <div class="date-input-wrap">
+              <input type="date" id="liveDatePickerInput" class="custom-date-input" value="2026-09-21" title="તારીખ પસંદ કરો" aria-label="તારીખ પસંદ કરો">
+              <button id="liveCalendarTriggerBtn" class="cal-btn" aria-label="Pick Date">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          <div class="quick-pills-row">
+            <button class="pill-btn active" id="livePillToday">આજે (Today)</button>
+            <button class="pill-btn" id="livePillYesterday">ગઈકાલે</button>
+            <button class="pill-btn" id="livePillDayBefore">૨ દિવસ પહેલા</button>
+          </div>
+        </div>
+
+        <!-- Mode Switcher: Inward vs Outward Tabs -->
+        <div class="report-type-switch">
+          <button class="type-tab-btn active inward-tab" id="tabInward" data-type="inward">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/>
+            </svg>
+            <span>INWARD રિપોર્ટ</span>
+          </button>
+          <button class="type-tab-btn outward-tab" id="tabOutward" data-type="outward">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M12 15V3m0 0l-4 4m4-4l4 4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/>
+            </svg>
+            <span>OUTWARD રિપોર્ટ</span>
+          </button>
+        </div>
+
+        <!-- Overall Summary Banner for Selected Date -->
+        <div class="summary-hero-card" id="summaryHeroCard">
+          <div class="hero-left">
+            <span class="hero-sub" id="heroReportTitle">WMS Stock Inward Total</span>
+            <div class="hero-number-wrap">
+              <span class="hero-val" id="heroTotalQty">--</span>
+              <span class="hero-unit">Total Pcs.</span>
+            </div>
+            <span class="hero-extra" id="heroUserCountText">કુલ 0 વ્યક્તિઓ કામ કર્યું</span>
+          </div>
+        </div>
+
+        <!-- User Cards List Container -->
+        <div class="user-report-section">
+          <div class="section-title-bar">
+            <div class="title-with-count">
+              <h3 class="section-heading" id="userReportHeading">User Name પ્રમાણે Total Qty.</h3>
+              <span class="user-badge-count" id="activeUserCountBadge">0 Users</span>
+            </div>
+            <span class="touch-hint">વાઉચર જોવા કાર્ડ પર ટચ કરો</span>
+          </div>
+
+          <div class="user-cards-list" id="userCardsList">
+            <div class="loading-state">
+              <div class="spinner"></div>
+              <span>ડેટાબેઝમાંથી યુઝર સમરી લોડ થઈ રહી છે...</span>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 3: WORKER PERSONAL DASHBOARD              -->
+      <!-- ============================================== -->
+      <section id="viewWorkerDashboard" class="view-panel hidden">
+        
+        <!-- Worker Header Hero Card -->
+        <div class="worker-hero-card">
+          <div class="worker-hero-top">
+            <div class="worker-avatar-wrap">
+              <div class="worker-avatar-icon">👤</div>
+              <div>
+                <div class="worker-greeting">સ્વાગત છે,</div>
+                <h2 class="worker-name-display" id="workerHeroName">EMPLOYEE</h2>
+                <div class="worker-role-badge">
+                  <span class="live-dot-green"></span>
+                  <span id="workerAccountTypeLabel">લાઈવ પર્સનલ એકાઉન્ટ</span>
+                </div>
+              </div>
+            </div>
+            <div class="worker-date-time-box">
+              <div class="worker-today-date" id="workerTodayDateDisplay">--/--/----</div>
+              <div class="worker-live-clock" id="workerLiveClock">--:--:--</div>
+            </div>
+          </div>
+
+          <!-- Worker Quick Sub Tabs -->
+          <div class="worker-tabs-bar">
+            <button type="button" class="worker-tab-btn active" id="tabWorkerLive" data-wtab="live">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              <span>મારો આજનો લાઈવ રિપોર્ટ</span>
+            </button>
+            <button type="button" class="worker-tab-btn" id="tabWorkerSalary" data-wtab="salary">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="3" y1="9" x2="21" y2="9"></line>
+                <line x1="9" y1="21" x2="9" y2="9"></line>
+              </svg>
+              <span>મારો તારીખ પ્રમાણે હિસાબ</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- WORKER SUB-PANEL 1: TODAY'S LIVE SCANNING     -->
+        <!-- ============================================== -->
+        <div id="panelWorkerLive" class="worker-subpanel active">
+          
+          <!-- Worker Live Date Picker -->
+          <div class="worker-date-filter-row">
+            <div class="worker-date-picker-wrap">
+              <span class="filter-label">તારીખ:</span>
+              <input type="date" id="workerLiveDateInput" class="styled-date-input compact-date">
+            </div>
+            <div class="worker-quick-date-pills">
+              <button type="button" class="pill-btn active" id="workerPillToday">આજે</button>
+              <button type="button" class="pill-btn" id="workerPillYesterday">ગઈકાલે</button>
+            </div>
+          </div>
+
+          <!-- 3 Big Metric KPI Cards for this Worker -->
+          <div class="worker-kpi-grid">
+            <div class="worker-kpi-card inward-card">
+              <div class="kpi-top-row">
+                <span class="kpi-tag inward-tag">INWARD (ઇનવર્ડ)</span>
+                <span class="kpi-rate-hint">@ ₹<span id="workerInRateDisplay">0.20</span></span>
+              </div>
+              <div class="kpi-big-num" id="workerInPcs">0</div>
+              <div class="kpi-foot-amt">
+                <span>રકમ:</span>
+                <strong id="workerInAmt">₹0.00</strong>
+              </div>
+            </div>
+
+            <div class="worker-kpi-card outward-card">
+              <div class="kpi-top-row">
+                <span class="kpi-tag outward-tag">OUTWARD (આઉટવર્ડ)</span>
+                <span class="kpi-rate-hint">@ ₹<span id="workerOutRateDisplay">0.35</span></span>
+              </div>
+              <div class="kpi-big-num" id="workerOutPcs">0</div>
+              <div class="kpi-foot-amt">
+                <span>રકમ:</span>
+                <strong id="workerOutAmt">₹0.00</strong>
+              </div>
+            </div>
+
+            <div class="worker-kpi-card total-card">
+              <div class="kpi-top-row">
+                <span class="kpi-tag total-tag">કુલ કમાણી (TOTAL)</span>
+                <span class="live-dot-green"></span>
+              </div>
+              <div class="kpi-big-num gold-text" id="workerTotalPcs">0 Pcs</div>
+              <div class="kpi-foot-amt">
+                <span>કુલ હિસાબ:</span>
+                <strong class="gold-text" id="workerTotalAmt">₹0.00</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Inward / Outward Filter Switcher -->
+          <div class="worker-type-toggle-bar">
+            <button type="button" class="worker-type-btn active" id="btnWorkerInwardType">
+              <span>📥 ઇનવર્ડ વાઉચર્સ (Inward)</span>
+              <span class="type-badge" id="workerInCountBadge">0</span>
+            </button>
+            <button type="button" class="worker-type-btn" id="btnWorkerOutwardType">
+              <span>📤 આઉટવર્ડ વાઉચર્સ (Outward)</span>
+              <span class="type-badge" id="workerOutCountBadge">0</span>
+            </button>
+          </div>
+
+          <!-- Search within Scanned Items -->
+          <div class="worker-search-wrap">
+            <input type="text" id="workerItemsSearch" placeholder="Voucher No. અથવા Design શોધો..." class="styled-search-input">
+          </div>
+
+          <!-- Items Table -->
+          <div class="worker-table-wrap">
+            <div id="workerItemsLoader" class="loading-state hidden">
+              <div class="spinner"></div>
+              <span>વાઉચર લિસ્ટ લોડ થઈ રહ્યું છે...</span>
+            </div>
+            <table class="worker-items-table" id="workerItemsTable">
+              <thead>
+                <tr>
+                  <th>Voucher No.</th>
+                  <th>Design No. / Article</th>
+                  <th>Bill No.</th>
+                  <th class="text-right">Qty (Pcs)</th>
+                </tr>
+              </thead>
+              <tbody id="workerItemsTableBody">
+                <!-- Dynamically loaded rows -->
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+        <!-- ============================================== -->
+        <!-- WORKER SUB-PANEL 2: DATEWISE SALARY BREAKDOWN -->
+        <!-- ============================================== -->
+        <div id="panelWorkerSalary" class="worker-subpanel hidden">
+          
+          <!-- Date Range Selection for Worker -->
+          <div class="filter-card date-selection-card">
+            <div class="date-range-grid">
+              <div class="date-box">
+                <div class="date-box-header">
+                  <span class="date-box-label">કઈ તારીખથી:</span>
+                  <span class="date-box-val-text" id="workerDispFromDate">--/--/----</span>
+                </div>
+                <input type="date" id="workerSalaryFromDate" class="styled-date-input big-date">
+              </div>
+
+              <div class="date-box">
+                <div class="date-box-header">
+                  <span class="date-box-label">કઈ તારીખ સુધી:</span>
+                  <span class="date-box-val-text" id="workerDispToDate">--/--/----</span>
+                </div>
+                <input type="date" id="workerSalaryToDate" class="styled-date-input big-date">
+              </div>
+            </div>
+
+            <div class="date-actions-row">
+              <button type="button" id="btnApplyWorkerSalaryDate" class="btn-get-report">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <span>રિપોર્ટ જુઓ</span>
+              </button>
+
+              <div class="quick-pills-row">
+                <button type="button" class="pill-btn active" id="workerSalaryPillMonth">આ મહિનો</button>
+                <button type="button" class="pill-btn" id="workerSalaryPill7Days">છેલ્લા ૭ દિવસ</button>
+                <button type="button" class="pill-btn" id="workerSalaryPillYesterday">ગઈકાલે</button>
+                <button type="button" class="pill-btn" id="workerSalaryPillToday">આજે</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Worker Download Own Excel Button -->
+          <div class="worker-excel-row">
+            <button type="button" id="btnWorkerDownloadExcel" class="btn-excel-primary">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>મારો સંપૂર્ણ Excel હિસાબ ડાઉનલોડ કરો</span>
+            </button>
+          </div>
+
+          <!-- Datewise Table matching photo -->
+          <div class="photo-table-container">
+            <table class="photo-styled-table" id="workerDatewiseTable">
+              <thead>
+                <tr>
+                  <th class="th-name">DATE</th>
+                  <th class="th-in">IN</th>
+                  <th class="th-in-rate" id="thWorkerDatewiseInRate">0.20</th>
+                  <th class="th-out">OUT</th>
+                  <th class="th-out-rate" id="thWorkerDatewiseOutRate">0.35</th>
+                  <th class="th-total-pc">TOTAL PC</th>
+                  <th class="th-total-amt">TOTAL AMT</th>
+                </tr>
+              </thead>
+              <tbody id="workerDatewiseTableBody">
+                <!-- Dynamically loaded datewise rows -->
+              </tbody>
+              <tfoot id="workerDatewiseTableFoot">
+                <!-- Total Row -->
+              </tfoot>
+            </table>
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" id="navBtnSalary">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="3" y1="9" x2="21" y2="9"></line>
+          <line x1="9" y1="21" x2="9" y2="9"></line>
+        </svg>
+        <span>પીસ રેટ</span>
+      </button>
+      <button class="nav-item" id="navBtnLive">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        <span>લાઈવ સ્કેન</span>
+      </button>
+      <button class="nav-item" id="navBtnExcelBottom">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Excel ડાઉનલોડ</span>
+      </button>
+      <button class="nav-item" id="navRefreshBottom">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+        </svg>
+        <span>રિફ્રેશ</span>
+      </button>
+    </nav>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 1: USER DATE-WISE BREAKDOWN (DAY BY DAY REPORT)    -->
+    <!-- ======================================================== -->
+    <div id="userDatewiseModal" class="modal-backdrop hidden">
+      <div class="modal-content modal-datewise-content">
+        <div class="modal-header">
+          <div>
+            <h3 id="datewiseModalUserName" class="modal-title">Employee Name</h3>
+            <p id="datewiseModalSub" class="modal-subtitle">તારીખ વાઈઝ હિસાબ</p>
+          </div>
+          <button id="datewiseModalCloseBtn" class="modal-close" aria-label="Close Datewise Modal">&times;</button>
+        </div>
+
+        <div class="modal-actions-strip">
+          <button id="btnDownloadUserExcel" class="btn-excel-small" aria-label="Download User Excel">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>આ વ્યક્તિનું Excel ડાઉનલોડ કરો</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div id="datewiseModalLoading" class="modal-loader hidden">
+            <div class="spinner"></div>
+            <span>તારીખ પ્રમાણે હિસાબ મેળવી રહ્યા છીએ...</span>
+          </div>
+
+          <!-- Datewise Table matching photo -->
+          <div class="photo-table-container">
+            <table class="photo-styled-table" id="datewiseTable">
+              <thead>
+                <tr>
+                  <th class="th-name">DATE</th>
+                  <th class="th-in">IN</th>
+                  <th class="th-in-rate" id="thDatewiseInRate">0.20</th>
+                  <th class="th-out">OUT</th>
+                  <th class="th-out-rate" id="thDatewiseOutRate">0.35</th>
+                  <th class="th-total-pc">TOTAL PC</th>
+                  <th class="th-total-amt">TOTAL AMT</th>
+                </tr>
+              </thead>
+              <tbody id="datewiseTableBody">
+                <!-- Dynamically rendered day rows -->
+              </tbody>
+              <tfoot id="datewiseTableFoot">
+                <!-- Total row for this user -->
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 2: VOUCHER / DESIGN LEVEL DRILLDOWN                -->
+    <!-- ======================================================== -->
+    <div id="userDrillModal" class="modal-backdrop hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h3 id="drillModalUserName" class="modal-title">User Detail</h3>
+            <p id="drillModalSub" class="modal-subtitle">વાઉચર અને આર્ટિકલ યાદી</p>
+          </div>
+          <button id="modalCloseBtn" class="modal-close" aria-label="Close Voucher Modal">&times;</button>
+        </div>
+        
+        <div class="modal-search-wrap">
+          <input type="text" id="drillSearchInput" placeholder="Design No. અથવા Voucher શોધો..." class="modal-search" title="વાઉચર શોધો" aria-label="વાઉચર શોધો">
+        </div>
+
+        <div class="modal-body">
+          <div id="drillModalLoading" class="modal-loader hidden">
+            <div class="spinner"></div>
+            <span>વિગતો મેળવી રહ્યા છીએ...</span>
+          </div>
+
+          <div class="modal-count-strip" id="modalCountStrip">
+            <span id="modalTotalCountText">Count: 0</span>
+            <span id="modalTotalQtyText">Total Qty: 0 Pcs</span>
+          </div>
+
+          <div class="table-responsive">
+            <table class="drilldown-table">
+              <thead>
+                <tr>
+                  <th>Voucher No.</th>
+                  <th>Design No. / Article</th>
+                  <th>Bill No.</th>
+                  <th class="text-right">Qty. (Pcs.)</th>
+                </tr>
+              </thead>
+              <tbody id="drillTableBody">
+                <!-- Dynamically loaded rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 3: USER / ADMIN LOGIN MODAL                       -->
+    <!-- ======================================================== -->
+    <div id="loginModal" class="modal-backdrop login-backdrop hidden">
+      <div class="modal-content login-card">
+        <div class="login-brand-header">
+          <div class="login-logo-box">
+            <span class="login-logo-text">OSLC</span>
+          </div>
+          <h2 class="login-title">OSLC GODAUN</h2>
+          <p class="login-sub">લાઈવ સ્કેનિંગ અને પીસ રેટ પોર્ટલ</p>
+        </div>
+
+        <!-- Role Select Tabs -->
+        <div class="login-role-tabs">
+          <button type="button" class="login-role-tab active" id="btnRoleWorker" data-role="worker">
+            <span>👤 કર્મચારી (Worker)</span>
+          </button>
+          <button type="button" class="login-role-tab" id="btnRoleAdmin" data-role="admin">
+            <span>👑 એડમિન (Admin)</span>
+          </button>
+        </div>
+
+        <form id="loginForm" class="login-form">
+          <div class="form-group">
+            <label for="loginUsername" class="form-label">
+              <span id="labelLoginId">યુઝર આઈડી (User ID / Username):</span>
+            </label>
+            <div class="input-with-icon">
+              <svg class="field-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <input type="text" id="loginUsername" class="styled-form-input" placeholder="તમારું ID દાખલ કરો..." autocomplete="username" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="loginPassword" class="form-label">પાસવર્ડ અથવા પિન (Password / PIN):</label>
+            <div class="input-with-icon">
+              <svg class="field-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              <input type="password" id="loginPassword" class="styled-form-input" placeholder="પાસવર્ડ / PIN દાખલ કરો..." autocomplete="current-password" required>
+              <button type="button" id="btnTogglePassword" class="btn-toggle-eye" aria-label="Toggle Password Visibility">
+                👁️
+              </button>
+            </div>
+          </div>
+
+          <!-- Remember me checkbox -->
+          <div class="form-checkbox-row">
+            <label class="remember-label">
+              <input type="checkbox" id="chkRememberMe" checked>
+              <span>આ ફોનમાં મને યાદ રાખો (હંમેશા લોગિન રહો)</span>
+            </label>
+          </div>
+
+          <div id="loginErrorMsg" class="login-error-box hidden"></div>
+
+          <button type="submit" id="btnLoginSubmit" class="btn-primary-block">
+            <span class="btn-text">લોગિન કરો (LOGIN)</span>
+            <div class="spinner-small hidden" id="loginSpinner"></div>
+          </button>
+        </form>
+
+        <div class="login-quick-create-wrap">
+          <button type="button" id="btnOpenQuickRegister" class="btn-quick-register-link">
+            ➕ નવું Worker ID બનાવો (Create New ID)
+          </button>
+        </div>
+
+        <div class="login-footer-hint">
+          <p id="loginHelperText">💡 કર્મચારીઓ પોતાનું ID અને Password નાખીને માત્ર પોતાનો લાઈવ રિપોર્ટ જોઈ શકે છે.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: QUICK WORKER REGISTRATION FROM LOGIN -->
+    <div id="quickRegisterModal" class="modal-backdrop hidden">
+      <div class="modal-content modal-register-content">
+        <div class="modal-header">
+          <div>
+            <h3 class="modal-title">➕ નવું Worker ID બનાવો</h3>
+            <p class="modal-subtitle">તમારું નામ પસંદ કરી તમારું નવું ID અને પાસવર્ડ સેટ કરો</p>
+          </div>
+          <button id="btnCloseQuickRegister" class="modal-close" aria-label="Close Register Modal">&times;</button>
+        </div>
+
+        <form id="formQuickRegister" class="mgmt-form-grid" style="padding: 16px 20px;">
+          <div class="form-group">
+            <label class="form-label">કર્મચારીનું નામ (Select Employee):</label>
+            <select id="regWorkerSelect" class="styled-form-select" required>
+              <option value="">-- કર્મચારી પસંદ કરો --</option>
+              <option value="AMIT">AMIT</option>
+              <option value="SONU">SONU</option>
+              <option value="RAVI">RAVI</option>
+              <option value="SEKHRIPAN">SEKHRIPAN</option>
+              <option value="RAHULPARMAR">RAHULPARMAR</option>
+              <option value="NIRAJ">NIRAJ</option>
+              <option value="MAYURVAGHELA">MAYURVAGHELA</option>
+              <option value="AZAHAR">AZAHAR</option>
+              <option value="LALBABU">LALBABU</option>
+              <option value="PARVEEN">PARVEEN</option>
+              <option value="LUCKY">LUCKY</option>
+              <option value="NASIR">NASIR</option>
+              <option value="TOHIMUL">TOHIMUL</option>
+              <option value="BASHIR">BASHIR</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="regUsername" class="form-label">તમારું નવું User ID:</label>
+            <input type="text" id="regUsername" class="styled-form-input" placeholder="દા.ત. amit1" required>
+          </div>
+
+          <div class="form-group">
+            <label for="regPassword" class="form-label">પાસવર્ડ અથવા પિન (Password / PIN):</label>
+            <input type="text" id="regPassword" class="styled-form-input" placeholder="દા.ત. 1234" required>
+          </div>
+
+          <div id="regStatusMsg" class="mgmt-status-msg hidden"></div>
+
+          <button type="submit" id="btnSubmitQuickRegister" class="btn-save-user full-width">
+            <span>✅ આઈડી સેવ કરો અને લોગિન થાઓ (Save & Login)</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 4: ADMIN USER MANAGEMENT (CREATE & MANAGE IDs)    -->
+    <!-- ======================================================== -->
+    <div id="userMgmtModal" class="modal-backdrop hidden">
+      <div class="modal-content modal-mgmt-content">
+        <div class="modal-header">
+          <div>
+            <h3 class="modal-title">યુઝર આઈડી મેનેજમેન્ટ (User IDs)</h3>
+            <p class="modal-subtitle">કર્મચારીઓ માટે ID બનાવો જેથી તેઓ પોતાના ફોનમાં માત્ર પોતાનો લાઈવ રિપોર્ટ જોઈ શકે</p>
+          </div>
+          <button id="btnCloseUserMgmt" class="modal-close" aria-label="Close User Management">&times;</button>
+        </div>
+
+        <div class="mgmt-body-wrap">
+          <!-- Form: Create New User -->
+          <div class="mgmt-card-box">
+            <h4 class="mgmt-box-title">➕ નવું યુઝર આઈડી બનાવો</h4>
+            
+            <form id="formCreateUser" class="mgmt-form-grid">
+              <div class="form-group">
+                <label class="form-label">કર્મચારીનું નામ (DigiBizz Employee):</label>
+                <div class="select-with-search">
+                  <input type="text" id="mgmtWorkerSearch" placeholder="નામ શોધો (દા.ત. AMIR, SANJAY)..." class="styled-form-input search-subinput">
+                  <select id="mgmtWorkerSelect" class="styled-form-select" size="4">
+                    <option value="">-- કર્મચારી પસંદ કરો --</option>
+                  </select>
+                </div>
+                <span class="field-hint">ડેટાબેઝમાં સ્કેનિંગ કરતા કર્મચારીનું નામ પસંદ કરો</span>
+              </div>
+
+              <div class="form-row-2col">
+                <div class="form-group">
+                  <label for="mgmtNewUsername" class="form-label">લોગિન આઈડી (Username):</label>
+                  <input type="text" id="mgmtNewUsername" class="styled-form-input" placeholder="દા.ત. amir1" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="mgmtNewPassword" class="form-label">પાસવર્ડ / PIN:</label>
+                  <input type="text" id="mgmtNewPassword" class="styled-form-input" placeholder="દા.ત. 1234" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">રોલ (Role):</label>
+                <div class="role-radio-group">
+                  <label class="role-radio-label">
+                    <input type="radio" name="mgmtRole" value="worker" checked>
+                    <span>કર્મચારી (Worker - માત્ર પોતાનો લાઈવ રિપોર્ટ)</span>
+                  </label>
+                  <label class="role-radio-label">
+                    <input type="radio" name="mgmtRole" value="admin">
+                    <span>એડમિન (Admin - સંપૂર્ણ અધિકાર)</span>
+                  </label>
+                </div>
+              </div>
+
+              <div id="mgmtFormStatus" class="mgmt-status-msg hidden"></div>
+
+              <button type="submit" id="btnSaveNewUser" class="btn-save-user">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                  <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                <span>આઈડી સેવ કરો (Save User)</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- List: Existing Created Users -->
+          <div class="mgmt-card-box">
+            <div class="mgmt-list-header">
+              <h4 class="mgmt-box-title">👥 બનાવેલા તમામ યુઝર્સ (<span id="mgmtUsersCount">0</span>)</h4>
+              <button type="button" id="btnRefreshUsersList" class="btn-text-action">રિફ્રેશ</button>
+            </div>
+
+            <div class="users-cards-grid" id="mgmtUsersListContainer">
+              <!-- Dynamically rendered user accounts -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 5: EDIT USER & CHANGE PASSWORD                     -->
+    <!-- ======================================================== -->
+    <div id="editUserModal" class="modal-backdrop hidden">
+      <div class="modal-content modal-mgmt-content modal-edit-content">
+        <div class="modal-header">
+          <div>
+            <h3 class="modal-title">✏️ આઈડી એડિટ / પાસવર્ડ બદલો</h3>
+            <p class="modal-subtitle" id="editModalSubtitle">યુઝરની વિગતો અથવા પાસવર્ડ અપડેટ કરો</p>
+          </div>
+          <button id="btnCloseEditUser" class="modal-close" aria-label="Close Edit User">&times;</button>
+        </div>
+
+        <form id="formEditUser" class="mgmt-form-grid" style="padding: 16px 20px 24px;">
+          <input type="hidden" id="editOriginalUsername">
+
+          <div class="form-group" id="editWorkerGroup">
+            <label class="form-label">કર્મચારીનું નામ (DigiBizz Employee):</label>
+            <input type="text" id="editWorkerName" class="styled-form-input" placeholder="કર્મચારીનું નામ (દા.ત. SONU)...">
+            <span class="field-hint">ડેટાબેઝમાં સ્કેનિંગ કરતા કર્મચારીનું સાચું નામ</span>
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="editUsername" class="form-label">લોગિન આઈડી (Username):</label>
+              <input type="text" id="editUsername" class="styled-form-input" required>
+            </div>
+
+            <div class="form-group">
+              <label for="editPassword" class="form-label">પાસવર્ડ અથવા પિન (Password / PIN):</label>
+              <div class="input-with-icon">
+                <input type="text" id="editPassword" class="styled-form-input" placeholder="નવો પાસવર્ડ / PIN..." required>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" id="editRoleGroup">
+            <label class="form-label">રોલ (Role):</label>
+            <div class="role-radio-group">
+              <label class="role-radio-label">
+                <input type="radio" name="editRole" value="worker" id="editRoleWorker">
+                <span>કર્મચારી (Worker - માત્ર પોતાનો લાઈવ રિપોર્ટ)</span>
+              </label>
+              <label class="role-radio-label">
+                <input type="radio" name="editRole" value="admin" id="editRoleAdmin">
+                <span>એડમિન (Admin - સંપૂર્ણ અધિકાર)</span>
+              </label>
+            </div>
+          </div>
+
+          <div id="editFormStatus" class="mgmt-status-msg hidden"></div>
+
+          <div class="edit-btn-actions">
+            <button type="submit" id="btnSaveEditUser" class="btn-save-user" style="flex: 1;">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              <span>ફેરફાર સેવ કરો (Save)</span>
+            </button>
+            <button type="button" id="btnCancelEditUser" class="btn-cancel-edit">
+              રદ કરો
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 6: CONFIRM DELETE USER POPUP                      -->
+    <!-- ======================================================== -->
+    <div id="confirmDeleteModal" class="modal-backdrop hidden">
+      <div class="modal-content delete-confirm-card">
+        <div class="delete-icon-wrap">
+          <span>🗑️</span>
+        </div>
+        <h3 class="delete-title">આઈડી ડિલીટ કરવી છે?</h3>
+        <p class="delete-desc" id="deleteModalDesc">શું તમે ખરેખર આ યુઝર એકાઉન્ટ ડિલીટ કરવા માંગો છો?</p>
+        <div class="delete-actions-row">
+          <button type="button" id="btnConfirmDelete" class="btn-confirm-delete">
+            હા, ડિલીટ કરો
+          </button>
+          <button type="button" id="btnCancelDelete" class="btn-cancel-delete">
+            ના, રદ કરો
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification Popup -->
+    <div id="toastNotification" class="toast-popup hidden">
+      <span id="toastIcon">✅</span>
+      <span id="toastText">સંદેશ</span>
+    </div>
+
+  </div>
+
+  <script src="app.js?v=4.0"></script>
+  <script>
+    function doGodaunHardRefresh() {
+      try {
+        var t = document.getElementById('toastNotification');
+        if (t) {
+          document.getElementById('toastText').innerText = '⚡ Ctrl + F5 તાજું કર્યું! નવો ડેટા આવી રહ્યો છે...';
+          t.classList.remove('hidden');
+        }
+      } catch(_) {}
+
+      if ('caches' in window) {
+        try {
+          caches.keys().then(function(keys) {
+            return Promise.all(keys.map(function(k) { return caches.delete(k); }));
+          }).catch(function() {});
+        } catch(_) {}
+      }
+
+      try { sessionStorage.clear(); } catch(_) {}
+
+      setTimeout(function() {
+        try {
+          var u = new URL(window.location.href);
+          u.searchParams.set('_t', Date.now());
+          window.location.replace(u.href);
+        } catch(e) {
+          window.location.reload(true);
+        }
+      }, 200);
+    }
+
+    window.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey && e.key === 'F5') || e.key === 'F5' || (e.ctrlKey && (e.key === 'r' || e.key === 'R'))) {
+        e.preventDefault();
+        e.stopPropagation();
+        doGodaunHardRefresh();
+      }
+    }, true);
+  </script>
+
+  <button id="floatingGodaunRefreshBtn" onclick="doGodaunHardRefresh()" title="Ctrl + F5 તાજું કરો" style="position:fixed;bottom:20px;right:20px;z-index:99999;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:1px solid rgba(255,255,255,0.3);padding:10px 18px;border-radius:50px;font-size:13px;font-weight:700;box-shadow:0 6px 20px rgba(16,185,129,0.5);cursor:pointer;display:flex;align-items:center;gap:8px;">
+    🔄 <span>Ctrl + F5 તાજું કરો</span>
+  </button>
+</body>
+</html>

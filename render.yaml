@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: oslc-master-portal
+    env: docker
+    plan: free
+    region: singapore
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: PYTHONUNBUFFERED
+        value: "1"

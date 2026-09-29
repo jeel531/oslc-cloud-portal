@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OSLC Karigar Alter & Stitching Report | DigiBizz 127</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body class="luxury-theme">
+
+  <!-- Ambient Luxury Glow Lights -->
+  <div class="luxury-ambient-bg">
+    <div class="luxury-orb orb-gold"></div>
+    <div class="luxury-orb orb-sapphire"></div>
+    <div class="luxury-orb orb-purple"></div>
+  </div>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-wrapper">
+        <div class="brand-logo-badge 3d-glow-box">
+          <img src="/static/oslc_logo.png" alt="OSLC" class="brand-oslc-logo" onerror="this.onerror=null; this.src='oslc_logo.png';">
+          <span class="logo-shine"></span>
+        </div>
+        <div>
+          <div class="brand-top-row">
+            <h1 class="brand-title">OM SAI LATEST CREATION</h1>
+            <!-- Created by Jeel Vaghani Luxury 3D Badge -->
+            <div class="creator-badge-3d" title="Chief Architect & Creator: JEEL VAGHANI">
+              <span class="crown-icon">👑</span>
+              <span class="creator-text">CREATED BY <strong class="creator-name-gold">JEEL VAGHANI</strong></span>
+              <span class="sparkle-anim">✦</span>
+            </div>
+          </div>
+          <div class="brand-subtitle">
+            <span id="lblBrandSubtitle" data-i18n="brand_subtitle">કારીગર ઓલ્ટર અને સ્ટીચિંગ રિસીવ રિપોર્ટ</span>
+            <span class="badge-tag luxury-tag">REPORT 127</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Dark / Light Mode Switcher -->
+        <button class="theme-toggle-btn" id="themeToggleBtn" title="ડાર્ક / લાઇટ મોડ (Dark / Light Mode)">
+          <span class="theme-icon" id="themeIcon">🌙</span>
+          <span class="theme-label" id="themeLabel">Dark</span>
+        </button>
+
+        <!-- 3-Language Switcher (Gujarati, Hindi, English) -->
+        <div class="lang-switcher" id="langSwitcher" title="ભાષા પસંદ કરો / भाषा चुनें / Select Language" data-i18n-title="lang_title">
+          <button class="lang-btn active" data-lang="gu">ગુજરાતી</button>
+          <button class="lang-btn" data-lang="hi">हिन्दी</button>
+          <button class="lang-btn" data-lang="en">English</button>
+        </div>
+
+        <div class="status-indicator" id="dbStatus">
+          <span class="pulse-dot"></span>
+          <span>DigiBizz Live</span>
+        </div>
+
+        <button class="btn btn-secondary" id="refreshBtn" title="ડેટા તાજો કરો" data-i18n-title="refresh_title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          <span id="lblRefresh" data-i18n="refresh">રિફ્રેશ</span>
+        </button>
+
+        <button class="btn btn-success" id="exportExcelBtn" title="બધા શીટ સાથે Excel ફાઇલ ડાઉનલોડ કરો" data-i18n-title="export_excel_title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span id="lblExport" data-i18n="export_excel">Excel ડાઉનલોડ</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-wrapper">
+
+    <!-- Filters & Settings Card -->
+    <section class="filter-card">
+      <div class="filter-row">
+        
+        <!-- Date Presets Grouped -->
+        <div class="preset-pills-container">
+          <!-- Days Options: Today, Yesterday, 5, 7, 10, 15, 20, 25, 30 Days -->
+          <div class="preset-pills-row">
+            <span class="preset-group-label" data-i18n="label_days">દિવસો (Days):</span>
+            <button class="pill-btn" data-preset="today" data-i18n="preset_today">આજે (Today)</button>
+            <button class="pill-btn" data-preset="yesterday" data-i18n="preset_yesterday">ગઈકાલે (Yesterday)</button>
+            <button class="pill-btn" data-preset="5days" data-i18n="preset_5days">5 Days</button>
+            <button class="pill-btn" data-preset="last7" data-i18n="preset_last7">7 Days</button>
+            <button class="pill-btn" data-preset="10days" data-i18n="preset_10days">10 Days</button>
+            <button class="pill-btn" data-preset="15days" data-i18n="preset_15days">15 Days</button>
+            <button class="pill-btn" data-preset="20days" data-i18n="preset_20days">20 Days</button>
+            <button class="pill-btn" data-preset="25days" data-i18n="preset_25days">25 Days</button>
+            <button class="pill-btn" data-preset="30days" data-i18n="preset_30days">30 Days</button>
+          </div>
+
+          <!-- Months & Years Options: This Month, Last Month, Next Month, Next 2 Months, 2025, 2026, All Time -->
+          <div class="preset-pills-row">
+            <span class="preset-group-label" data-i18n="label_months">મહિના (Months):</span>
+            <button class="pill-btn active" data-preset="thisMonth" data-i18n="preset_this_month">આ મહિનો (This Month)</button>
+            <button class="pill-btn" data-preset="lastMonth" data-i18n="preset_last_month">ગયો મહિનો (Last Month)</button>
+            <button class="pill-btn" data-preset="nextMonth" data-i18n="preset_next_month">Next Month (આગામી મહિનો)</button>
+            <button class="pill-btn" data-preset="next2Months" data-i18n="preset_next_2months">Next 2 Months (૨ મહિના)</button>
+            
+            <span class="preset-group-label" style="margin-left: 6px;" data-i18n="label_years">વર્ષ (Years):</span>
+            <button class="pill-btn" data-preset="year2025" data-i18n="preset_year_2025">2025</button>
+            <button class="pill-btn" data-preset="year2026" data-i18n="preset_year_2026">2026</button>
+            <button class="pill-btn" data-preset="all" data-i18n="preset_all">આખું વર્ષ (All Time)</button>
+          </div>
+        </div>
+
+        <!-- Custom Date & Alter Mode Inputs -->
+        <div class="filter-inputs">
+          <div class="input-group">
+            <label for="fromDate" data-i18n="from_date">તારીખ થી:</label>
+            <input type="date" id="fromDate" class="form-control">
+          </div>
+
+          <div class="input-group">
+            <label for="toDate" data-i18n="to_date">સુધી:</label>
+            <input type="date" id="toDate" class="form-control">
+          </div>
+
+          <div class="input-group">
+            <label for="alterMode" data-i18n="alter_mode">ઓલ્ટર પ્રકાર:</label>
+            <select id="alterMode" class="form-control">
+              <option value="ALTER_ISSUE" selected data-i18n="opt_alter_issue">Alter Issue (કારીગર ઇશ્યુ - સ્ટાન્ડર્ડ)</option>
+              <option value="ALTER_RECEIVE" data-i18n="opt_alter_receive">Alter Receive (રીસીવ)</option>
+              <option value="BOTH" data-i18n="opt_alter_both">બંને (Issue + Receive)</option>
+            </select>
+          </div>
+
+          <button class="btn btn-primary" id="applyFilterBtn">
+            <span data-i18n="apply_filter">લાગુ કરો</span>
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Top KPI Cards -->
+    <section class="metrics-grid">
+      
+      <!-- STR Receive Pcs -->
+      <div class="metric-card stitch tilt-card-3d">
+        <div class="card-glass-sheen"></div>
+        <div class="metric-header">
+          <span class="metric-title" data-i18n="kpi_sti_title">કુલ STR (Stitching Receive Pcs)</span>
+          <div class="metric-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          </div>
+        </div>
+        <div class="metric-value" id="kpiStiQty">0</div>
+        <div class="metric-footer">
+          <span id="kpiStiDesigns">0</span> <span data-i18n="kpi_sti_sub">ડિઝાઈન (Designs)</span>
+        </div>
+      </div>
+
+      <!-- Alter Pcs -->
+      <div class="metric-card alter tilt-card-3d">
+        <div class="card-glass-sheen"></div>
+        <div class="metric-header">
+          <span class="metric-title" data-i18n="kpi_alt_title">કુલ ઓલ્ટર (Alter Pcs)</span>
+          <div class="metric-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+        </div>
+        <div class="metric-value" id="kpiAltQty" style="color: #f43f5e;">0</div>
+        <div class="metric-footer">
+          <span id="kpiAltDesigns">0</span> <span data-i18n="kpi_alt_sub">ઓલ્ટર ડિઝાઈન</span>
+        </div>
+      </div>
+
+      <!-- Alter % -->
+      <div class="metric-card percent tilt-card-3d">
+        <div class="card-glass-sheen"></div>
+        <div class="metric-header">
+          <span class="metric-title" data-i18n="kpi_pct_title">ઓલ્ટર ટકાવારી (Alter %)</span>
+          <div class="metric-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+          </div>
+        </div>
+        <div class="metric-value" id="kpiAltPercent">0.00%</div>
+        <div class="metric-footer">
+          <span id="kpiAltRating">સામાન્ય</span>
+        </div>
+      </div>
+
+      <!-- Total Pieces -->
+      <div class="metric-card total tilt-card-3d">
+        <div class="card-glass-sheen"></div>
+        <div class="metric-header">
+          <span class="metric-title" data-i18n="kpi_total_title">કુલ પીસ (Total Pcs)</span>
+          <div class="metric-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          </div>
+        </div>
+        <div class="metric-value" id="kpiTotalQty">0</div>
+        <div class="metric-footer" data-i18n="kpi_total_sub">
+          સ્ટીચિંગ + ઓલ્ટર એકંદર
+        </div>
+      </div>
+
+      <!-- Active Karigars -->
+      <div class="metric-card karigars tilt-card-3d">
+        <div class="card-glass-sheen"></div>
+        <div class="metric-header">
+          <span class="metric-title" data-i18n="kpi_karigars_title">સક્રિય કારીગરો (Karigars)</span>
+          <div class="metric-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+        </div>
+        <div class="metric-value" id="kpiKarigarCount">0</div>
+        <div class="metric-footer" data-i18n="kpi_karigars_sub">
+          કુલ કામદાર / દરજી
+        </div>
+      </div>
+
+    </section>
+
+    <!-- View Mode Switcher with Dropdown on Side -->
+    <div class="view-switch-bar">
+      <div class="view-dropdown-box">
+        <label for="reportPageSelect" class="view-dropdown-label">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 6h16M4 12h16M4 18h7"/></svg>
+          <span data-i18n="lbl_select_report">રિપોર્ટ પસંદ કરો (Select Report):</span>
+        </label>
+        <select id="reportPageSelect" class="form-control report-select-dropdown">
+          <option value="karigar" selected data-i18n="opt_rep_karigar">1. 👥 કારીગર-વાઇઝ રિપોર્ટ (Karigar Report)</option>
+          <option value="lineman" data-i18n="opt_rep_lineman">2. ⭐ લાઇનમેન ઓલ્ટર રેન્કિંગ (Lineman Ranking)</option>
+          <option value="comparison" data-i18n="opt_rep_comparison">3. 📅 ૨ સમયગાળા સરખામણી (2-Period Comparison)</option>
+          <option value="alter_checking" data-i18n="opt_rep_alter_checking">4. 🔍 ઓલ્ટર ચેકિંગ (Alter Checking - DB Alter)</option>
+        </select>
+      </div>
+
+      <div class="view-switch-container">
+        <button class="view-switch-btn active" id="viewModeKarigarBtn" data-view="karigar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span data-i18n="view_karigar">કારીગર-વાઇઝ રિપોર્ટ (Karigar Report)</span>
+        </button>
+        <button class="view-switch-btn" id="viewModeLinemanBtn" data-view="lineman">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span data-i18n="view_lineman">લાઇનમેન ઓલ્ટર રેન્કિંગ (Lineman Alter Ranking)</span>
+        </button>
+        <button class="view-switch-btn" id="viewModeComparisonBtn" data-view="comparison">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="10" x2="12" y2="22"/></svg>
+          <span data-i18n="view_comparison">૨ સમયગાળા સરખામણી રિપોર્ટ (2-Period Comparison)</span>
+        </button>
+        <button class="view-switch-btn" id="viewModeAlterCheckingBtn" data-view="alter_checking">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <span data-i18n="view_alter_checking">ઓલ્ટર ચેકિંગ (Alter Checking)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 1. KARIGAR VIEW SECTION (PAGE 1) -->
+    <div id="karigarViewSection">
+      <!-- Page 1: Top 1 to 5 Karigars Ranking Card -->
+      <section class="table-card top-ranking-card" id="karigarTop5Section" style="margin-bottom: 1.5rem;">
+        <div class="table-header-bar" style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.4), rgba(59, 130, 246, 0.2)); border-bottom: 1px solid rgba(59, 130, 246, 0.3);">
+          <div class="table-title">
+            <span style="color: #60a5fa; font-weight: 800;" data-i18n="top5_karigar_title">🏆 પેજ ૧: ટોપ ૧ થી ૫ કારીગરો (Top 1 to 5 Tailors Ranking)</span>
+            <span class="badge-tag" style="background: rgba(59, 130, 246, 0.2); color: #93c5fd;">PAGE 1 : KARIGAR REPORT</span>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th style="width: 75px; text-align: center;" data-i18n="th_rank">રેન્ક</th>
+                <th style="width: 105px; text-align: center;">DOJ</th>
+                <th data-i18n="th_employee">EMPLOYEE</th>
+                <th data-i18n="th_name">KARIGAR NAME</th>
+                <th data-i18n="th_floor">FLOOR / LINEMAN</th>
+                <th class="numeric" data-i18n="th_str_qty">STR QTY</th>
+                <th class="numeric" data-i18n="th_alt_qty">ALTER QTY</th>
+                <th class="numeric" data-i18n="th_alt_pct">ALTER %</th>
+                <th style="text-align: center;" data-i18n="th_details">વિગત</th>
+              </tr>
+            </thead>
+            <tbody id="karigarTop5TableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Floor Tabs Navigation -->
+      <div class="tabs-bar" id="floorTabs">
+        <button class="tab-btn active" data-floor="ALL">
+          <span data-i18n="tab_all">બધા (ALL)</span>
+          <span class="tab-count" id="tabCountALL">0</span>
+        </button>
+        <button class="tab-btn" data-floor="E2 - MUSHID BHAI">
+          <span>E2 - MUSHID BHAI</span>
+          <span class="tab-count" id="tabCountE2">0</span>
+        </button>
+        <button class="tab-btn" data-floor="E3 - SADDAM BHAI">
+          <span>E3 - SADDAM BHAI</span>
+          <span class="tab-count" id="tabCountE3">0</span>
+        </button>
+        <button class="tab-btn" data-floor="O3 - RAFIK BHAI">
+          <span>O3 - RAFIK BHAI</span>
+          <span class="tab-count" id="tabCountO3">0</span>
+        </button>
+        <button class="tab-btn" data-floor="E5 - TOHIDUL BHAI">
+          <span>E5 - TOHIDUL BHAI</span>
+          <span class="tab-count" id="tabCountE5">0</span>
+        </button>
+        <button class="tab-btn" data-floor="MIX">
+          <span data-i18n="tab_mix">MIX / OTHER</span>
+          <span class="tab-count" id="tabCountMIX">0</span>
+        </button>
+      </div>
+
+      <!-- Data Table Card -->
+      <section class="table-card">
+        <div class="table-header-bar">
+          <div class="table-title">
+            <span data-i18n="table_title">કારીગર-વાઈઝ સમરી ટેબલ</span>
+            <span class="badge-tag" id="tableRecordCount">0 કારીગરો</span>
+          </div>
+
+          <div class="input-group">
+            <input type="text" id="searchInput" class="form-control search-input" placeholder="કારીગર નામ, કોડ, ફ્લોર શોધો..." data-i18n-placeholder="search_placeholder">
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="report-table" id="reportTable">
+            <thead>
+              <tr>
+                <th rowspan="2" style="width: 40px; text-align: center;" data-i18n="th_num">#</th>
+                <th rowspan="2" data-i18n="th_employee">EMPLOYEE (કોડ : નામ)</th>
+                <th rowspan="2" data-i18n="th_floor">FLOOR / LINE MAN</th>
+                <th colspan="2" style="text-align: center; border-left: 2px solid rgba(255,255,255,0.3);" data-i18n="th_str_group">STR (STITCHING RECEIVE)</th>
+                <th colspan="3" style="text-align: center; border-left: 2px solid rgba(255,255,255,0.3);" data-i18n="th_alter_group">ALTER (ઓલ્ટર)</th>
+                <th rowspan="2" style="text-align: center;" data-i18n="th_details">વિગત</th>
+              </tr>
+              <tr class="sub-header">
+                <th class="numeric" style="border-left: 2px solid #cbd5e1;" data-i18n="th_str_designs">STR DESIGN COUNT</th>
+                <th class="numeric" data-i18n="th_str_qty">STR QTY (PCS.)</th>
+                <th class="numeric" style="border-left: 2px solid #cbd5e1;" data-i18n="th_alt_designs">ALTER DESIGN COUNT</th>
+                <th class="numeric" data-i18n="th_alt_qty">ALTER QTY (PCS.)</th>
+                <th class="numeric" title="ALTER / STR * 100%" data-i18n="th_alt_pct">ALTER %</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <!-- Dynamically Loaded -->
+            </tbody>
+            <tfoot id="tableFoot">
+              <!-- Dynamically Loaded Totals Row -->
+            </tfoot>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- 2. LINEMAN VIEW SECTION -->
+    <div id="linemanViewSection" style="display: none;">
+      
+      <!-- Lineman Alert Banner -->
+      <div class="lineman-alert-banner" id="linemanAlertBanner">
+        <div class="alert-icon-title">
+          <div class="alert-badge-icon">!</div>
+          <div>
+            <div class="alert-title" id="alertLinemanTitle">ઓલ્ટર એનાલિસિસ લોડ થઈ રહ્યું છે...</div>
+            <div class="alert-desc" id="alertLinemanDesc">ફેક્ટરીના લાઇનમેનોમાં ઓલ્ટરની સરખામણી.</div>
+          </div>
+        </div>
+        <div>
+          <span class="pct-badge pct-red" id="alertLinemanBadge" style="font-size: 0.9rem; padding: 6px 14px;" data-i18n="alert_rank_badge">સૌથી વધુ ઓલ્ટર</span>
+        </div>
+      </div>
+
+      <!-- Lineman Cards Grid -->
+      <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 1rem; color: #0f172a;" data-i18n="lineman_perf_title">
+        લાઇનમેન પરફોર્મન્સ અને ઓલ્ટર રેન્કિંગ (Worst to Best)
+      </h3>
+      <div class="lineman-grid" id="linemanGrid">
+        <!-- Loaded Dynamically -->
+      </div>
+
+      <!-- Page 2: Top 1 to 5 Lineman Ranking Cards -->
+      <section class="table-card top-ranking-card" id="linemanTop5Section" style="margin-bottom: 1.5rem;">
+        <div class="table-header-bar" style="background: linear-gradient(135deg, rgba(13, 148, 136, 0.4), rgba(20, 184, 166, 0.2)); border-bottom: 1px solid rgba(20, 184, 166, 0.3);">
+          <div class="table-title">
+            <span style="color: #2dd4bf; font-weight: 800;" data-i18n="top5_lineman_title">🏆 પેજ ૨: ટોપ ૧ થી ૫ લાઇનમેન રેન્કિંગ (Top 1 to 5 Lineman Ranking)</span>
+            <span class="badge-tag" style="background: rgba(20, 184, 166, 0.2); color: #99f6e4;">PAGE 2 : LINEMAN RANKING</span>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th style="width: 75px; text-align: center;" data-i18n="th_rank">રેન્ક</th>
+                <th data-i18n="th_floor">FLOOR / LINEMAN</th>
+                <th class="numeric" data-i18n="th_total_karigars">કુલ કારીગરો</th>
+                <th class="numeric" data-i18n="th_str_qty">STR QTY (PCS.)</th>
+                <th class="numeric" data-i18n="th_alt_qty">ALTER QTY (PCS.)</th>
+                <th class="numeric" data-i18n="th_total_pieces">TOTAL PIECES</th>
+                <th class="numeric" data-i18n="th_alt_pct">ALTER %</th>
+                <th data-i18n="th_worst_karigar">સૌથી વધુ ઓલ્ટર વાળો કારીગર</th>
+              </tr>
+            </thead>
+            <tbody id="linemanTop5TableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Lineman Comparison Table Card -->
+      <section class="table-card" style="margin-bottom: 2rem;">
+        <div class="table-header-bar">
+          <div class="table-title">
+            <span data-i18n="lineman_table_title">લાઇનમેન-વાઇઝ ઓલ્ટર કમ્પેરિઝન ટેબલ</span>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="report-table" id="linemanTable">
+            <thead>
+              <tr>
+                <th style="width: 60px; text-align: center;" data-i18n="th_rank">રેન્ક</th>
+                <th data-i18n="th_floor">FLOOR / LINEMAN</th>
+                <th class="numeric" data-i18n="th_total_karigars">કુલ કારીગરો</th>
+                <th class="numeric" data-i18n="th_str_qty">STR QTY (PCS.)</th>
+                <th class="numeric" data-i18n="th_alt_qty">ALTER QTY (PCS.)</th>
+                <th class="numeric" data-i18n="th_total_pieces">TOTAL PIECES</th>
+                <th class="numeric" data-i18n="th_alt_pct">ALTER %</th>
+                <th class="numeric" data-i18n="th_high_alter_tailors">હાઈ ઓલ્ટર દરજી (&gt; 5%)</th>
+                <th data-i18n="th_worst_karigar">સૌથી વધુ ઓલ્ટર વાળો કારીગર</th>
+                <th style="text-align: center;" data-i18n="th_action">એક્શન</th>
+              </tr>
+            </thead>
+            <tbody id="linemanTableBody">
+              <!-- Loaded Dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Factory Top 15 Worst Tailors Card -->
+      <section class="table-card">
+        <div class="table-header-bar" style="background: #fef2f2; border-bottom: 1px solid #fecaca;">
+          <div class="table-title" style="color: #991b1b;">
+            <span data-i18n="top15_title">⚠️ સમગ્ર ફેક્ટરીમાં સૌથી વધુ ઓલ્ટર વાળા ટોપ 15 કારીગરો (Top High Alter Tailors)</span>
+          </div>
+          <span class="badge-tag" style="background: #fee2e2; color: #b91c1c;" data-i18n="badge_attention">ધ્યાન આપવા જેવું</span>
+        </div>
+        <div class="table-responsive">
+          <table class="report-table" id="topWorstTable">
+            <thead>
+              <tr>
+                <th style="width: 50px; text-align: center;" data-i18n="th_num">#</th>
+                <th data-i18n="th_employee">EMPLOYEE</th>
+                <th>KARIGAR NAME</th>
+                <th data-i18n="th_floor">FLOOR / LINEMAN</th>
+                <th class="numeric" data-i18n="th_str_qty">STR QTY</th>
+                <th class="numeric" data-i18n="th_alt_qty">ALTER QTY</th>
+                <th class="numeric" data-i18n="th_total_pieces">TOTAL</th>
+                <th class="numeric" data-i18n="th_alt_pct">ALTER %</th>
+                <th style="text-align: center;" data-i18n="th_details">વિગત</th>
+              </tr>
+            </thead>
+            <tbody id="topWorstTableBody">
+              <!-- Loaded Dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- 3. TWO-PERIOD COMPARISON VIEW SECTION (PHOTO 1 FORMAT) -->
+    <div id="comparisonViewSection" style="display: none;">
+      
+      <!-- Dual Date Selection Panel -->
+      <section class="filter-card" style="margin-bottom: 1.5rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
+        <div class="cmp-controls-grid">
+          
+          <!-- Period 1 Box -->
+          <div class="cmp-period-box period-1-box">
+            <div class="cmp-period-header">
+              <span class="cmp-period-tag" style="background: #2563eb; color: #fff;">1</span>
+              <div>
+                <strong style="color: #60a5fa; font-size: 0.95rem;" data-i18n="cmp_p1_title">પિરિયડ ૧ (Period 1)</strong>
+                <div style="font-size: 0.75rem; color: var(--text-muted);" data-i18n="cmp_p1_sub">જેમ કે ૬૦ કે ૩૦ દિવસ (e.g. Last 60 or 30 Days)</div>
+              </div>
+            </div>
+            <div class="cmp-dates-row">
+              <div class="form-group">
+                <label data-i18n="from_date">તારીખ થી (From Date)</label>
+                <input type="date" id="cmpFromDate1" class="form-input">
+              </div>
+              <div class="form-group">
+                <label data-i18n="to_date">તારીખ સુધી (To Date)</label>
+                <input type="date" id="cmpToDate1" class="form-input">
+              </div>
+            </div>
+            <div class="cmp-pills-row">
+              <button class="pill-btn cmp-pill-1 active" data-period="1" data-preset="60days">60 Days</button>
+              <button class="pill-btn cmp-pill-1" data-period="1" data-preset="30days">30 Days</button>
+              <button class="pill-btn cmp-pill-1" data-period="1" data-preset="thisMonth">This Month</button>
+              <button class="pill-btn cmp-pill-1" data-period="1" data-preset="lastMonth">Last Month</button>
+            </div>
+          </div>
+
+          <!-- Period 2 Box -->
+          <div class="cmp-period-box period-2-box">
+            <div class="cmp-period-header">
+              <span class="cmp-period-tag" style="background: #0284c7; color: #fff;">2</span>
+              <div>
+                <strong style="color: #38bdf8; font-size: 0.95rem;" data-i18n="cmp_p2_title">પિરિયડ ૨ (Period 2)</strong>
+                <div style="font-size: 0.75rem; color: var(--text-muted);" data-i18n="cmp_p2_sub">જેમ કે ૧૫ કે ૭ દિવસ (e.g. Last 15 or 7 Days)</div>
+              </div>
+            </div>
+            <div class="cmp-dates-row">
+              <div class="form-group">
+                <label data-i18n="from_date">તારીખ થી (From Date)</label>
+                <input type="date" id="cmpFromDate2" class="form-input">
+              </div>
+              <div class="form-group">
+                <label data-i18n="to_date">તારીખ સુધી (To Date)</label>
+                <input type="date" id="cmpToDate2" class="form-input">
+              </div>
+            </div>
+            <div class="cmp-pills-row">
+              <button class="pill-btn cmp-pill-2" data-period="2" data-preset="today">Today</button>
+              <button class="pill-btn cmp-pill-2" data-period="2" data-preset="7days">7 Days</button>
+              <button class="pill-btn cmp-pill-2 active" data-period="2" data-preset="15days">15 Days</button>
+              <button class="pill-btn cmp-pill-2" data-period="2" data-preset="30days">30 Days</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Action Row -->
+        <div class="cmp-action-row" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; justify-content: space-between; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+          <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label data-i18n="alter_mode_lbl">ઓલ્ટર પ્રકાર (Alter Process)</label>
+              <select id="cmpAlterMode" class="form-select">
+                <option value="ALTER_ISSUE" selected data-i18n="opt_alter_issue">Alter Issue (ડિફોલ્ટ)</option>
+                <option value="ALTER_RECEIVE" data-i18n="opt_alter_receive">Alter Receive</option>
+                <option value="BOTH" data-i18n="opt_both">બંને (Issue + Receive)</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" id="cmpApplyBtn" style="padding: 9px 20px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              <span data-i18n="btn_compare">સરખામણી લોડ કરો (Compare)</span>
+            </button>
+          </div>
+
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <button class="btn btn-excel" id="cmpExportExcelBtn" style="padding: 9px 18px; font-weight: 700; background: linear-gradient(135deg, #10b981, #059669); color: #fff; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span data-i18n="btn_export_comparison_excel">એક્સેલ ડાઉનલોડ (Export Excel)</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Page 3: Top 1 to 5 Comparison Tailors Card -->
+      <section class="table-card top-ranking-card" id="comparisonTop5Section" style="margin-bottom: 1.5rem;">
+        <div class="table-header-bar" style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.4), rgba(99, 102, 241, 0.2)); border-bottom: 1px solid rgba(99, 102, 241, 0.3);">
+          <div class="table-title">
+            <span style="color: #a5b4fc; font-weight: 800;" data-i18n="top5_comparison_title">🏆 પેજ ૩: ટોપ ૧ થી ૫ સરખામણી કારીગરો (Top 1 to 5 Comparison Tailors)</span>
+            <span class="badge-tag" style="background: rgba(99, 102, 241, 0.2); color: #c7d2fe;">PAGE 3 : COMPARISON REPORT</span>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th style="width: 75px; text-align: center;" data-i18n="th_rank">રેન્ક</th>
+                <th style="width: 105px; text-align: center;">DOJ</th>
+                <th>M.NO (TAILOR)</th>
+                <th>FLOOR / LINEMAN</th>
+                <th class="numeric" id="cmpTop5ThP1">PERIOD 1 (STR / ALT %)</th>
+                <th class="numeric" id="cmpTop5ThP2">PERIOD 2 (STR / ALT %)</th>
+                <th class="numeric">P2 ALTER QTY</th>
+                <th class="numeric">P2 ALTER %</th>
+                <th style="text-align: center;">STATUS</th>
+              </tr>
+            </thead>
+            <tbody id="comparisonTop5TableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Comparison Table Card -->
+      <section class="table-card">
+        <div class="table-header-bar" style="background: linear-gradient(90deg, #1e3a8a, #0369a1); color: #fff;">
+          <div class="table-title" style="color: #fff;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+            <span id="cmpTableTitle">બે સમયગાળાની ઓલ્ટર સરખામણી (Two-Period Alter Comparison)</span>
+          </div>
+          <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+            <select id="cmpSortFilter" class="form-input" style="padding: 5px 10px; font-size: 0.8rem; background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; cursor: pointer;">
+              <option value="diff_desc" selected style="background: #1e293b; color: #fff;">🔻 DIFF % : વધુ થી ઓછું (High to Low - Default)</option>
+              <option value="diff_asc" style="background: #1e293b; color: #fff;">🔺 DIFF % : ઓછું થી વધુ (Low to High)</option>
+              <option value="inc_only" style="background: #1e293b; color: #fff;">⚠️ માત્ર વધારો (Increased Only: DIFF > 0)</option>
+              <option value="dec_only" style="background: #1e293b; color: #fff;">✅ માત્ર ઘટાડો (Decreased Only: DIFF < 0)</option>
+              <option value="p2_qty_desc" style="background: #1e293b; color: #fff;">📊 P2 Alter Qty (High to Low)</option>
+              <option value="mno_asc" style="background: #1e293b; color: #fff;">🔢 M.No (Machine Number)</option>
+            </select>
+            <input type="text" id="cmpSearchInput" class="form-input" style="padding: 5px 12px; font-size: 0.8rem; width: 200px; background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3);" placeholder="કારીગર શોધો (Search)...">
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="report-table cmp-report-table" id="comparisonTable">
+            <thead>
+              <!-- Top Tier: Merged Headers Matching Photo 1 -->
+              <tr class="cmp-head-tier1">
+                <th rowspan="2" style="width: 100px; text-align: center; background: #2563eb; color: #fff; font-size: 0.95rem; font-weight: 800; vertical-align: middle; border-right: 2px solid #1e3a8a;">DOJ</th>
+                <th colspan="4" id="cmpThP1Merged" style="text-align: center; background: #2563eb; color: #fff; font-size: 0.95rem; font-weight: 800; border-right: 2px solid #1e3a8a;">
+                  LAST 60 DAYS
+                </th>
+                <th colspan="4" id="cmpThP2Merged" style="text-align: center; background: #0284c7; color: #fff; font-size: 0.95rem; font-weight: 800; border-right: 2px solid #0369a1;">
+                  LAST 15 DAYS
+                </th>
+                <th rowspan="2" class="numeric" style="background: linear-gradient(135deg, #e11d48, #be123c); color: #fff; text-align: center; vertical-align: middle; font-weight: 800; min-width: 105px; font-size: 0.9rem; border-left: 2px solid #9f1239;">
+                  DIFF %
+                </th>
+              </tr>
+              <!-- Bottom Tier: Sub-headers Matching Photo 1 -->
+              <tr class="cmp-head-tier2">
+                <th style="background: #1d4ed8; color: #fff;">M.NO</th>
+                <th class="numeric" style="background: #1d4ed8; color: #fff;">STITCHING RECEIVE QTY</th>
+                <th class="numeric" style="background: #1d4ed8; color: #fff;">ALTER ISSUE QTY</th>
+                <th class="numeric" style="background: #1d4ed8; color: #fff; border-right: 2px solid #1e3a8a;">PERCENTAGE</th>
+                <th style="background: #0369a1; color: #fff;">M.NO</th>
+                <th class="numeric" style="background: #0369a1; color: #fff;">STITCHING RECEIVE QTY</th>
+                <th class="numeric" style="background: #0369a1; color: #fff;">ALTER ISSUE QTY</th>
+                <th class="numeric" style="background: #0369a1; color: #fff; border-right: 2px solid #0369a1;">PERCENTAGE</th>
+              </tr>
+            </thead>
+            <tbody id="comparisonTableBody">
+              <!-- Loaded Dynamically -->
+            </tbody>
+            <tfoot id="comparisonTableFoot">
+              <!-- Total row -->
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- 4. ALTER CHECKING VIEW SECTION (PAGE 4) -->
+    <div id="alterCheckingViewSection" style="display: none;">
+      <!-- Period 1 vs Period 2 Date Filter Card -->
+      <section class="card filter-card cmp-filter-card" style="margin-bottom: 1.5rem;">
+        <div class="cmp-filter-title">
+          <div style="display: flex; align-items: center; gap: 0.65rem;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            <strong style="font-size: 1.05rem;" data-i18n="alter_checking_title">ઓલ્ટર ચેકિંગ સરખામણી રિપોર્ટ (Alter Checking Report)</strong>
+          </div>
+          <span class="badge-tag" style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.4);">
+            STR: ALL LOTS | ALTER: DB LOTS ONLY
+          </span>
+        </div>
+
+        <div class="cmp-grid-two-periods">
+          <!-- Period 1 Box -->
+          <div class="cmp-period-box period-1-box">
+            <div class="cmp-period-header">
+              <span class="cmp-period-tag" style="background: #2563eb; color: #fff;">1</span>
+              <div>
+                <strong style="color: #60a5fa; font-size: 0.95rem;" data-i18n="cmp_p1_title">પિરિયડ ૧ (Period 1)</strong>
+                <div style="font-size: 0.75rem; color: var(--text-muted);" data-i18n="cmp_p1_sub">જેમ કે ૬૦ કે ૩૦ દિવસ (e.g. Last 60 or 30 Days)</div>
+              </div>
+            </div>
+            <div class="cmp-dates-row">
+              <div class="form-group">
+                <label data-i18n="from_date">તારીખ થી (From Date)</label>
+                <input type="date" id="chkFromDate1" class="form-input">
+              </div>
+              <div class="form-group">
+                <label data-i18n="to_date">તારીખ સુધી (To Date)</label>
+                <input type="date" id="chkToDate1" class="form-input">
+              </div>
+            </div>
+            <div class="cmp-pills-row">
+              <button class="pill-btn chk-pill-1 active" data-period="1" data-preset="60days">60 Days</button>
+              <button class="pill-btn chk-pill-1" data-period="1" data-preset="30days">30 Days</button>
+              <button class="pill-btn chk-pill-1" data-period="1" data-preset="thisMonth">This Month</button>
+              <button class="pill-btn chk-pill-1" data-period="1" data-preset="lastMonth">Last Month</button>
+            </div>
+          </div>
+
+          <!-- Period 2 Box -->
+          <div class="cmp-period-box period-2-box">
+            <div class="cmp-period-header">
+              <span class="cmp-period-tag" style="background: #0284c7; color: #fff;">2</span>
+              <div>
+                <strong style="color: #38bdf8; font-size: 0.95rem;" data-i18n="cmp_p2_title">પિરિયડ ૨ (Period 2)</strong>
+                <div style="font-size: 0.75rem; color: var(--text-muted);" data-i18n="cmp_p2_sub">જેમ કે ૧૫ કે ૭ દિવસ (e.g. Last 15 or 7 Days)</div>
+              </div>
+            </div>
+            <div class="cmp-dates-row">
+              <div class="form-group">
+                <label data-i18n="from_date">તારીખ થી (From Date)</label>
+                <input type="date" id="chkFromDate2" class="form-input">
+              </div>
+              <div class="form-group">
+                <label data-i18n="to_date">તારીખ સુધી (To Date)</label>
+                <input type="date" id="chkToDate2" class="form-input">
+              </div>
+            </div>
+            <div class="cmp-pills-row">
+              <button class="pill-btn chk-pill-2" data-period="2" data-preset="today">Today</button>
+              <button class="pill-btn chk-pill-2" data-period="2" data-preset="7days">7 Days</button>
+              <button class="pill-btn chk-pill-2 active" data-period="2" data-preset="15days">15 Days</button>
+              <button class="pill-btn chk-pill-2" data-period="2" data-preset="30days">30 Days</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Action Row -->
+        <div class="cmp-action-row" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; justify-content: space-between; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+          <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label data-i18n="alter_mode_lbl">ઓલ્ટર પ્રકાર (Alter Process)</label>
+              <select id="chkAlterMode" class="form-select">
+                <option value="ALTER_ISSUE" selected data-i18n="opt_alter_issue">Alter Issue (ડિફોલ્ટ)</option>
+                <option value="ALTER_RECEIVE" data-i18n="opt_alter_receive">Alter Receive</option>
+                <option value="BOTH" data-i18n="opt_both">બંને (Issue + Receive)</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" id="chkApplyBtn" style="padding: 9px 20px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              <span data-i18n="btn_compare">સરખામણી લોડ કરો (Compare)</span>
+            </button>
+          </div>
+
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <button class="btn btn-excel" id="chkExportExcelBtn" style="padding: 9px 18px; font-weight: 700; background: linear-gradient(135deg, #10b981, #059669); color: #fff; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span data-i18n="btn_export_alter_checking_excel">એક્સેલ ડાઉનલોડ (Export Excel)</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Page 4: Top 1 to 5 Alter Checking Tailors Card -->
+      <section class="table-card top-ranking-card" id="alterCheckingTop5Section" style="margin-bottom: 1.5rem;">
+        <div class="table-header-bar" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.35), rgba(5, 150, 105, 0.2)); border-bottom: 1px solid rgba(16, 185, 129, 0.3);">
+          <div class="table-title">
+            <span style="color: #6ee7b7; font-weight: 800;" data-i18n="top5_alter_checking_title">🏆 પેજ ૪: ટોપ ૧ થી ૫ ઓલ્ટર ચેકિંગ કારીગરો (Top 1 to 5 Tailors Ranking)</span>
+            <span class="badge-tag" style="background: rgba(16, 185, 129, 0.2); color: #a7f3d0;">PAGE 4 : ALTER CHECKING (DB ALTER)</span>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th style="width: 75px; text-align: center;" data-i18n="th_rank">રેન્ક</th>
+                <th style="width: 105px; text-align: center;">DOJ</th>
+                <th>M.NO (TAILOR)</th>
+                <th>FLOOR / LINEMAN</th>
+                <th class="numeric" id="chkTop5ThP1">PERIOD 1 (STR / DB ALT %)</th>
+                <th class="numeric" id="chkTop5ThP2">PERIOD 2 (STR / DB ALT %)</th>
+                <th class="numeric">P2 DB ALTER QTY</th>
+                <th class="numeric">P2 DB ALTER %</th>
+                <th style="text-align: center;">STATUS</th>
+              </tr>
+            </thead>
+            <tbody id="alterCheckingTop5TableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Alter Checking Comparison Table Card -->
+      <section class="table-card">
+        <div class="table-header-bar" style="background: linear-gradient(90deg, #065f46, #0284c7); color: #fff;">
+          <div class="table-title" style="color: #fff;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            <span id="chkTableTitle">ઓલ્ટર ચેકિંગ સરખામણી રિપોર્ટ (Alter Checking Comparison)</span>
+          </div>
+          <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+            <select id="chkSortFilter" class="form-input" style="padding: 5px 10px; font-size: 0.8rem; background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; cursor: pointer;">
+              <option value="diff_desc" selected style="background: #1e293b; color: #fff;">🔻 DIFF % : વધુ થી ઓછું (High to Low - Default)</option>
+              <option value="diff_asc" style="background: #1e293b; color: #fff;">🔺 DIFF % : ઓછું થી વધુ (Low to High)</option>
+              <option value="inc_only" style="background: #1e293b; color: #fff;">⚠️ માત્ર વધારો (Increased Only: DIFF > 0)</option>
+              <option value="dec_only" style="background: #1e293b; color: #fff;">✅ માત્ર ઘટાડો (Decreased Only: DIFF < 0)</option>
+              <option value="p2_qty_desc" style="background: #1e293b; color: #fff;">📊 P2 Alter Qty (High to Low)</option>
+              <option value="mno_asc" style="background: #1e293b; color: #fff;">🔢 M.No (Machine Number)</option>
+            </select>
+            <input type="text" id="chkSearchInput" class="form-input" style="padding: 5px 12px; font-size: 0.8rem; width: 200px; background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3);" placeholder="કારીગર શોધો (Search)...">
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="report-table cmp-report-table" id="alterCheckingTable">
+            <thead>
+              <!-- Top Tier: Merged Headers -->
+              <tr class="cmp-head-tier1">
+                <th rowspan="2" style="width: 100px; text-align: center; background: #059669; color: #fff; font-size: 0.95rem; font-weight: 800; vertical-align: middle; border-right: 2px solid #065f46;">DOJ</th>
+                <th colspan="4" id="chkThP1Merged" style="text-align: center; background: #059669; color: #fff; font-size: 0.95rem; font-weight: 800; border-right: 2px solid #065f46;">
+                  LAST 60 DAYS
+                </th>
+                <th colspan="4" id="chkThP2Merged" style="text-align: center; background: #0284c7; color: #fff; font-size: 0.95rem; font-weight: 800; border-right: 2px solid #0369a1;">
+                  LAST 15 DAYS
+                </th>
+                <th rowspan="2" class="numeric" style="background: linear-gradient(135deg, #e11d48, #be123c); color: #fff; text-align: center; vertical-align: middle; font-weight: 800; min-width: 105px; font-size: 0.9rem; border-left: 2px solid #9f1239;">
+                  DIFF %
+                </th>
+              </tr>
+              <!-- Bottom Tier: Sub-headers -->
+              <tr class="cmp-head-tier2">
+                <th style="background: #047857; color: #fff;">M.NO</th>
+                <th class="numeric" style="background: #047857; color: #fff;">STITCHING RECEIVE QTY</th>
+                <th class="numeric" style="background: #047857; color: #fff;">DB ALTER QTY</th>
+                <th class="numeric" style="background: #047857; color: #fff; border-right: 2px solid #065f46;">PERCENTAGE</th>
+                <th style="background: #0369a1; color: #fff;">M.NO</th>
+                <th class="numeric" style="background: #0369a1; color: #fff;">STITCHING RECEIVE QTY</th>
+                <th class="numeric" style="background: #0369a1; color: #fff;">DB ALTER QTY</th>
+                <th class="numeric" style="background: #0369a1; color: #fff; border-right: 2px solid #0369a1;">PERCENTAGE</th>
+              </tr>
+            </thead>
+            <tbody id="alterCheckingTableBody">
+              <!-- Loaded Dynamically -->
+            </tbody>
+            <tfoot id="alterCheckingTableFoot">
+              <!-- Total row -->
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- Karigar Drilldown Modal -->
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="modalKarigarName" data-i18n="modal_title">કારીગર વિગત</div>
+          <div class="modal-subtitle" id="modalKarigarSub">Employee Details</div>
+        </div>
+        <button class="modal-close-btn" id="modalCloseBtn">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        
+        <!-- Modal KPI Row -->
+        <div class="modal-kpi-row">
+          <div class="modal-kpi">
+            <div class="modal-kpi-val" id="modalStiQty">0</div>
+            <div class="modal-kpi-lbl" data-i18n="modal_kpi_sti">STR (Receive) Pcs</div>
+          </div>
+          <div class="modal-kpi">
+            <div class="modal-kpi-val" id="modalAltQty" style="color: #e11d48;">0</div>
+            <div class="modal-kpi-lbl" data-i18n="modal_kpi_alt">Alter Pcs</div>
+          </div>
+          <div class="modal-kpi">
+            <div class="modal-kpi-val" id="modalTotalQty">0</div>
+            <div class="modal-kpi-lbl" data-i18n="modal_kpi_total">Total Pieces</div>
+          </div>
+          <div class="modal-kpi">
+            <div class="modal-kpi-val" id="modalAltPercent">0.00%</div>
+            <div class="modal-kpi-lbl" data-i18n="modal_kpi_pct">Alter %</div>
+          </div>
+        </div>
+
+        <!-- Designs Table -->
+        <h4 style="margin-bottom: 0.75rem; font-size: 0.95rem; font-weight: 700; color: #1e293b;" data-i18n="modal_designs_title">
+          ડિઝાઇન-વાઇઝ ઓલ્ટર બ્રેકડાઉન (Lots & Sizes)
+        </h4>
+
+        <div style="overflow-x: auto; max-height: 350px; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+          <table class="report-table" id="modalDesignsTable">
+            <thead>
+              <tr>
+                <th data-i18n="th_design">ડિઝાઇન (SKU / ITEM)</th>
+                <th data-i18n="th_lots">લોટ નંબર્સ (Lots)</th>
+                <th data-i18n="th_sizes">સાઇઝ (Sizes)</th>
+                <th class="numeric" data-i18n="th_str_qty">STR QTY</th>
+                <th class="numeric" data-i18n="th_alt_qty">ALTER QTY</th>
+                <th class="numeric" data-i18n="th_modal_total">TOTAL</th>
+                <th class="numeric" data-i18n="th_alt_pct">ALTER %</th>
+              </tr>
+            </thead>
+            <tbody id="modalDesignsBody">
+              <!-- Loaded dynamically -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Luxury 3D Signature Footer -->
+  <footer class="app-luxury-footer">
+    <div class="footer-container">
+      <div class="footer-glass-card tilt-card-3d">
+        <div class="footer-glow-edge"></div>
+        <div class="footer-grid">
+          
+          <div class="footer-col-brand">
+            <div class="footer-brand-title">
+              <img src="/static/oslc_logo.png" alt="OSLC" class="footer-brand-logo" onerror="this.onerror=null; this.src='oslc_logo.png';">
+              <span class="footer-brand-text">OM SAI LATEST CREATION</span>
+              <span class="footer-tag">SUITE 127</span>
+            </div>
+            <p class="footer-brand-desc">
+              Intelligent Garment Manufacturing & Alteration Analytics Platform
+            </p>
+          </div>
+
+          <div class="footer-col-creator">
+            <div class="creator-signature-card tilt-card-3d">
+              <div class="creator-avatar-wrap">
+                <div class="creator-avatar">JV</div>
+                <span class="creator-status-badge">✦</span>
+              </div>
+              <div class="creator-details">
+                <span class="creator-role-lbl">SYSTEM ARCHITECT & DESIGNER</span>
+                <h4 class="creator-signature-name">JEEL VAGHANI</h4>
+                <span class="creator-badge-seal">👑 MASTER LUXURY EDITION</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer-col-status">
+            <div class="footer-sys-status">
+              <span class="pulse-dot-gold"></span>
+              <span>DigiBizz Live 3D Engine Active</span>
+            </div>
+            <div class="footer-copyright-text">
+              &copy; 2026 OM SAI LATEST CREATION • Developed with Pride by <strong>Jeel Vaghani</strong>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/app.js"></script>
+  <script>
+    function doAlterHardRefresh() {
+      if ('caches' in window) {
+        try {
+          caches.keys().then(function(keys) {
+            return Promise.all(keys.map(function(k) { return caches.delete(k); }));
+          }).catch(function() {});
+        } catch(_) {}
+      }
+
+      try { sessionStorage.clear(); } catch(_) {}
+
+      setTimeout(function() {
+        try {
+          var u = new URL(window.location.href);
+          u.searchParams.set('_t', Date.now());
+          window.location.replace(u.href);
+        } catch(e) {
+          window.location.reload(true);
+        }
+      }, 200);
+    }
+
+    window.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey && e.key === 'F5') || e.key === 'F5' || (e.ctrlKey && (e.key === 'r' || e.key === 'R'))) {
+        e.preventDefault();
+        e.stopPropagation();
+        doAlterHardRefresh();
+      }
+    }, true);
+  </script>
+
+  <button id="floatingAlterRefreshBtn" onclick="doAlterHardRefresh()" title="Ctrl + F5 તાજું કરો" style="position:fixed;bottom:20px;right:20px;z-index:99999;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:1px solid rgba(255,255,255,0.3);padding:10px 18px;border-radius:50px;font-size:13px;font-weight:700;box-shadow:0 6px 20px rgba(16,185,129,0.5);cursor:pointer;display:flex;align-items:center;gap:8px;">
+    🔄 <span>Ctrl + F5 તાજું કરો</span>
+  </button>
+</body>
+</html>
