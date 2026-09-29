@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 90" width="500" height="90">
+  <!-- Left Shield Emblem for Print -->
+  <g transform="translate(6, 6)">
+    <polygon points="39,2 75,20 75,58 39,76 3,58 3,20" fill="#0f172a" stroke="#000000" stroke-width="2.5" />
+    <polygon points="39,6 70,22 70,55 39,71 8,55 8,22" fill="#ffffff" stroke="#000000" stroke-width="1.2" />
+    <text x="39" y="37" font-family="'Arial Black', Impact, sans-serif" font-size="19" font-weight="900" fill="#000000" text-anchor="middle">OSLC</text>
+    <text x="39" y="51" font-family="'Arial', sans-serif" font-size="7.5" font-weight="800" fill="#1e293b" text-anchor="middle" letter-spacing="2">HOUSE</text>
+    <line x1="16" y1="57" x2="62" y2="57" stroke="#000000" stroke-width="1.2" />
+    <text x="39" y="67" font-family="'Arial', sans-serif" font-size="6.5" font-weight="700" fill="#475569" text-anchor="middle">EST. 2026</text>
+  </g>
+
+  <!-- Right Typography Section for Print -->
+  <g transform="translate(98, 12)">
+    <text x="0" y="27" font-family="'Arial Black', sans-serif" font-size="27" font-weight="900" fill="#000000" letter-spacing="1.5">OSLC HOUSE</text>
+    <text x="1" y="44" font-family="'Arial', sans-serif" font-size="12" font-weight="800" fill="#1e293b" letter-spacing="1">OM SAI LATEST CREATION</text>
+    <text x="1" y="58" font-family="'Arial', sans-serif" font-size="9" font-weight="700" fill="#475569" letter-spacing="0.5">KARIGAR GATE PASS • <tspan font-weight="800" fill="#000000">CREATED BY JEEL VAGHANI</tspan></text>
+  </g>
+</svg>

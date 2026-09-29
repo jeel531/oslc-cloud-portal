@@ -1,0 +1,23 @@
+{
+  "name": "OSLC Karigar Gate Pass System",
+  "short_name": "OSLC GatePass",
+  "description": "OSLC House Karigar Gate Pass Control Center with Live DigiBizz Karigar Photo & Report 141 Mall Checker - Created by Jeel Vaghani",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#090d16",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/static/img/oslc_icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/img/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSLC Karigar Gate Pass System | Created By JEEL VAGHANI</title>
+    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+    <link rel="shortcut icon" href="img/favicon.ico">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="OSLC Gate Pass">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/print.css" media="print">
+<body>
+    <header class="top-header">
+        <div class="brand-section">
+            <img src="img/oslc_logo.svg" alt="OSLC HOUSE" class="brand-header-logo">
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="header-nav-tabs">
+            <button id="tabEntryBtn" class="nav-tab-btn active">
+                <span class="icon">🎫</span>
+                <span id="txtNavEntry">ગેટ પાસ એન્ટ્રી (Gate Pass)</span>
+            </button>
+            <button id="tabReportBtn" class="nav-tab-btn">
+                <span class="icon">📊</span>
+                <span id="txtNavReports">રિપોર્ટ અને હિસ્ટ્રી (Reports)</span>
+                <span id="tabReportCountBadge" class="nav-tab-counter">0</span>
+            </button>
+        </nav>
+
+        <div class="header-status-group">
+            <!-- 3-Language Switcher (Gujarati, Hindi, English) -->
+            <div class="lang-switch-group" title="Language / ભાષા / भाषा">
+                <button type="button" class="lang-btn active" data-lang="gu">ગુજરાતી</button>
+                <button type="button" class="lang-btn" data-lang="hi">हिंदी</button>
+                <button type="button" class="lang-btn" data-lang="en">EN</button>
+            </div>
+
+            <!-- Multi-PC Network Link Share Badge -->
+            <button type="button" id="btnNetworkShare" class="btn-network-badge" title="Click to copy link for other PCs / Mobile">
+                <span class="net-icon">🌐</span>
+                <span class="net-label" id="txtNetLabel">Other PC:</span>
+                <span id="lanIpBadgeText" class="net-ip">192.168.100.106:8096</span>
+                <span class="net-copy-pill" id="txtNetCopy">📋 Copy</span>
+            </button>
+
+            <!-- Android App APK Download Button -->
+            <a href="OSLC_GatePass.apk" download="OSLC_GatePass.apk" class="btn-apk-badge" title="Download Android App APK (મોબાઈલ માટે એપ ડાઉનલોડ કરો)">
+                <span class="apk-icon">📱</span>
+                <span>Android APK</span>
+                <span class="apk-down-pill">⬇️ Install</span>
+            </a>
+
+            <div class="author-badge">✨ CREATED BY JEEL VAGHANI</div>
+            <div class="half-a4-badge" id="txtHalfA4Badge">📄 HALF A4 PRINT READY</div>
+            <div id="dbStatusBadge" class="status-badge online">
+                <span class="dot"></span>
+                <span id="dbStatusText">DigiBizz Live</span>
+            </div>
+            <div id="liveClock" class="live-clock">--:--:--</div>
+        </div>
+    </header>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 1: GATE PASS ENTRY WORKSPACE                                          -->
+    <!-- ========================================================================= -->
+    <main id="viewGatepassEntry" class="main-container">
+
+        <!-- Left Controls Column -->
+        <section class="control-col">
+
+            <!-- Card 1: Gate Pass Config & Karigar Search -->
+            <div class="card">
+                <div class="card-title">
+                    <span id="txtCard1Title">1. Gate Pass Details & Worker Search (કારીગર સર્ચ)</span>
+                    <span class="icon">🔍</span>
+                </div>
+
+                <!-- Date & Int No -->
+                <div class="input-row">
+                    <div class="form-group" style="flex: 1.2;">
+                        <label for="passDate" id="lblPassDate">Date (તારીખ):</label>
+                        <input type="date" id="passDate" class="form-control">
+                    </div>
+                    <div class="form-group" style="flex: 0.8;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label for="intNo" id="lblIntNo" style="margin-bottom: 0;">Int No. (અંદર નં):</label>
+                            <button type="button" id="btnNewPassEntry" class="btn-new-pass-badge" title="Start Fresh New Gate Pass with Next Number">➕ New Entry</button>
+                        </div>
+                        <input type="text" id="intNo" class="form-control" value="01">
+                    </div>
+                </div>
+
+                <!-- Karigar Search Box -->
+                <div class="form-group">
+                    <label for="karigarInput" id="lblKarigarSearch">Enter Number / Code (કોઈ પણ નંબર કે કોડ નાખો - e.g. 84, 101, 287, P571):</label>
+                    <div class="search-wrapper">
+                        <div class="search-input-box">
+                            <input type="text" id="karigarInput" placeholder="Type number like 84, 101, 287 or P414..." autocomplete="off">
+                            <button type="button" id="searchBtn" class="search-btn" title="Search">
+                                <span id="txtSearchBtn">Search</span>
+                            </button>
+                        </div>
+                        <div id="searchDropdown" class="search-dropdown"></div>
+                    </div>
+                </div>
+
+                <!-- Quick Selection Chips -->
+                <div class="quick-chips-wrapper">
+                    <span style="font-size: 11px; color: var(--text-dim); align-self: center;" id="txtQuickLabel">Quick:</span>
+                    <button type="button" class="chip-btn" data-code="84">84 (M84 Active Karigars)</button>
+                    <button type="button" class="chip-btn" data-code="178">178 (M178 Mafujul)</button>
+                    <button type="button" class="chip-btn" data-code="287">287 (M287 Karigars)</button>
+                    <button type="button" class="chip-btn" data-code="101">101 (M101 With Mall)</button>
+                    <button type="button" class="chip-btn" data-code="135">135 (M135 All Clear)</button>
+                    <button type="button" class="chip-btn" data-code="P571">P571 (Cutting Dept)</button>
+                    <button type="button" class="chip-btn" data-code="P414">P414 (Production)</button>
+                </div>
+
+                <!-- Multi-Worker Visual Selection Grid (Only shown when search query is entered) -->
+                <div id="workersResultsContainer" class="workers-results-container" style="display: none;">
+                    <div class="workers-results-header">
+                        <span id="workersCountText">Matching Karigars (કારીગરો ફોટા સાથે):</span>
+                        <div class="multi-select-actions">
+                            <button type="button" id="btnSelectAllWorkers" class="btn-xs-action">✓ Select All (બધા પસંદ કરો)</button>
+                            <span id="selectedCountBadge" class="selected-count-badge" style="display: none;">0 Selected</span>
+                        </div>
+                    </div>
+                    <div id="workersGrid" class="workers-grid"></div>
+                </div>
+            </div>
+
+            <!-- Card 2: Selected Karigar Profile -->
+            <div class="card" id="workerProfileCard">
+                <div class="card-title">
+                    <span id="txtCard2Title">2. Selected Karigar (પસંદ કરેલ કારીગર)</span>
+                    <span id="karigarStatusBadge" class="worker-code-badge">NO SELECTION</span>
+                </div>
+
+                <!-- Multi-worker selection banner when multiple workers are picked -->
+                <div id="multiWorkerBanner" class="multi-worker-banner" style="display: none;">
+                    <span class="icon">👥</span>
+                    <span id="multiWorkerBannerText">2 Workers Selected. Gate passes will be issued sequentially.</span>
+                </div>
+
+                <div class="worker-card">
+                    <div class="worker-photo-box">
+                        <img id="workerPhotoImg" src="" alt="Worker Photo" style="display: none;">
+                        <div id="workerPhotoPlaceholder" class="worker-photo-placeholder">
+                            <span class="icon">👤</span>
+                            <span id="txtNoPhoto">No Worker Selected</span>
+                        </div>
+                    </div>
+                    <div class="worker-details-meta">
+                        <div id="workerFullName" class="worker-full-name">Please enter a number to search (કોઈ પણ નંબર નાખી સર્ચ કરો)</div>
+                        <div class="worker-floor-tag">
+                            <span id="lblFloorTag">🏢 Floor:</span>
+                            <strong id="workerFloorDisplay">--</strong>
+                        </div>
+                        <div class="worker-floor-tag">
+                            <span id="lblDeptTag">🏷️ Dept:</span>
+                            <strong id="workerDeptDisplay" style="color: #60a5fa;">--</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Editable Fields for Pass -->
+                <div class="input-row" style="margin-top: 12px; margin-bottom: 0;">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="deptInput" id="lblDept">Department (વિભાગ):</label>
+                        <input type="text" id="deptInput" class="form-control" value="KARIGAR">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label for="floorSelect" id="lblFloor">Floor No (માળ નં):</label>
+                        <select id="floorSelect" class="form-control">
+                            <option value="GROUND FLOOR">GROUND FLOOR</option>
+                            <option value="1ST FLOOR">1ST FLOOR (1st Floor)</option>
+                            <option value="2ND FLOOR">2ND FLOOR (2nd Floor)</option>
+                            <option value="3RD FLOOR" selected>3RD FLOOR (3rd Floor)</option>
+                            <option value="4TH FLOOR">4TH FLOOR (4th Floor)</option>
+                            <option value="5TH FLOOR">5TH FLOOR (5th Floor)</option>
+                            <option value="BASEMENT">BASEMENT</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-row" style="margin-top: 10px; margin-bottom: 0;">
+                    <div class="form-group">
+                        <label for="outTimeInput" id="lblOutTime">Out Time (જવાનો સમય):</label>
+                        <input type="text" id="outTimeInput" class="form-control" placeholder="e.g. 11:30 AM">
+                    </div>
+                    <div class="form-group">
+                        <label for="inTimeInput" id="lblInTime">In Time (આવવાનો સમય):</label>
+                        <input type="text" id="inTimeInput" class="form-control" placeholder="Optional">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 10px;">
+                    <label for="reasonInput" id="lblReason">Reason / Purpose (જવાનું કારણ):</label>
+                    <input type="text" id="reasonInput" class="form-control" value="Personal Work" placeholder="Personal Work / Lunch / Hospital">
+                </div>
+
+                <!-- 3 Authorized Signatures Dropdowns Section -->
+                <div class="signatures-config-box">
+                    <div class="sig-header-title">
+                        <span class="icon">✍️</span>
+                        <span id="txtSigHeader">Authorized Signatures (સહી / પરવાનગી કરનાર)</span>
+                    </div>
+                    <div class="sig-boxes-grid">
+                        <div class="sig-config-card">
+                            <label for="signPermissionSelect" id="lblSigPerm">1. Permission By (પરવાનગી):</label>
+                            <select id="signPermissionSelect" class="form-control sig-select">
+                                <option value="RAFIK" selected>RAFIK</option>
+                                <option value="TIPU">TIPU</option>
+                                <option value="GHANSHYAM BHAI">GHANSHYAM BHAI</option>
+                                <option value="SHIV">SHIV</option>
+                                <option value="RAFIK / TIPU">RAFIK / TIPU</option>
+                                <option value="OTHER">➕ OTHER (મેન્યુઅલ નામ દાખલ કરો)</option>
+                            </select>
+                            <input type="text" id="signPermissionOtherInput" class="form-control manual-sig-input" placeholder="✏️ મેન્યુઅલ નામ લખો..." style="display: none;">
+                        </div>
+                        <div class="sig-config-card">
+                            <label for="signCheckingSelect" id="lblSigChk">2. Checking Done (ચેકિંગ):</label>
+                            <select id="signCheckingSelect" class="form-control sig-select">
+                                <option value="MADAN BHAI" selected>MADAN BHAI</option>
+                                <option value="GHANSHYAM BHAI">GHANSHYAM BHAI</option>
+                                <option value="TIPU">TIPU</option>
+                                <option value="RAFIK">RAFIK</option>
+                                <option value="OTHER">➕ OTHER (મેન્યુઅલ નામ દાખલ કરો)</option>
+                            </select>
+                            <input type="text" id="signCheckingOtherInput" class="form-control manual-sig-input" placeholder="✏️ મેન્યુઅલ નામ લખો..." style="display: none;">
+                        </div>
+                        <div class="sig-config-card">
+                            <label for="signIssuedSelect" id="lblSigIss">3. Gate Pass Issued (પ્રિન્ટ):</label>
+                            <select id="signIssuedSelect" class="form-control sig-select">
+                                <option value="JEEL BHAI" selected>JEEL BHAI (Jeel Vaghani)</option>
+                                <option value="MADAN BHAI">MADAN BHAI</option>
+                                <option value="GHANSHYAM BHAI">GHANSHYAM BHAI</option>
+                                <option value="OTHER">➕ OTHER (મેન્યુઅલ નામ દાખલ કરો)</option>
+                            </select>
+                            <input type="text" id="signIssuedOtherInput" class="form-control manual-sig-input" placeholder="✏️ મેન્યુઅલ નામ લખો..." style="display: none;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3: TOOLS & ID CARD RETURN CHECKLIST -->
+            <div class="card checklist-card-section" id="toolsChecklistCard">
+                <div class="card-title">
+                    <span id="txtCard3Title">3. સાધનો અને ID કાર્ડ જમા ચેકલિસ્ટ (Tools & ID Return - ફક્ત કારીગર માટે)</span>
+                    <span class="checklist-status-pill ready" id="checklistHeaderPill">૪ સાધનો જમા</span>
+                </div>
+
+                <p class="checklist-desc-text" id="txtChecklistDesc">
+                    ℹ️ <strong>સાધનો જમા સ્થિતિ (ફક્ત કારીગર માટે):</strong> જે સાધન જમા થયું હોય તેને સિલેક્ટ રાખો (પ્રિન્ટમાં <strong>[DONE]</strong> આવશે). જો કાંઈ સિલેક્ટ નહિ હોય તો પ્રિન્ટમાંથી આખી લાઇન નીકળી જશે.
+                </p>
+
+                <!-- 4 Interactive Toggle Checkbox Buttons -->
+                <div class="checklist-grid">
+                    <!-- Item 1: Small Cutter -->
+                    <label class="checklist-item" id="itemSmallCutterLabel">
+                        <input type="checkbox" id="checkSmallCutter" class="checklist-checkbox" checked>
+                        <div class="checklist-content">
+                            <div class="checklist-icon">✂️</div>
+                            <div class="checklist-info">
+                                <div class="checklist-name" id="txtTool1Name">નાનું કટર</div>
+                                <div class="checklist-sub">Small Cutter</div>
+                            </div>
+                            <div class="checklist-tick">✓</div>
+                        </div>
+                    </label>
+
+                    <!-- Item 2: Scissor -->
+                    <label class="checklist-item" id="itemScissorLabel">
+                        <input type="checkbox" id="checkScissor" class="checklist-checkbox" checked>
+                        <div class="checklist-content">
+                            <div class="checklist-icon">✂️</div>
+                            <div class="checklist-info">
+                                <div class="checklist-name" id="txtTool2Name">કાતર</div>
+                                <div class="checklist-sub">Scissor</div>
+                            </div>
+                            <div class="checklist-tick">✓</div>
+                        </div>
+                    </label>
+
+                    <!-- Item 3: Stool / Table -->
+                    <label class="checklist-item" id="itemStoolLabel">
+                        <input type="checkbox" id="checkStool" class="checklist-checkbox" checked>
+                        <div class="checklist-content">
+                            <div class="checklist-icon">🪑</div>
+                            <div class="checklist-info">
+                                <div class="checklist-name" id="txtTool3Name">સ્ટૂલ / ટેબલ</div>
+                                <div class="checklist-sub">Stool / Table</div>
+                            </div>
+                            <div class="checklist-tick">✓</div>
+                        </div>
+                    </label>
+
+                    <!-- Item 4: ID Card -->
+                    <label class="checklist-item" id="itemIdCardLabel">
+                        <input type="checkbox" id="checkIdCard" class="checklist-checkbox" checked>
+                        <div class="checklist-content">
+                            <div class="checklist-icon">🪪</div>
+                            <div class="checklist-info">
+                                <div class="checklist-name" id="txtTool4Name">આઈડી કાર્ડ</div>
+                                <div class="checklist-sub">ID Card</div>
+                            </div>
+                            <div class="checklist-tick">✓</div>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Checklist Control Buttons & Validation Banner -->
+                <div class="checklist-footer-row">
+                    <button type="button" id="selectAllChecklistBtn" class="btn-check-all">
+                        <span id="txtBtnCheckAll">✓ બધા સિલેક્ટ કરો (Select All)</span>
+                    </button>
+                    <button type="button" id="clearAllChecklistBtn" class="btn-uncheck-all">
+                        <span id="txtBtnClearAll">✕ અનચેક કરો (Clear)</span>
+                    </button>
+                </div>
+
+                <div id="checklistValidationBanner" class="checklist-banner valid">
+                    <span id="checklistBannerIcon">✅</span>
+                    <span id="checklistBannerText">તમામ ૪ સાધનો જમા થયેલ છે - પ્રિન્ટ મંજૂર છે.</span>
+                </div>
+            </div>
+
+            <!-- Card 4: Report 141 Pending Mall Details -->
+            <div class="card">
+                <div class="card-title">
+                    <span id="txtCard4Title">4. Report 141 Pending Mall (STI & Alter Issue)</span>
+                    <span class="icon">📦</span>
+                </div>
+
+                <div id="pendingAlertBox" class="pending-alert-box no-mall">
+                    <div class="alert-header">
+                        <div id="alertTitle" class="alert-title">
+                            <span>✅ ALL CLEAR: NO PENDING MALL</span>
+                        </div>
+                        <span id="totalPendingBadge" style="font-weight: 800; font-size: 14px;">0 Pcs</span>
+                    </div>
+
+                    <div class="stat-pills">
+                        <div class="stat-pill">
+                            <span class="label">Stitching Issue (STI):</span>
+                            <span id="stiPendingVal" class="val">0 Pcs</span>
+                            <span id="stiLotsVal" style="font-size: 11px; color: var(--text-dim);">0 Lots</span>
+                        </div>
+                        <div class="stat-pill">
+                            <span class="label">Alter Issue (Alter):</span>
+                            <span id="alterPendingVal" class="val">0 Pcs</span>
+                            <span id="alterLotsVal" style="font-size: 11px; color: var(--text-dim);">0 Lots</span>
+                        </div>
+                    </div>
+
+                    <!-- Scrollable table of pending lots with Barcode No -->
+                    <div id="pendingTableContainer" class="pending-table-container" style="display: none;">
+                        <table class="pending-table">
+                            <thead>
+                                <tr>
+                                    <th>Process</th>
+                                    <th>Lot No</th>
+                                    <th>Barcode No</th>
+                                    <th>Item / SKU</th>
+                                    <th>Size</th>
+                                    <th>Bal Pcs</th>
+                                    <th>Issue Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Primary Action Buttons -->
+            <div class="action-buttons-group">
+                <button type="button" id="printPassBtn" class="btn-primary-action ready">
+                    <span>🖨️</span>
+                    <span id="printBtnText">PRINT GATE PASS (HALF A4 PAGE - પ્રિન્ટ કાઢો)</span>
+                </button>
+                <button type="button" id="print2On1Btn" class="btn-print-2up" title="૧ પેજમાં ૨ પાસ પ્રિન્ટ કરો">
+                    <span>📄📄</span>
+                    <span id="txtPrint2UpBtn">PRINT 2 ON 1 PAGE (૧ પેજમાં ૨ પાસ)</span>
+                </button>
+                <div class="btn-secondary-group">
+                    <button type="button" id="downloadExcelBtn" class="btn-secondary">
+                        <span>📥</span>
+                        <span id="txtDownloadExcel">Download Excel (.xlsx)</span>
+                    </button>
+                    <button type="button" id="savePassBtn" class="btn-secondary">
+                        <span>💾</span>
+                        <span id="txtSavePass">Issue & Save Pass</span>
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Right Preview Column -->
+        <section class="preview-col">
+            <div class="preview-header-bar">
+                <div class="card-title" style="margin-bottom: 0;">
+                    <span id="txtPreviewTitle">Official Gate Pass Preview (Half A4 Sheet Format)</span>
+                </div>
+                <div class="preview-view-toggles">
+                    <button type="button" id="toggleSingleView" class="toggle-btn active">Single Pass (Half A4)</button>
+                    <button type="button" id="toggleMultiView" class="toggle-btn">Batch / Multi-Pass View</button>
+                </div>
+            </div>
+
+            <!-- Printable Pass Sheet Container -->
+            <div class="pass-sheet-wrapper" id="passSheetContainer">
+
+                <!-- Physical Gate Pass Slip (Exact Excel & Half-A4 Format) -->
+                <div class="gatepass-slip" id="mainGatepassSlip">
+                    <div class="slip-header">
+                        <img src="img/oslc_logo_print.svg" alt="OSLC HOUSE" class="slip-brand-logo">
+                    </div>
+
+                    <div class="slip-body">
+                        <!-- Left Info Column -->
+                        <div class="slip-info-col">
+                            <div class="slip-row-split">
+                                <div class="slip-field">
+                                    <span class="lbl">Sr. No. : </span>
+                                    <span class="val" id="previewSrNo">M---</span>
+                                </div>
+                                <div class="slip-field">
+                                    <span class="lbl">Int No. : </span>
+                                    <span class="val" id="previewIntNo">01</span>
+                                    <span id="previewReprintBadge" class="slip-reprint-tag" style="display: none;">[REPRINT]</span>
+                                </div>
+                            </div>
+
+                            <div class="slip-row">
+                                <div class="slip-field">
+                                    <span class="lbl">Date : </span>
+                                    <span class="val" id="previewDate">26/09/2026</span>
+                                </div>
+                            </div>
+
+                            <div class="slip-row">
+                                <div class="slip-field">
+                                    <span class="lbl">Department : </span>
+                                    <span class="val" id="previewDept">KARIGAR</span>
+                                </div>
+                            </div>
+
+                            <div class="slip-name-row">
+                                <div class="slip-field">
+                                    <span class="lbl">Name : </span>
+                                    <span class="val" id="previewName">SELECT KARIGAR</span>
+                                </div>
+                            </div>
+
+                            <div class="slip-row">
+                                <div class="slip-field">
+                                    <span class="lbl">Floor No : </span>
+                                    <span class="val" id="previewFloor">3RD FLOOR</span>
+                                </div>
+                            </div>
+
+                            <div class="slip-time-split">
+                                <div class="slip-field">
+                                    <span class="lbl">Out Time : </span>
+                                    <span class="val" id="previewOutTime">11:15 AM</span>
+                                </div>
+                                <div class="slip-field">
+                                    <span class="lbl">In Time : </span>
+                                    <span class="val" id="previewInTime">__________</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Photo Column -->
+                        <div class="slip-photo-col">
+                            <div class="slip-photo-frame">
+                                <img id="previewPhotoImg" src="" alt="Worker Photo" style="display: none;">
+                                <span id="previewPhotoPlaceholder" style="font-size: 11px; color: #64748b; font-weight: 700; text-align: center;">PHOTO</span>
+                            </div>
+                            <div class="slip-photo-caption">DIGIBIZZ ID</div>
+                        </div>
+                    </div>
+
+                    <!-- Returned Assets Checklist on Slip (100% English & Empty if not returned) -->
+                    <div class="slip-checklist-row" id="previewChecklistRow">
+                        <span class="chk-item">CUTTER: <strong>[DONE]</strong></span>
+                        <span class="chk-sep">•</span>
+                        <span class="chk-item">SCISSOR: <strong>[DONE]</strong></span>
+                        <span class="chk-sep">•</span>
+                        <span class="chk-item">STOOL / TABLE: <strong>[DONE]</strong></span>
+                        <span class="chk-sep">•</span>
+                        <span class="chk-item">ID CARD: <strong>[DONE]</strong></span>
+                    </div>
+
+                    <!-- 3 Authorized Signatures with Boxes for Each -->
+                    <div class="slip-signatures">
+                        <div class="slip-sign-box">
+                            <div class="sign-box-role">1. Permission By</div>
+                            <div class="sign-box-name" id="previewSignPerm">(RAFIK)</div>
+                            <div class="sign-box-line">Sign: ________________</div>
+                        </div>
+                        <div class="slip-sign-box">
+                            <div class="sign-box-role">2. Checking Done By</div>
+                            <div class="sign-box-name" id="previewSignChk">(MADAN BHAI)</div>
+                            <div class="sign-box-line">Sign: ________________</div>
+                        </div>
+                        <div class="slip-sign-box">
+                            <div class="sign-box-role">3. Gate Pass Issued By</div>
+                            <div class="sign-box-name" id="previewSignIss">(JEEL BHAI)</div>
+                            <div class="sign-box-line">Sign: ________________</div>
+                        </div>
+                    </div>
+
+                    <!-- Report 141 Mall Section on Slip (Printed Table with Barcode No!) -->
+                    <div id="preview141Container" class="slip-141-container">
+                        <div id="preview141Stamp" class="slip-141-stamp clear">
+                            [REPORT 141 CLEAR] NO PENDING GOODS (STI: 0 | ALTER: 0 PCS) - ALL CLEAR
+                        </div>
+                        <!-- Embedded table when goods are pending -->
+                        <div id="slipMallTableWrapper" style="display: none; margin-top: 5px;">
+                            <div class="slip-mall-header">REPORT 141 PENDING GOODS WITH KARIGAR:</div>
+                            <table class="slip-mall-table">
+                                <thead>
+                                    <tr>
+                                        <th>Process</th>
+                                        <th>Lot No</th>
+                                        <th>Barcode No</th>
+                                        <th>Item / SKU</th>
+                                        <th>Bal Pcs</th>
+                                        <th>Issue Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="slipMallTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Jeel Vaghani Credit Line (Permanently included on slip - user never has to enter it!) -->
+                    <div class="slip-credit-footer">
+                        CREATED BY JEEL VAGHANI • OSLC HOUSE
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Today's Issued Passes Quick History Box -->
+            <div class="card history-section">
+                <div class="card-title">
+                    <span id="txtRecentPassesTitle">Recent Issued Passes (તાજેતરના ગેટ પાસ)</span>
+                    <span id="historyCountBadge" class="worker-code-badge">0 Passes</span>
+                </div>
+                <div class="history-table-container">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Int No</th>
+                                <th>Time</th>
+                                <th>Code</th>
+                                <th>Name</th>
+                                <th>Dept</th>
+                                <th>Tools</th>
+                                <th>141 Mall</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <tr>
+                                <td colspan="8" style="text-align: center; color: var(--text-dim); padding: 18px;">
+                                    No gate passes issued yet for this date.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 2: DEDICATED REPORT & HISTORY TAB (REPORTS & PASS REGISTER)            -->
+    <!-- ========================================================================= -->
+    <main id="viewReportsHistory" class="reports-container" style="display: none;">
+
+        <div class="report-page-header">
+            <div class="report-title-group">
+                <h2 id="txtRptPageTitle">📊 OSLC KARIGAR GATE PASS REGISTER & MASTER REPORT</h2>
+                <p id="txtRptPageSub">ગમે તે દિવસ કે તારીખ સર્ચ કરો • એક્સેલ ડાઉનલોડ • ફરી પ્રિન્ટ (Reprint) કરો</p>
+            </div>
+            <div class="report-actions-top">
+                <button type="button" id="exportReportExcelBtn" class="btn-action-emerald">
+                    <span>📥</span>
+                    <span id="txtRptDownloadBtn">Download Excel Register (એક્સેલ ડાઉનલોડ)</span>
+                </button>
+                <button type="button" id="printReportRegisterBtn" class="btn-action-blue">
+                    <span>🖨️</span>
+                    <span id="txtRptPrintBtn">Print Report (પ્રિન્ટ રિપોર્ટ)</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- KPI Summary Cards -->
+        <div class="report-stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue">🎫</div>
+                <div class="stat-data">
+                    <div class="stat-num" id="rptStatTotalPasses">0</div>
+                    <div class="stat-label" id="lblKpiTotal">કુલ ઇશ્યુ થયેલા ગેટ પાસ</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red">⚠️</div>
+                <div class="stat-data">
+                    <div class="stat-num" id="rptStatPendingMallPasses">0</div>
+                    <div class="stat-label" id="lblKpiMall">141 માલ બાકી હોય તેવા પાસ</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green">✅</div>
+                <div class="stat-data">
+                    <div class="stat-num" id="rptStatClearPasses">0</div>
+                    <div class="stat-label" id="lblKpiClear">ઓલ ક્લિયર (0 Pcs) પાસ</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon gold">🔁</div>
+                <div class="stat-data">
+                    <div class="stat-num" id="rptStatReprintCount">0</div>
+                    <div class="stat-label" id="lblKpiReprint">ફરી પ્રિન્ટ થયેલા (Reprints)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search & Filter Controls -->
+        <div class="report-filter-panel card">
+            <div class="filter-row">
+                <!-- Date Filter Input -->
+                <div class="filter-group">
+                    <label id="lblRptDate">Filter By Date (તારીખ):</label>
+                    <input type="date" id="rptFilterDate" class="form-control">
+                </div>
+
+                <!-- Date Range From/To -->
+                <div class="filter-group">
+                    <label id="lblRptFromDate">From Date (થી તારીખ):</label>
+                    <input type="date" id="rptFilterFrom" class="form-control">
+                </div>
+                <div class="filter-group">
+                    <label id="lblRptToDate">To Date (સુધી તારીખ):</label>
+                    <input type="date" id="rptFilterTo" class="form-control">
+                </div>
+
+                <!-- Search Input -->
+                <div class="filter-group" style="flex: 1.5;">
+                    <label id="lblRptSearch">Search Karigar / Int No (કારીગર / નં સર્ચ):</label>
+                    <input type="text" id="rptFilterSearch" class="form-control" placeholder="Search by name, code (M84, 101, 287), int no...">
+                </div>
+
+                <!-- Mall Filter -->
+                <div class="filter-group">
+                    <label id="lblRptMallFilter">141 Mall Filter:</label>
+                    <select id="rptFilterMall" class="form-control">
+                        <option value="ALL">All Passes (બધા જ)</option>
+                        <option value="WITH_MALL">⚠️ With Pending Mall (માલ બાકી)</option>
+                        <option value="CLEAR">✅ All Clear Only (ક્લિયર)</option>
+                    </select>
+                </div>
+
+                <!-- Filter Buttons -->
+                <div class="filter-buttons" style="align-self: flex-end;">
+                    <button type="button" id="rptBtnApplyFilter" class="btn-primary" style="padding: 10px 18px;">
+                        <span>🔍 Search</span>
+                    </button>
+                    <button type="button" id="rptBtnResetFilter" class="btn-secondary" style="padding: 10px 14px;">
+                        <span>Reset</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Date Filter Buttons -->
+            <div class="quick-date-chips">
+                <span style="font-size: 12px; color: var(--text-dim); align-self: center;" id="txtQuickDateFilters">Quick Filters:</span>
+                <button type="button" class="chip-btn rpt-chip" data-filter="today">આજે (Today)</button>
+                <button type="button" class="chip-btn rpt-chip" data-filter="yesterday">ગઈકાલે (Yesterday)</button>
+                <button type="button" class="chip-btn rpt-chip" data-filter="this_week">આ અઠવાડિયે (This Week)</button>
+                <button type="button" class="chip-btn rpt-chip" data-filter="this_month">આ મહિને (This Month)</button>
+                <button type="button" class="chip-btn rpt-chip" data-filter="all">તમામ રેકોર્ડ (All Records)</button>
+            </div>
+        </div>
+
+        <!-- Master Report Table -->
+        <div class="card report-table-card">
+            <div class="report-table-toolbar">
+                <span id="rptTableCountText">Showing 0 Records</span>
+                <div class="report-table-actions">
+                    <span style="font-size: 12px; color: var(--text-muted);" id="txtReprintHint">
+                        💡 "REPRINT" ક્લિક કરવાથી ઓરિજિનલ <strong>Int No. બદલાયા વગર</strong> નવો એન્ટ્રી લોગ થશે અને પ્રિન્ટ નીકળશે!
+                    </span>
+                </div>
+            </div>
+
+            <div class="report-table-scroll">
+                <table class="master-report-table">
+                    <thead>
+                        <tr>
+                            <th>Sr</th>
+                            <th>Int No</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Worker Code</th>
+                            <th>Karigar Name</th>
+                            <th>Department</th>
+                            <th>Floor</th>
+                            <th>Tools Returned</th>
+                            <th>141 Mall Status</th>
+                            <th>Type</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rptTableBody">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer Credit -->
+    <footer class="app-footer">
+        <div>OSLC HOUSE • OM SAI LATEST CREATION • LIVE DIGIBIZZ GATE PASS SYSTEM</div>
+        <div class="credit-text">CREATED BY JEEL VAGHANI</div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast-msg">
+        <span id="toastIcon">ℹ️</span>
+        <span id="toastText">Notification message</span>
+    </div>
+
+    <!-- Alert Modal for Checklist Block -->
+    <div id="checklistBlockModal" class="modal-backdrop" style="display: none;">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span class="modal-icon">🚫</span>
+                <h3 id="txtModalTitle">પ્રિન્ટ બ્લોક છે (Print Blocked)!</h3>
+            </div>
+            <div class="modal-body">
+                <p id="txtModalMsg">કારીગર પાસેથી નીચે મુજબના તમામ ૪ સાધનો જમા લીધા બાદ જ ગેટ પાસની પ્રિન્ટ નીકળશે:</p>
+                <ul id="missingChecklistItemsList" class="missing-items-list">
+                    <!-- Populated dynamically -->
+                </ul>
+                <div class="modal-tip" id="txtModalTip">
+                    મહેરબાની કરીને સાધનો જમા લઈ ઉપરના ચેકબોક્સમાં ટીક કરો અથવા "બધા સિલેક્ટ કરો" દબાવો.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="modalSelectAllBtn" class="btn-primary">✓ બધા સાધનો જમા છે (Select All & Unlock)</button>
+                <button type="button" id="modalCloseBtn" class="btn-secondary">બંધ કરો (Close)</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,459 @@
+/* ==========================================================================
+   OSLC KARIGAR GATE PASS - PRINT STYLESHEET
+   100% STRICTLY FIT ON HALF A4 PAGE (Height <= 138mm)
+   Created By JEEL VAGHANI
+   ========================================================================== */
+
+@page {
+    size: A4 portrait;
+    margin: 3mm 5mm;
+}
+
+@media print {
+    /* Base resets */
+    html, body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        font-family: 'Calibri', 'Arial', sans-serif !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        width: 100% !important;
+        height: auto !important;
+    }
+
+    /* Hide all web application chrome */
+    .top-header,
+    .header-nav-tabs,
+    .control-col,
+    .preview-header-bar,
+    .history-section,
+    .action-buttons-group,
+    .toast-msg,
+    .quick-chips-wrapper,
+    .search-wrapper,
+    .workers-results-container,
+    .checklist-card-section,
+    .app-footer,
+    .modal-backdrop,
+    .reports-container,
+    button {
+        display: none !important;
+    }
+
+    .main-container {
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+    }
+
+    .preview-col {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .pass-sheet-wrapper {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 auto !important;
+        display: block !important;
+    }
+
+    /* =========================================================================
+       GATE PASS SLIP - EXACT HALF A4 SHEET FIT (Max Height: 134mm)
+       Strictly fits 2 passes on 1 single A4 Sheet!
+       ========================================================================= */
+    .gatepass-slip {
+        width: 192mm !important;
+        max-width: 192mm !important;
+        height: 134mm !important;
+        max-height: 134mm !important;
+        margin: 0 auto !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        box-shadow: none !important;
+        border: 2px solid #000000 !important;
+        padding: 2mm 3.5mm !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+
+    /* Multi-pass 2-per-page A4 sheet container */
+    .print-page-pair {
+        width: 100% !important;
+        max-width: 192mm !important;
+        min-height: 275mm !important;
+        max-height: 284mm !important;
+        margin: 0 auto !important;
+        box-sizing: border-box !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        gap: 2mm !important;
+        align-items: center !important;
+        overflow: hidden !important;
+    }
+
+    .print-page-pair:last-child {
+        page-break-after: auto !important;
+        break-after: auto !important;
+    }
+
+    .print-cut-divider {
+        width: 192mm !important;
+        margin: 1mm auto !important;
+        text-align: center !important;
+        font-size: 8px !important;
+        color: #64748b !important;
+        letter-spacing: 2px !important;
+        line-height: 1 !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .preview-page-label {
+        display: none !important;
+    }
+
+    /* Slip Header */
+    .slip-header {
+        text-align: center !important;
+        border-bottom: 2px solid #000000 !important;
+        padding-bottom: 2px !important;
+        margin-bottom: 4px !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+
+    .slip-brand-logo {
+        max-height: 44px !important;
+        width: auto !important;
+        max-width: 100% !important;
+        object-fit: contain !important;
+        margin: 0 auto !important;
+        display: block !important;
+    }
+
+    .slip-title {
+        font-family: 'Algerian', 'Impact', serif !important;
+        font-size: 20px !important;
+        font-weight: 900 !important;
+        color: #000000 !important;
+        letter-spacing: 1.5px !important;
+        line-height: 1.0 !important;
+    }
+
+    .slip-subtitle {
+        font-size: 9px !important;
+        font-weight: 800 !important;
+        color: #000000 !important;
+        margin-top: 1px !important;
+        letter-spacing: 0.5px !important;
+    }
+
+    /* Slip Body Grid */
+    .slip-body {
+        display: grid !important;
+        grid-template-columns: 1fr 100px !important;
+        gap: 8px !important;
+        align-items: start !important;
+    }
+
+    .slip-info-col {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 3px !important;
+    }
+
+    .slip-field, .slip-name-row, .slip-sign-row {
+        font-size: 11.5px !important;
+        line-height: 1.25 !important;
+        color: #000000 !important;
+    }
+
+    .slip-field .lbl {
+        font-weight: 800 !important;
+    }
+
+    .slip-field .val {
+        font-weight: 700 !important;
+        color: #000000 !important;
+    }
+
+    .slip-reprint-tag {
+        display: inline-block !important;
+        font-size: 9px !important;
+        font-weight: 900 !important;
+        color: #000000 !important;
+        border: 1px solid #000000 !important;
+        padding: 0 4px !important;
+        margin-left: 5px !important;
+    }
+
+    .slip-row-split {
+        display: flex !important;
+        justify-content: space-between !important;
+        border-bottom: 1px solid #000000 !important;
+        padding-bottom: 2px !important;
+    }
+
+    .slip-row, .slip-name-row {
+        border-bottom: 1px solid #000000 !important;
+        padding-bottom: 2px !important;
+    }
+
+    .slip-time-split {
+        display: flex !important;
+        justify-content: space-between !important;
+        border-bottom: 1px solid #000000 !important;
+        padding-bottom: 2px !important;
+    }
+
+    /* Photo in Slip */
+    .slip-photo-col {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+    }
+
+    .slip-photo-frame {
+        width: 95px !important;
+        height: 105px !important;
+        border: 1.5px solid #000000 !important;
+        background: #ffffff !important;
+        overflow: hidden !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .slip-photo-frame img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        display: block !important;
+    }
+
+    .slip-photo-caption {
+        font-size: 7.5px !important;
+        font-weight: 800 !important;
+        margin-top: 1px !important;
+        color: #000000 !important;
+    }
+
+    /* Mandatory Tools Checklist verification row on slip */
+    .slip-checklist-row {
+        font-size: 9.5px !important;
+        font-weight: 800 !important;
+        color: #000000 !important;
+        background: #f1f5f9 !important;
+        border: 1px solid #000000 !important;
+        padding: 2px 4px !important;
+        margin-top: 3px !important;
+        display: flex !important;
+        justify-content: space-around !important;
+        align-items: center !important;
+    }
+
+    .slip-checklist-row.is-hidden,
+    .slip-checklist-row[style*="display: none"] {
+        display: none !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+    }
+
+    /* Signatures (3 Authorized Signature Boxes) */
+    .slip-signatures {
+        margin-top: 3px !important;
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 4px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        border-top: none !important;
+        padding-top: 0 !important;
+    }
+
+    .slip-sign-box {
+        border: 1.2px solid #000000 !important;
+        border-radius: 3px !important;
+        padding: 3px 5px !important;
+        background: #ffffff !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        min-height: 38px !important;
+        box-sizing: border-box !important;
+        text-align: left !important;
+    }
+
+    .slip-sign-box .sign-box-role {
+        font-size: 8.5px !important;
+        font-weight: 800 !important;
+        color: #000000 !important;
+        text-transform: uppercase !important;
+        border-bottom: 1px dashed #666666 !important;
+        padding-bottom: 1px !important;
+        margin-bottom: 1px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        line-height: 1.1 !important;
+    }
+
+    .slip-sign-box .sign-box-name {
+        font-size: 10px !important;
+        font-weight: 800 !important;
+        color: #000000 !important;
+        line-height: 1.15 !important;
+        margin: 1px 0 2px 0 !important;
+    }
+
+    .slip-sign-box .sign-box-line {
+        font-size: 8.5px !important;
+        font-weight: 700 !important;
+        color: #000000 !important;
+        padding-top: 2px !important;
+        border-top: 1px solid #000000 !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+    }
+
+    .slip-sign-row {
+        font-size: 10.5px !important;
+        font-weight: 700 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        width: 100% !important;
+        line-height: 1.25 !important;
+    }
+
+    .slip-sign-row .sign-label {
+        white-space: nowrap !important;
+        padding-right: 6px !important;
+    }
+
+    .slip-sign-row .sign-line {
+        flex: 1 !important;
+        border-bottom: 1.2px dashed #000000 !important;
+        height: 1px !important;
+        display: inline-block !important;
+        margin-bottom: 2px !important;
+    }
+
+    /* 141 Mall Status & Itemized Table on Slip */
+    .slip-141-container {
+        margin-top: 3px !important;
+    }
+
+    .slip-141-stamp {
+        padding: 2px 4px !important;
+        border: 1px dashed #000000 !important;
+        font-size: 9px !important;
+        font-weight: 800 !important;
+        text-align: center !important;
+    }
+
+    .slip-141-stamp.warn {
+        background: #f3f4f6 !important;
+        color: #000000 !important;
+    }
+
+    .slip-141-stamp.clear {
+        background: #fafafa !important;
+        color: #000000 !important;
+    }
+
+    .slip-mall-header {
+        font-size: 8.5px !important;
+        font-weight: 800 !important;
+        margin-bottom: 2px !important;
+    }
+
+    .slip-mall-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        font-size: 8px !important;
+    }
+
+    .slip-mall-table th, 
+    .slip-mall-table td {
+        border: 1px solid #000000 !important;
+        padding: 1px 3px !important;
+        text-align: center !important;
+    }
+
+    .slip-mall-table th {
+        background: #e2e8f0 !important;
+        font-weight: 800 !important;
+    }
+
+    /* Created by Jeel Vaghani credit */
+    .slip-credit-footer {
+        display: block !important;
+        font-size: 8px !important;
+        font-weight: 800 !important;
+        color: #000000 !important;
+        text-align: right !important;
+        margin-top: 2px !important;
+        letter-spacing: 0.5px !important;
+    }
+
+    /* =========================================================================
+       REPORT REGISTER PRINT MODE (When user clicks Print Report)
+       ========================================================================= */
+    body.print-report-mode .main-container {
+        display: none !important;
+    }
+
+    body.print-report-mode .reports-container {
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    body.print-report-mode .report-filter-panel,
+    body.print-report-mode .report-actions-top,
+    body.print-report-mode .report-stats-grid {
+        display: none !important;
+    }
+
+    body.print-report-mode .report-page-header h2 {
+        font-size: 16px !important;
+        color: #000000 !important;
+        margin-bottom: 4px !important;
+    }
+
+    body.print-report-mode .master-report-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        font-size: 8.5px !important;
+    }
+
+    body.print-report-mode .master-report-table th,
+    body.print-report-mode .master-report-table td {
+        border: 1px solid #000000 !important;
+        padding: 3px 4px !important;
+    }
+}

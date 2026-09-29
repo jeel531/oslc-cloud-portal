@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OSLC CHEKING - Detail Report (127)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Gujarati:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Top Navigation Header -->
+  <header class="top-nav">
+    <div class="nav-left">
+      <div class="logo-box">
+        <div class="logo-icon">🔍</div>
+        <div>
+          <div class="brand-row">
+            <h1 class="brand-title" data-i18n="appTitle">OSLC CHEKING</h1>
+            <span class="creator-badge" id="creatorBadge" title="Created by Jeel Vaghani">
+              <span class="creator-sparkle">✨</span>
+              <span class="creator-name" data-i18n="createdBy">Created by Jeel Vaghani</span>
+            </span>
+          </div>
+          <p class="brand-sub" data-i18n="appSub">Detail Report (127) • Checking Receive Live</p>
+        </div>
+      </div>
+    </div>
+    <div class="nav-right">
+      <!-- Multilingual Language Selector (Gujarati, Hindi, English) -->
+      <div class="lang-switch-box" id="langSwitchBox">
+        <button class="lang-btn active" data-lang="gu" title="ગુજરાતી ભાષા">ગુજરાતી</button>
+        <button class="lang-btn" data-lang="hi" title="हिन्दी भाषा">हिन्दी</button>
+        <button class="lang-btn" data-lang="en" title="English Language">English</button>
+      </div>
+
+      <div class="live-pill" id="livePill">
+        <span class="pulse-dot"></span>
+        <span id="liveStatusText" data-i18n="liveStatus">Digi Live</span>
+      </div>
+      <button class="btn-icon" id="btnRefresh" title="રીફ્રેશ કરો">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+      </button>
+      <button class="btn-excel" id="btnExportTop">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        <span data-i18n="downloadExcel">Download Cheking Excel</span>
+      </button>
+      <a href="/download/apk" class="btn-apk" title="Download Android APK directly" download="OSLC_CHEKING.apk">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        <span data-i18n="mobileApk">📱 Mobile APK</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Date Range & Quick Filter Section -->
+    <section class="control-panel">
+      <div class="panel-header">
+        <span class="section-label" data-i18n="dateCriteria">📅 તારીખ સિલેક્શન (Date Criteria - Report 127):</span>
+        <span class="process-badge" data-i18n="processBadge">Process: Checking Receive [127]</span>
+      </div>
+
+      <div class="quick-date-bar">
+        <button class="date-btn active" data-range="today" data-i18n="rangeToday">આજે (Today)</button>
+        <button class="date-btn" data-range="yesterday" data-i18n="rangeYesterday">ગઈકાલે (Yesterday)</button>
+        <button class="date-btn" data-range="7days" data-i18n="range7days">છેલ્લા ૭ દિવસ (7 Days)</button>
+        <button class="date-btn" data-range="this_month" data-i18n="rangeThisMonth">આ મહિને (This Month)</button>
+      </div>
+
+      <div class="date-inputs-row">
+        <div class="date-field">
+          <label for="fromDateInput" data-i18n="fromDate">From Date (ક્યાંથી):</label>
+          <input type="date" id="fromDateInput" name="fromDateInput" title="From Date (ક્યાંથી)" placeholder="YYYY-MM-DD" aria-label="From Date (ક્યાંથી)">
+        </div>
+        <div class="date-field">
+          <label for="toDateInput" data-i18n="toDate">To Date (ક્યાં સુધી):</label>
+          <input type="date" id="toDateInput" name="toDateInput" title="To Date (ક્યાં સુધી)" placeholder="YYYY-MM-DD" aria-label="To Date (ક્યાં સુધી)">
+        </div>
+        <button class="btn-apply" id="btnApplyDate" type="button">
+          <span data-i18n="applyFilter">Apply Date Filter</span>
+        </button>
+      </div>
+
+      <!-- View Navigation Tabs -->
+      <div class="view-tabs">
+        <button class="view-tab-btn active" data-view="summary" data-i18n="tabSummary">
+          📊 Cheking Summary (127 Format)
+        </button>
+        <button class="view-tab-btn" data-view="idranking" data-i18n="tabIdRanking">
+          🏆 ID વાઇઝ રેન્કિંગ (Top 1)
+        </button>
+        <button class="view-tab-btn" data-view="alter" data-i18n="tabAlter">
+          ⚠️ Alter (Reject) Report
+        </button>
+        <button class="view-tab-btn" data-view="category" data-i18n="tabCategory">
+          🏷️ Category Wise Summary
+        </button>
+        <button class="view-tab-btn" data-view="details" data-i18n="tabDetails">
+          📋 Detail Report (127) Vouchers
+        </button>
+      </div>
+    </section>
+
+    <!-- Top KPI Total Bar -->
+    <section class="summary-hero-bar">
+      <div class="hero-metric-grid">
+        <div class="hero-metric-item">
+          <span class="hero-item-label" data-i18n="kpiTotal">Checking Receive Total</span>
+          <span class="hero-item-val text-emerald" id="heroTotalPcs">0 Pcs</span>
+        </div>
+        <div class="hero-metric-divider"></div>
+        <div class="hero-metric-item">
+          <span class="hero-item-label" data-i18n="kpiFresh">Fresh (પાસ)</span>
+          <span class="hero-item-val text-blue" id="heroFreshPcs">0 Pcs</span>
+        </div>
+        <div class="hero-metric-divider"></div>
+        <div class="hero-metric-item">
+          <span class="hero-item-label" data-i18n="kpiAlt">Alter / Reject (અલ્ટર)</span>
+          <span class="hero-item-val text-amber" id="heroAltPcs">0 Pcs</span>
+        </div>
+        <div class="hero-metric-divider"></div>
+        <div class="hero-metric-item">
+          <span class="hero-item-label" data-i18n="kpiReturn">Wastage (રીટર્ન)</span>
+          <span class="hero-item-val text-rose" id="heroReturnPcs">0 Pcs</span>
+        </div>
+      </div>
+      <div class="hero-meta">
+        <span id="heroDateLabel">Date: Today</span> • <span id="heroVoucherCount">0 Vouchers</span>
+        <span class="hero-creator-badge" data-i18n="createdBySub">⚡ Developed by Jeel Vaghani</span>
+      </div>
+    </section>
+
+    <!-- VIEW 1: SUPERVISOR & DEPARTMENT CHEKING SUMMARY (Exact 20-9-26 Excel Format) -->
+    <section class="view-section active" id="viewSummary">
+      <!-- DASHBOARD TOP 5 LEADERBOARD (શ્રેષ્ઠ ૫ ચેકર્સ / HIGHEST WORK) -->
+      <div class="dash-top5-card-box" id="dashTop5CardBox">
+        <div class="dash-top5-header">
+          <div class="dash-top5-title-group">
+            <span class="dash-top5-kicker" data-i18n="top5Kicker">🏆 લાઈવ ડેશબોર્ડ રેન્કિંગ • LIVE TOP 5</span>
+            <h2 class="dash-top5-title" data-i18n="top5Title">સૌથી વધુ કામ કરતા શ્રેષ્ઠ ૫ ચેકર્સ (TOP 1 to TOP 5)</h2>
+            <p class="dash-top5-subtitle" data-i18n="top5Subtitle">જેમનું કામ સૌથી વધુ છે તે TOP 1 માં અને તે મુજબ TOP 5 ક્રમવાર દર્શાવેલ છે</p>
+          </div>
+          <div class="dash-top5-badge-wrap">
+            <span class="dash-top5-live-tag">
+              <span class="pulse-dot"></span>
+              <span data-i18n="top5LiveTag">Live Rank #1 to #5</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="dash-top5-cards-grid" id="dashTop5CardsContainer">
+          <!-- Dynamically populated with TOP 1 to TOP 5 cards by app.js -->
+        </div>
+      </div>
+
+      <!-- Department Cards Section Header -->
+      <div class="summary-section-header">
+        <div class="summary-sec-title">
+          <span class="summary-sec-icon">🏢</span>
+          <span data-i18n="deptSummaryTitle">ડિપાર્ટમેન્ટ સમરી રિપોર્ટ (વધુ કામ પહેલાં • High to Low)</span>
+        </div>
+        <div class="summary-sec-meta">
+          <span class="sort-indicator-pill">⚡ Sorted: Highest Pcs First</span>
+        </div>
+      </div>
+
+      <div class="dept-cards-grid" id="deptCardsContainer">
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p data-i18n="loadingSummary">Loading Checking Receive Summary...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: ID-WISE CHECKER PERFORMANCE & TOP 1 RANKING REPORT -->
+    <section class="view-section" id="viewIdRanking">
+      <!-- Podium & KPI Summary Cards -->
+      <div class="podium-grid">
+        <!-- Top 1 Gold Card -->
+        <div class="podium-card podium-top1">
+          <div class="podium-badge-pill">👑 1ST PLACE • TOP 1</div>
+          <div class="podium-crown-icon">🥇</div>
+          <div class="podium-emp-code" id="podiumTop1Code">-</div>
+          <div class="podium-emp-name" id="podiumTop1Name">Top Checker</div>
+          <div class="podium-dept-pill" id="podiumTop1Dept">-</div>
+          <div class="podium-qty-box">
+            <span class="podium-qty-num" id="podiumTop1Pcs">0</span>
+            <span class="podium-qty-unit">Pcs Checked</span>
+          </div>
+          <div class="podium-stats-sub">
+            <span id="podiumTop1Share">0% Share</span> • <span id="podiumTop1Fresh">0 Fresh</span> • <span id="podiumTop1Alt" class="text-amber">0 Alt</span>
+          </div>
+        </div>
+
+        <!-- Top 2 Silver Card -->
+        <div class="podium-card podium-top2">
+          <div class="podium-badge-pill">🥈 2ND PLACE • TOP 2</div>
+          <div class="podium-crown-icon">🥈</div>
+          <div class="podium-emp-code" id="podiumTop2Code">-</div>
+          <div class="podium-emp-name" id="podiumTop2Name">2nd Checker</div>
+          <div class="podium-dept-pill" id="podiumTop2Dept">-</div>
+          <div class="podium-qty-box">
+            <span class="podium-qty-num" id="podiumTop2Pcs">0</span>
+            <span class="podium-qty-unit">Pcs Checked</span>
+          </div>
+          <div class="podium-stats-sub">
+            <span id="podiumTop2Share">0% Share</span> • <span id="podiumTop2Fresh">0 Fresh</span>
+          </div>
+        </div>
+
+        <!-- Top 3 Bronze Card -->
+        <div class="podium-card podium-top3">
+          <div class="podium-badge-pill">🥉 3RD PLACE • TOP 3</div>
+          <div class="podium-crown-icon">🥉</div>
+          <div class="podium-emp-code" id="podiumTop3Code">-</div>
+          <div class="podium-emp-name" id="podiumTop3Name">3rd Checker</div>
+          <div class="podium-dept-pill" id="podiumTop3Dept">-</div>
+          <div class="podium-qty-box">
+            <span class="podium-qty-num" id="podiumTop3Pcs">0</span>
+            <span class="podium-qty-unit">Pcs Checked</span>
+          </div>
+          <div class="podium-stats-sub">
+            <span id="podiumTop3Share">0% Share</span> • <span id="podiumTop3Fresh">0 Fresh</span>
+          </div>
+        </div>
+
+        <!-- Top 4 Star Card -->
+        <div class="podium-card podium-top4">
+          <div class="podium-badge-pill">🎖️ 4TH PLACE • TOP 4</div>
+          <div class="podium-crown-icon">🎖️</div>
+          <div class="podium-emp-code" id="podiumTop4Code">-</div>
+          <div class="podium-emp-name" id="podiumTop4Name">4th Checker</div>
+          <div class="podium-dept-pill" id="podiumTop4Dept">-</div>
+          <div class="podium-qty-box">
+            <span class="podium-qty-num" id="podiumTop4Pcs">0</span>
+            <span class="podium-qty-unit">Pcs Checked</span>
+          </div>
+          <div class="podium-stats-sub">
+            <span id="podiumTop4Share">0% Share</span> • <span id="podiumTop4Fresh">0 Fresh</span>
+          </div>
+        </div>
+
+        <!-- Top 5 Star Card -->
+        <div class="podium-card podium-top5">
+          <div class="podium-badge-pill">🎖️ 5TH PLACE • TOP 5</div>
+          <div class="podium-crown-icon">🎖️</div>
+          <div class="podium-emp-code" id="podiumTop5Code">-</div>
+          <div class="podium-emp-name" id="podiumTop5Name">5th Checker</div>
+          <div class="podium-dept-pill" id="podiumTop5Dept">-</div>
+          <div class="podium-qty-box">
+            <span class="podium-qty-num" id="podiumTop5Pcs">0</span>
+            <span class="podium-qty-unit">Pcs Checked</span>
+          </div>
+          <div class="podium-stats-sub">
+            <span id="podiumTop5Share">0% Share</span> • <span id="podiumTop5Fresh">0 Fresh</span>
+          </div>
+        </div>
+
+        <!-- Team Stats Card -->
+        <div class="podium-card podium-summary">
+          <div class="podium-badge-pill">👥 TEAM PERFORMANCE</div>
+          <div class="podium-crown-icon">⚡</div>
+          <div class="podium-stat-item">
+            <span class="podium-stat-label" data-i18n="totalCheckersLabel">Total Active Checkers:</span>
+            <span class="podium-stat-val text-cyan" id="idRankingTotalCheckers">0</span>
+          </div>
+          <div class="podium-stat-item">
+            <span class="podium-stat-label" data-i18n="avgPerCheckerLabel">Average Pcs / Checker:</span>
+            <span class="podium-stat-val text-emerald" id="idRankingAvgPcs">0 Pcs</span>
+          </div>
+          <div class="podium-stat-item">
+            <span class="podium-stat-label" data-i18n="top3ShareLabel">Top 3 Production Share:</span>
+            <span class="podium-stat-val text-amber" id="idRankingTop3Share">0%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls: Search, Dept Filter, Sort -->
+      <div class="ranking-controls-bar">
+        <div class="search-box">
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="idRankingSearch" placeholder="Search Checker ID (e.g. P643) or Name..." data-i18n-ph="searchIdPlaceholder">
+        </div>
+        <div class="filter-dropdowns">
+          <select id="idRankingDeptFilter" class="filter-select" aria-label="Department Filter">
+            <option value="">બધા ડિપાર્ટમેન્ટ (All Departments)</option>
+            <option value="SHIRT">SHIRT (ABBAS)</option>
+            <option value="KURTI">KURTI (ABDUL)</option>
+            <option value="PENT">PENT (ALI)</option>
+            <option value="JOB WORK">JOB WORK (NAJIR)</option>
+            <option value="OTHER CHECKERS">OTHER CHECKERS</option>
+          </select>
+          <select id="idRankingSortSelect" class="filter-select" aria-label="Sort Options">
+            <option value="total_desc">Top 1: Highest Total Checked (Default)</option>
+            <option value="fresh_desc">Highest Fresh Pcs</option>
+            <option value="alt_desc">Highest Alter (Defect) Pcs</option>
+            <option value="code_asc">Checker ID (A to Z)</option>
+          </select>
+        </div>
+        <div class="ranking-count-badge" id="idRankingCount">0 Checkers</div>
+      </div>
+
+      <!-- Table Container -->
+      <div class="table-container">
+        <table class="data-table" id="idRankingTable">
+          <thead>
+            <tr>
+              <th style="width:110px;" class="text-center" data-i18n="thRank">Rank</th>
+              <th style="width:110px;" data-i18n="thCheckerId">Checker ID</th>
+              <th data-i18n="thCheckerName">Checker Name</th>
+              <th data-i18n="thDept">Department</th>
+              <th class="text-right" data-i18n="colFresh">Fresh</th>
+              <th class="text-right text-amber" data-i18n="colAlt">Alter</th>
+              <th class="text-right" data-i18n="colReturn">Return</th>
+              <th class="text-right text-emerald" style="min-width:140px;" data-i18n="thTotalChecked">Total Checked</th>
+              <th style="min-width:130px;" data-i18n="thShare">Share %</th>
+              <th class="text-right" data-i18n="thVouchers">Vouchers</th>
+            </tr>
+          </thead>
+          <tbody id="idRankingTableBody">
+            <tr>
+              <td colspan="10" class="loading-state">
+                <div class="spinner"></div>
+                <p>Loading ID-Wise Top Ranking Report...</p>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot id="idRankingTableFoot"></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <!-- VIEW 3: DEDICATED ALTER (REJECT) REPORT -->
+    <section class="view-section" id="viewAlter">
+      <div class="alter-kpi-grid">
+        <div class="alter-kpi-card danger-card">
+          <span class="alter-kpi-label" data-i18n="alterKpiTotal">Total Alter (Reject) Pcs</span>
+          <span class="alter-kpi-val text-amber" id="alterKpiTotal">0 Pcs</span>
+          <span class="alter-kpi-sub" id="alterKpiPct">0% of checked</span>
+        </div>
+        <div class="alter-kpi-card success-card">
+          <span class="alter-kpi-label" data-i18n="alterKpiFresh">Fresh Approved Pcs</span>
+          <span class="alter-kpi-val text-emerald" id="alterKpiFresh">0 Pcs</span>
+          <span class="alter-kpi-sub" id="alterKpiFreshPct">100% pass</span>
+        </div>
+        <div class="alter-kpi-card warning-card">
+          <span class="alter-kpi-label" data-i18n="alterKpiTopChk">Top Checker for Alter</span>
+          <span class="alter-kpi-val text-white" id="alterKpiTopChecker">-</span>
+          <span class="alter-kpi-sub" id="alterKpiTopCheckerSub">0 Pcs alter</span>
+        </div>
+        <div class="alter-kpi-card info-card">
+          <span class="alter-kpi-label" data-i18n="alterKpiTopDes">Top Design for Alter</span>
+          <span class="alter-kpi-val text-cyan" id="alterKpiTopDesign">-</span>
+          <span class="alter-kpi-sub" id="alterKpiTopDesignSub">0 Pcs alter</span>
+        </div>
+      </div>
+
+      <!-- Ranking Split Grid: Left Checkers, Right Designs -->
+      <div class="alter-split-grid">
+        <div class="alter-box">
+          <div class="alter-box-header">
+            <h3 data-i18n="alterChkTitle">👤 Checker Wise Alter (રીજેક્ટ) Breakdown</h3>
+            <span class="badge-count" id="alterCheckerCount">0 Checkers</span>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table" id="alterCheckerTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th data-i18n="thChecker">Checker / Employee</th>
+                  <th class="text-right" data-i18n="colFresh">Fresh</th>
+                  <th class="text-right text-amber" data-i18n="colAlt">Alter</th>
+                  <th class="text-right" data-i18n="colReturn">Return</th>
+                  <th class="text-right" data-i18n="colTotal">Total</th>
+                  <th class="text-right">Alter %</th>
+                </tr>
+              </thead>
+              <tbody id="alterCheckerTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="alter-box">
+          <div class="alter-box-header">
+            <h3 data-i18n="alterDesTitle">👗 Design Wise Alter (રીજેક્ટ) Breakdown</h3>
+            <span class="badge-count" id="alterDesignCount">0 Designs</span>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table" id="alterDesignTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th data-i18n="thDesign">Design No</th>
+                  <th data-i18n="thCategory">Category</th>
+                  <th class="text-right" data-i18n="colFresh">Fresh</th>
+                  <th class="text-right text-amber" data-i18n="colAlt">Alter</th>
+                  <th class="text-right" data-i18n="colTotal">Total</th>
+                  <th class="text-right">Alter %</th>
+                </tr>
+              </thead>
+              <tbody id="alterDesignTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alter Vouchers List -->
+      <div class="alter-vouchers-box">
+        <div class="alter-box-header">
+          <h3 data-i18n="alterVouchersTitle">📋 Live Alter (Reject) Vouchers List</h3>
+          <span class="badge-count" id="alterVoucherCount">0 Vouchers</span>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table" id="alterVouchersTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th data-i18n="thVoucher">Voucher No</th>
+                <th data-i18n="thTime">Time</th>
+                <th data-i18n="thStatus">Status</th>
+                <th data-i18n="thDesign">Design</th>
+                <th data-i18n="thCategory">Category</th>
+                <th data-i18n="thSize">Size</th>
+                <th data-i18n="thSKU">SKU</th>
+                <th data-i18n="thLot">Lot No</th>
+                <th data-i18n="thChecker">Checker</th>
+                <th class="text-right text-amber" data-i18n="thAltQty">Alter Qty</th>
+                <th data-i18n="thRemarks">Remarks</th>
+              </tr>
+            </thead>
+            <tbody id="alterVouchersTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: CATEGORY WISE SUMMARY (Exact Sheet3 Format) -->
+    <section class="view-section" id="viewCategory">
+      <div class="category-card-box">
+        <div class="category-card-header">
+          <h3 data-i18n="catCardTitle">Category Wise Production (Sheet 3 Format)</h3>
+          <span class="cat-date-badge" id="catDateBadge">Date: -</span>
+        </div>
+        <div class="category-table-wrapper">
+          <table class="category-table">
+            <thead>
+              <tr>
+                <th data-i18n="colCategory">CATEGORY</th>
+                <th class="text-right" data-i18n="colQtyPcs">QTY (PCS)</th>
+              </tr>
+            </thead>
+            <tbody id="categoryTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: FULL DETAIL REPORT (127) VOUCHERS -->
+    <section class="view-section" id="viewDetails">
+      <div class="table-controls">
+        <div class="search-box">
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="searchInput" name="searchInput" placeholder="Search Lot No, Design, SKU, Checker..." title="Search Lot No, Design, SKU, Checker" aria-label="Search Lot No, Design, SKU, Checker">
+        </div>
+
+        <div class="filters-row">
+          <select id="statusSelect" name="statusSelect" title="બધા સ્ટેટસ (All)" aria-label="બધા સ્ટેટસ (All)">
+            <option value="" data-i18n="allStatus">બધા સ્ટેટસ (All Status)</option>
+            <option value="FRESH" data-i18n="freshApproved">Fresh Approved</option>
+            <option value="ALT" data-i18n="alterDefect">Alter (Damage / Reject)</option>
+            <option value="RETURN" data-i18n="wastageReturn">Wastage (Return)</option>
+          </select>
+
+          <select id="checkerSelect" name="checkerSelect" title="બધા ચેકર / કારીગર" aria-label="બધા ચેકર / કારીગર">
+            <option value="" data-i18n="allCheckers">બધા ચેકર / કારીગર</option>
+          </select>
+
+          <select id="designSelect" name="designSelect" title="બધી ડિઝાઇન" aria-label="બધી ડિઝાઇન">
+            <option value="" data-i18n="allDesigns">બધી ડિઝાઇન</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <div class="table-status-bar">
+          <span id="recordCountInfo">Records: 0</span>
+          <div class="page-controls">
+            <label for="pageSizeSelect" data-i18n="rowsPerPage">Rows per page:</label>
+            <select id="pageSizeSelect" name="pageSizeSelect" title="Rows per page" aria-label="Rows per page">
+              <option value="50">50</option>
+              <option value="100" selected>100</option>
+              <option value="250">250</option>
+              <option value="all">All</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table" id="dataTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th data-i18n="thVoucher">Voucher No</th>
+                <th data-i18n="thTime">Time</th>
+                <th data-i18n="thStatus">Status</th>
+                <th data-i18n="thDesign">Design</th>
+                <th data-i18n="thCategory">Category</th>
+                <th data-i18n="thSize">Size</th>
+                <th data-i18n="thSKU">SKU</th>
+                <th data-i18n="thLot">Lot No</th>
+                <th data-i18n="thChecker">Checker / Employee</th>
+                <th class="text-right" data-i18n="thQty">Qty (Pcs)</th>
+                <th class="text-right" data-i18n="thRate">Rate</th>
+                <th class="text-right" data-i18n="thAmount">Amount</th>
+                <th data-i18n="thRemarks">Remarks</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="mobile-cards-list" id="mobileCardsList"></div>
+
+        <div class="pagination-bar" id="paginationBar">
+          <button class="btn-page" id="btnPrevPage" data-i18n="prevPage">← Previous</button>
+          <span id="pageInfo">Page 1 of 1</span>
+          <button class="btn-page" id="btnNextPage" data-i18n="nextPage">Next →</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <div class="footer-content">
+      <p data-i18n="footerText">OSLC CHEKING • Detail Report (127) • Checking Receive • Om Sai Latest Creation</p>
+      <div class="footer-creator-badge">
+        <span>⭐ Developed & Maintained by <strong>Jeel Vaghani</strong></span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

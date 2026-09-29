@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OSLC Godaun Shelf Barcode Print Pro - A4 10-Per-Page</title>
+  <link rel="stylesheet" href="/styles.css">
+  <!-- Offline bundled JsBarcode library -->
+  <script src="/JsBarcode.all.min.js"></script>
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header no-print">
+    <div class="brand-section">
+      <div class="brand-logo-badge">OSLC</div>
+      <div class="brand-titles">
+        <h1>
+          <span>ગોડાઉન શેલ્ફ બારકોડ પ્રિન્ટ</span>
+          <span class="badge-a4">A4 20-BARCODES/PAGE</span>
+        </h1>
+        <p>OM SAI LATEST CREATION - DigiBizz ERP Shelf Barcode Engine</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <!-- Database Connection Status -->
+      <div id="dbStatusBadge" class="db-status-badge">
+        <span class="indicator-dot"></span>
+        <span id="dbStatusText">DigiBizz કનેક્ટ થઈ રહ્યું છે...</span>
+      </div>
+
+      <!-- Stats Summary -->
+      <div class="stats-summary">
+        <span>કુલ બારકોડ: <strong id="totalBarcodesCount">0</strong></span>
+        <span>|</span>
+        <span>A4 પેજ: <strong id="totalPagesCount">0</strong></span>
+        <span>|</span>
+        <span>પેજ દીઠ: <strong id="perPageDisplay">20</strong></span>
+      </div>
+
+      <!-- Action Buttons -->
+      <button id="btnPrintA4" class="btn btn-success" title="ડાયરેક્ટ A4 પ્રિન્ટ આપો (Ctrl+P)">
+        🖨️ પ્રિન્ટ કરો (A4)
+      </button>
+      <button id="btnDownloadPdf" class="btn btn-primary" title="ReportLab વેક્ટર PDF ડાઉનલોડ કરો">
+        📥 PDF ડાઉનલોડ
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <div class="app-container">
+
+    <!-- Left Controls Sidebar -->
+    <aside class="controls-sidebar no-print">
+      
+      <!-- Source Switcher Tabs -->
+      <div class="source-tabs">
+        <button id="tabBtnPdf" class="tab-btn active" onclick="switchTab('pdf')">
+          📄 DigiBizz PDF (ઓરિજિનલ)
+        </button>
+        <button id="tabBtnRange" class="tab-btn" onclick="switchTab('range')">
+          ⚡ ક્વિક રેન્જ
+        </button>
+        <button id="tabBtnDigi" class="tab-btn" onclick="switchTab('digi')">
+          🏢 DigiBizz લાઈવ
+        </button>
+      </div>
+
+      <!-- TAB 1: DigiBizz PDF Upload & Reorder (Default Active) -->
+      <div id="tabContentPdf" class="tab-content active">
+        <div class="card-section">
+          <div class="card-title">
+            <span>DigiBizz ઓરિજિનલ PDF માંથી ૨૦-પ્રતિ-પેજ</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+            DigiBizz માંથી સેવ કરેલી PDF (જેમ કે <strong>vinay bhai fb godaun.pdf</strong>) ના ઓરિજિનલ બારકોડ આપમેળે ૧, ૨, ૩... લાઈનમાં ગોઠવાઈને A4 માં ૨૦/પેજ સેટ થઈ ગયા છે!
+          </p>
+
+          <!-- Current Loaded File Badge -->
+          <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; padding: 8px 12px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="font-size: 12px; color: #065f46;">
+              📄 ફાઈલ: <strong id="lblLoadedPdfName">vinay bhai fb godaun.pdf</strong>
+              <div style="font-size: 11px; color: #059669;" id="lblLoadedPdfStats">૧૦૪ બારકોડ સળંગ લાઈનમાં ૨૦/પેજ સેટ</div>
+            </div>
+            <button id="btnReloadSamplePdf" class="btn btn-secondary btn-sm" onclick="loadSamplePdf(false)" title="ફરીથી રીલોડ કરો">🔄</button>
+          </div>
+
+          <!-- PDF Range Filter -->
+          <div class="card-section" style="background: #ffffff; margin-bottom: 12px; padding: 10px;">
+            <div style="font-size: 12px; font-weight: 700; color: #1e293b; margin-bottom: 8px;">
+              🔍 PDF માંથી રેન્જ પસંદ કરો (Range Filter)
+            </div>
+            <div class="input-row">
+              <div class="form-group" style="margin-bottom: 6px;">
+                <label style="font-size: 11px;">શરૂઆત નંબર (From)</label>
+                <input type="text" id="pdfFilterFrom" class="form-control" placeholder="e.g. F447 or 447">
+              </div>
+              <div class="form-group" style="margin-bottom: 6px;">
+                <label style="font-size: 11px;">છેલ્લો નંબર (To)</label>
+                <input type="text" id="pdfFilterTo" class="form-control" placeholder="e.g. F470 or 470">
+              </div>
+            </div>
+            <div style="display: flex; gap: 6px; margin-top: 4px;">
+              <button type="button" class="btn btn-primary btn-sm" style="flex: 1;" onclick="applyPdfRangeFilter()">
+                ✓ રેન્જ ફિલ્ટર કરો
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="resetPdfFilter()">
+                બધા દર્શાવો
+              </button>
+            </div>
+          </div>
+
+          <!-- Upload Dropzone for Any other DigiBizz PDF -->
+          <div id="pdfDropzone" class="dropzone" style="padding: 14px 10px;">
+            <div class="dropzone-icon" style="font-size: 22px;">📁</div>
+            <strong style="font-size: 12px;">અન્ય કોઈ નવી DigiBizz PDF અપલોડ કરો</strong>
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">PDF પસંદ કરવા અહીં ક્લિક કરો</p>
+            <input type="file" id="pdfFileInput" accept="application/pdf" style="display: none;">
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: Quick Range Generator -->
+      <div id="tabContentRange" class="tab-content">
+        <div class="card-section">
+          <div class="card-title">
+            <span>ક્રમ અનુસાર બારકોડ રેન્જ આપો</span>
+            <span style="font-size: 11px; font-weight: normal; color: var(--text-muted);">1, 2, 3... લીટીમાં</span>
+          </div>
+
+          <div class="form-group">
+            <label>
+              <span>શેલ્ફ પ્રીફિક્સ (Shelf Prefix)</span>
+              <span class="label-gu">જેમ કે AAA, F, ZA</span>
+            </label>
+            <input type="text" id="rangePrefix" class="form-control" value="AAA" placeholder="e.g. AAA or F">
+            <!-- Quick Chips -->
+            <div style="display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="setQuickPrefix('AAA')">AAA</button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="setQuickPrefix('BBB')">BBB</button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="setQuickPrefix('ZA')">ZA</button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="setQuickPrefix('F')">F</button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="setQuickPrefix('TRR')">TRR</button>
+              <button type="button" class="btn btn-secondary btn-sm" style="background: #e0e7ff; color: #4338ca;" onclick="applyQuickPreset('AAA', 701, 720, 'AAA01')">⚡ AAA 701-720</button>
+              <button type="button" class="btn btn-secondary btn-sm" style="background: #e0e7ff; color: #4338ca;" onclick="applyQuickPreset('AAA', 701, 750, 'AAA01')">⚡ AAA 701-750</button>
+              <button type="button" class="btn btn-secondary btn-sm" style="background: #e0e7ff; color: #4338ca;" onclick="applyQuickPreset('AAA', 1, 100, 'AAA01')">⚡ AAA 1-100</button>
+              <button type="button" class="btn btn-secondary btn-sm" style="background: #e0e7ff; color: #4338ca;" onclick="applyQuickPreset('F', 447, 550, 'F1')">⚡ F 447-550</button>
+            </div>
+          </div>
+
+          <div class="input-row">
+            <div class="form-group">
+              <label>
+                <span>શરૂઆત નંબર (From)</span>
+                <span class="label-gu">ક્યાંથી</span>
+              </label>
+              <input type="number" id="rangeFrom" class="form-control" value="701" min="1" step="1">
+            </div>
+            <div class="form-group">
+              <label>
+                <span>છેલ્લો નંબર (To)</span>
+                <span class="label-gu">ક્યાં સુધી</span>
+              </label>
+              <input type="number" id="rangeTo" class="form-control" value="720" min="1" step="1">
+            </div>
+          </div>
+
+          <div class="input-row">
+            <div class="form-group">
+              <label>
+                <span>રેક કોડ (Rack Name)</span>
+                <span class="label-gu">e.g. AAA01 / F1</span>
+              </label>
+              <input type="text" id="rangeRack" class="form-control" value="AAA01" placeholder="e.g. AAA01">
+            </div>
+            <div class="form-group">
+              <label>
+                <span>ઝીરો પેડિંગ (Digits)</span>
+                <span class="label-gu">01, 001 વગેરે</span>
+              </label>
+              <select id="rangeZeroPad" class="form-control">
+                <option value="0">સામાન્ય (1, 2, 701...)</option>
+                <option value="2">2 ડિજિટ (01, 02...)</option>
+                <option value="3">3 ડિજિટ (001, 002...)</option>
+                <option value="4">4 ડિજિટ (0001, 0002...)</option>
+              </select>
+            </div>
+          </div>
+
+          <button id="btnGenerateRange" class="btn btn-primary" style="width: 100%; margin-top: 6px;">
+            ⚡ બારકોડ જનરેટ કરો
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 3: DigiBizz Live Database -->
+      <div id="tabContentDigi" class="tab-content">
+        <div class="card-section">
+          <div class="card-title">
+            <span>DigiBizz Master ડેટાબેઝમાંથી પસંદ કરો</span>
+          </div>
+
+          <div class="form-group">
+            <label>
+              <span>સિરીઝ / પ્રીફિક્સ પસંદ કરો</span>
+            </label>
+            <select id="digiPrefixSelect" class="form-control">
+              <option value="">બધા પ્રીફિક્સ લોડ થઈ રહ્યા છે...</option>
+            </select>
+          </div>
+
+          <div class="input-row">
+            <div class="form-group">
+              <label><span>ક્યાંથી (From No)</span></label>
+              <input type="number" id="digiFromNum" class="form-control" placeholder="Optional e.g. 701">
+            </div>
+            <div class="form-group">
+              <label><span>ક્યાં સુધી (To No)</span></label>
+              <input type="number" id="digiToNum" class="form-control" placeholder="Optional e.g. 750">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label><span>શોધો (Search)</span></label>
+            <input type="text" id="digiSearchInput" class="form-control" placeholder="e.g. AAA701 or AAA01">
+          </div>
+
+          <button id="btnFetchDigi" class="btn btn-primary" style="width: 100%;">
+            🔍 DigiBizz માંથી શોધો
+          </button>
+
+          <!-- Table of fetched items -->
+          <div id="digiTableContainer" class="data-table-container" style="display: none;">
+            <div style="padding: 6px 10px; background: #f8fafc; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+              <label style="font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                <input type="checkbox" id="checkSelectAllDigi" checked> બધું સિલેક્ટ કરો
+              </label>
+              <span id="digiResultCountBadge" style="font-size: 11px; font-weight: 600; color: var(--primary);">0 મળ્યા</span>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width: 30px;">#</th>
+                  <th>શેલ્ફ કોડ</th>
+                  <th>રેક કોડ</th>
+                </tr>
+              </thead>
+              <tbody id="digiTableBody">
+                <!-- Rows injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+
+          <button id="btnApplyDigiSelection" class="btn btn-success" style="width: 100%; margin-top: 10px; display: none;">
+            ✓ પસંદ કરેલા બારકોડ લોડ કરો
+          </button>
+        </div>
+      </div>
+
+      <!-- SETTINGS: Layout & Order Configuration -->
+      <div style="padding: 0 16px 16px;">
+        <div class="card-section">
+          <div class="card-title">
+            <span>પ્રિન્ટ અને પેજ સેટિંગ્સ</span>
+          </div>
+
+          <!-- Layout Type -->
+          <div class="form-group">
+            <label>
+              <span>A4 પેજ લેઆઉટ (Page Layout)</span>
+              <span class="label-gu">પેજ દીઠ ૨૦ બારકોડ (New)</span>
+            </label>
+            <div class="radio-pill-group">
+              <label>
+                <input type="radio" name="layoutType" value="2x10" checked onchange="updateLayoutSetting()">
+                <span>⚡ 20 / પેજ (2×10 Grid)</span>
+              </label>
+              <label>
+                <input type="radio" name="layoutType" value="2x5" onchange="updateLayoutSetting()">
+                <span>10 / પેજ (2×5 Grid)</span>
+              </label>
+              <label>
+                <input type="radio" name="layoutType" value="1x10" onchange="updateLayoutSetting()">
+                <span>10 / પેજ (Strips)</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Order Direction -->
+          <div class="form-group">
+            <label>
+              <span>ક્રમ ગોઠવણી (Sequence Order)</span>
+              <span class="label-gu">લીટીમાં 1 2 3 4...</span>
+            </label>
+            <div class="radio-pill-group">
+              <label>
+                <input type="radio" name="orderDirection" value="row" checked onchange="updateLayoutSetting()">
+                <span>🟢 લાઈન-બાય-લાઈન (1, 2 / 3, 4...)</span>
+              </label>
+              <label>
+                <input type="radio" name="orderDirection" value="col" onchange="updateLayoutSetting()">
+                <span>🔵 કોલમ-બાય-કોલમ (1-10 / 11-20)</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Toggles -->
+          <div class="switch-group">
+            <div class="switch-label">
+              <span>કટિંગ ગાઈડ લાઈન (Cut Lines)</span>
+              <small>કાપવા માટે ચારેબાજુ ડેશવાળી બોર્ડર</small>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="toggleCutLines" checked onchange="renderPreview()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="switch-group">
+            <div class="switch-label">
+              <span>રેક કોડ દર્શાવો (Show Rack Code)</span>
+              <small>બારકોડ નીચે -(Rack : XX) લખાણ</small>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="toggleShowRack" checked onchange="renderPreview()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <!-- Sizing Sliders -->
+          <div class="input-row" style="margin-top: 10px;">
+            <div class="form-group">
+              <label style="font-size: 11px;">બારકોડ સાઈઝ: <strong id="lblBarcodeHeight">34px</strong></label>
+              <input type="range" id="sliderBarcodeHeight" min="24" max="65" value="34" class="form-control" style="padding: 0;" oninput="updateSizeSliders()">
+            </div>
+            <div class="form-group">
+              <label style="font-size: 11px;">ટેક્સ્ટ સાઈઝ: <strong id="lblFontSize">10.5pt</strong></label>
+              <input type="range" id="sliderFontSize" min="8" max="17" value="10.5" step="0.5" class="form-control" style="padding: 0;" oninput="updateSizeSliders()">
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- Right Live A4 Preview Canvas ("તમારો પ્રિવ્યૂ") -->
+    <main class="preview-main">
+
+      <!-- Preview Toolbar -->
+      <div class="preview-toolbar no-print">
+        <div class="toolbar-group">
+          <button id="btnPrevPage" class="btn btn-secondary btn-sm" onclick="navigatePage(-1)">◀ પાછળ</button>
+          <span id="pageIndicator" class="page-indicator">પેજ 1 of 1</span>
+          <button id="btnNextPage" class="btn btn-secondary btn-sm" onclick="navigatePage(1)">આગળ ▶</button>
+          
+          <select id="jumpPageSelect" class="form-control" style="width: auto; padding: 4px 8px; font-size: 12px;" onchange="jumpToPage(this.value)">
+            <option value="1">પેજ 1</option>
+          </select>
+        </div>
+
+        <div class="toolbar-group">
+          <!-- View All vs Single View -->
+          <div class="radio-pill-group" style="padding: 2px;">
+            <label style="padding: 3px 8px; font-size: 11px;">
+              <input type="radio" name="previewMode" value="single" checked onchange="switchPreviewMode('single')">
+              <span>એક પેજ</span>
+            </label>
+            <label style="padding: 3px 8px; font-size: 11px;">
+              <input type="radio" name="previewMode" value="all" onchange="switchPreviewMode('all')">
+              <span>બધા પેજ (All)</span>
+            </label>
+          </div>
+
+          <!-- Zoom -->
+          <span style="font-size: 12px; color: var(--text-muted);">ઝૂમ:</span>
+          <button class="btn btn-secondary btn-sm" onclick="setZoom(0.65)">65%</button>
+          <button class="btn btn-secondary btn-sm" onclick="setZoom(0.85)">85%</button>
+          <button class="btn btn-secondary btn-sm" onclick="setZoom(1.0)">100%</button>
+        </div>
+      </div>
+
+      <!-- Live A4 Pages Viewport -->
+      <div id="previewCanvasWrap" class="preview-canvas-wrap">
+        <!-- A4 Page containers injected here dynamically -->
+        <div id="emptyPreviewPlaceholder" class="empty-preview-state">
+          <div class="icon">📦</div>
+          <h3>કોઈ બારકોડ લોડ થયેલ નથી</h3>
+          <p>ડાબી બાજુથી રેન્જ આપો, DigiBizz માંથી પસંદ કરો, અથવા PDF લોડ કરો.</p>
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- Print Specific Area (Will contain all pages on window.print()) -->
+  <div id="printableArea" style="display: none;"></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

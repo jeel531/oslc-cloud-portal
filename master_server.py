@@ -7,6 +7,9 @@ Powers:
  2. Stock Warehouse Report (/stock)
  3. Karigar Alter Report (/alter)
  4. PO & Cutting Dashboard (/po)
+ 5. Karigar Gate Pass Control (/gatepass)
+ 6. MK Checking Report (/mk)
+ 7. Shelf Barcode Print Tool (/barcode)
 """
 import sys
 import os
@@ -22,15 +25,18 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 import uvicorn
 
-# Import Sub-Applications
+# Import All 7 Sub-Applications
 from apps.godaun.backend.godaun_service import app as godaun_app
 from apps.stock.backend.server import app as stock_app
 from apps.alter.backend.server import app as alter_app
 from apps.po.backend.app import app as po_app
+from apps.gatepass.backend.server import app as gatepass_app
+from apps.mk.backend.server import app as mk_app
+from apps.barcode.backend.server import app as barcode_app
 
 master_app = FastAPI(
     title="OSLC Cloud Master Portal - Om Sai Latest Creation",
-    version="2.0.0",
+    version="3.0.0",
     docs_url=None,
     redoc_url=None
 )
@@ -65,6 +71,11 @@ async def forward_to_app(target_app, request: Request):
     }
     return Response(content=b"".join(body_parts), status_code=status_code, headers=resp_headers)
 
+def make_handler(target_app):
+    async def handler(request: Request):
+        return await forward_to_app(target_app, request)
+    return handler
+
 # ----------------- Root API Proxies -----------------
 # 1. Godaun APIs
 @master_app.api_route("/api/godaun/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
@@ -90,7 +101,7 @@ ALTER_API_ROUTES = [
 for route in ALTER_API_ROUTES:
     master_app.add_api_route(
         route,
-        lambda request, target=alter_app: forward_to_app(target, request),
+        make_handler(alter_app),
         methods=["GET", "POST"]
     )
 
@@ -115,11 +126,65 @@ PO_API_ROUTES = [
 for route in PO_API_ROUTES:
     master_app.add_api_route(
         route,
-        lambda request, target=po_app: forward_to_app(target, request),
+        make_handler(po_app),
         methods=["GET", "POST", "DELETE"]
     )
 
-# Static asset mounts at root for sub-app assets
+# 5. Gatepass APIs
+GATEPASS_API_ROUTES = [
+    "/api/issue",
+    "/api/search_workers",
+    "/api/history",
+    "/api/next_int_no",
+    "/api/excel",
+    "/api/reprint",
+    "/api/export_register",
+    "/api/delete",
+    "/api/network_info"
+]
+for route in GATEPASS_API_ROUTES:
+    master_app.add_api_route(
+        route,
+        make_handler(gatepass_app),
+        methods=["GET", "POST", "DELETE"]
+    )
+
+@master_app.api_route("/api/worker/{path:path}", methods=["GET", "POST"])
+async def proxy_gatepass_worker(request: Request, path: str):
+    return await forward_to_app(gatepass_app, request)
+
+# 6. Barcode APIs
+BARCODE_API_ROUTES = [
+    "/api/prefixes",
+    "/api/racks",
+    "/api/shelves",
+    "/api/generate-range",
+    "/api/load-sample-pdf",
+    "/api/upload-pdf",
+    "/api/generate-pdf",
+    "/api/download-digibizz-a4"
+]
+for route in BARCODE_API_ROUTES:
+    master_app.add_api_route(
+        route,
+        make_handler(barcode_app),
+        methods=["GET", "POST"]
+    )
+
+# 7. MK Checking APIs
+MK_API_ROUTES = [
+    "/api/data",
+    "/api/export",
+    "/download/apk"
+]
+for route in MK_API_ROUTES:
+    master_app.add_api_route(
+        route,
+        make_handler(mk_app),
+        methods=["GET", "POST"]
+    )
+
+# Static asset mounts at root for legacy/relative asset requests
 ALTER_FRONTEND = ROOT / "apps" / "alter" / "frontend"
 PO_ASSETS = ROOT / "apps" / "po" / "frontend" / "assets"
 if ALTER_FRONTEND.exists():
@@ -139,7 +204,10 @@ def hub_status():
             "godaun": {"name": "Godaun In/Out Report", "path": "/godaun", "status": "active"},
             "stock": {"name": "Stock Warehouse Report", "path": "/stock", "status": "active"},
             "alter": {"name": "Karigar Alter Report", "path": "/alter", "status": "active"},
-            "po": {"name": "PO & Cutting Dashboard", "path": "/po", "status": "active"}
+            "po": {"name": "PO & Cutting Dashboard", "path": "/po", "status": "active"},
+            "gatepass": {"name": "Karigar Gate Pass System", "path": "/gatepass", "status": "active"},
+            "mk": {"name": "MK Checking Report", "path": "/mk", "status": "active"},
+            "barcode": {"name": "Godaun Barcode Print", "path": "/barcode", "status": "active"}
         }
     }
 
@@ -148,6 +216,9 @@ master_app.mount("/godaun", godaun_app)
 master_app.mount("/stock", stock_app)
 master_app.mount("/alter", alter_app)
 master_app.mount("/po", po_app)
+master_app.mount("/gatepass", gatepass_app)
+master_app.mount("/mk", mk_app)
+master_app.mount("/barcode", barcode_app)
 
 # ----------------- Master Landing Portal UI -----------------
 PORTAL_UI_DIR = ROOT / "portal_ui"

@@ -336,6 +336,13 @@ def get_app_js():
         return FileResponse(js_file, media_type="application/javascript")
     return HTMLResponse("", status_code=404)
 
+@app.get("/oslc_logo.png")
+def get_oslc_logo():
+    logo = PUBLIC_DIR / "oslc_logo.png"
+    if logo.exists():
+        return FileResponse(logo, media_type="image/png")
+    return HTMLResponse("", status_code=404)
+
 @app.get("/", response_class=HTMLResponse)
 def index_page():
     index_file = PUBLIC_DIR / "index.html"
