@@ -109,14 +109,23 @@ PO_API_ROUTES = [
     "/api/update-po-dispatch-date",
     "/api/dispatch-alerts",
     "/api/uploaded-batches",
+    "/api/uploaded-batch",
     "/api/refresh-cache"
 ]
 for route in PO_API_ROUTES:
     master_app.add_api_route(
         route,
         lambda request, target=po_app: forward_to_app(target, request),
-        methods=["GET", "POST"]
+        methods=["GET", "POST", "DELETE"]
     )
+
+# Static asset mounts at root for sub-app assets
+ALTER_FRONTEND = ROOT / "apps" / "alter" / "frontend"
+PO_ASSETS = ROOT / "apps" / "po" / "frontend" / "assets"
+if ALTER_FRONTEND.exists():
+    master_app.mount("/static", StaticFiles(directory=str(ALTER_FRONTEND)), name="alter_static")
+if PO_ASSETS.exists():
+    master_app.mount("/assets", StaticFiles(directory=str(PO_ASSETS)), name="po_assets")
 
 # Health & Overview Status Endpoint
 @master_app.get("/api/hub-status")
