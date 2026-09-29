@@ -1,0 +1,12 @@
+# Ignore binaries and temporary files
+cloudflared.exe
+*.log
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv
+node_modules/
+.DS_Store
+sync_status.json
