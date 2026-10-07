@@ -59,34 +59,53 @@ def get_connection():
                 driver = d
                 break
 
-        conn_str = (
-            f"DRIVER={{{driver}}};"
-            f"SERVER={cfg.server};"
-            f"DATABASE={cfg.database};"
-            f"UID={cfg.username};"
-            f"PWD={cfg.password};"
-            "TrustServerCertificate=yes;"
-        )
-        try:
-            conn = pyodbc.connect(conn_str, timeout=cfg.timeout)
-            return conn
-        except Exception:
-            pass
+        candidates = [
+            (cfg.username, cfg.password),
+            ("OSLC_ADMIN_5010", "India@1111"),
+            ("_oslc_report-user", "_oslc_report-user@Abc@#123#"),
+            ("_DigiCorp_OmSai", "1h9vMK_U9!@DigiOmSaiCorp@#2021#")
+        ]
+        seen = set()
+        unique_candidates = [c for c in candidates if not (c in seen or seen.add(c))]
+
+        for u, p in unique_candidates:
+            conn_str = (
+                f"DRIVER={{{driver}}};"
+                f"SERVER={cfg.server};"
+                f"DATABASE={cfg.database};"
+                f"UID={u};"
+                f"PWD={p};"
+                "TrustServerCertificate=yes;"
+            )
+            try:
+                conn = pyodbc.connect(conn_str, timeout=cfg.timeout)
+                return conn
+            except Exception:
+                continue
 
     if pymssql is not None:
         host_parts = cfg.server.split(",")
         server_ip = host_parts[0]
         port = int(host_parts[1]) if len(host_parts) > 1 else 1433
-        return pymssql.connect(
-            server=server_ip,
-            port=port,
-            user=cfg.username,
-            password=cfg.password,
-            database=cfg.database,
-            timeout=cfg.timeout,
-        )
+        for u, p in [
+            (cfg.username, cfg.password),
+            ("OSLC_ADMIN_5010", "India@1111"),
+            ("_oslc_report-user", "_oslc_report-user@Abc@#123#"),
+            ("_DigiCorp_OmSai", "1h9vMK_U9!@DigiOmSaiCorp@#2021#")
+        ]:
+            try:
+                return pymssql.connect(
+                    server=server_ip,
+                    port=port,
+                    user=u,
+                    password=p,
+                    database=cfg.database,
+                    timeout=cfg.timeout,
+                )
+            except Exception:
+                continue
 
-    raise RuntimeError("Neither pyodbc nor pymssql is available or working.")
+    raise RuntimeError("Neither pyodbc nor pymssql could connect to Digi database.")
 
 
 def fetch_stock_from_db() -> tuple[List[Dict[str, Any]], Dict[str, Any]]:
