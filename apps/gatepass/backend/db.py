@@ -444,53 +444,6 @@ def fetch_worker_full_profile_by_id(worker_id: int) -> Optional[Dict[str, Any]]:
         conn_trans.close()
     except Exception as exc:
         print(f"Warning: 141 query failed for worker {emp_id}: {exc}")
-        ISNULL(SIZE, '') AS SIZE,
-        ISNULL(BAL_QTY_PIECES, 0) AS BAL_QTY_PIECES,
-        CONVERT(VARCHAR(10), TRANS_DATE, 105) AS ISSUE_DATE,
-        ISNULL(VOUCHER_NO, '') AS VOUCHER_NO,
-        ISNULL(EMPLOYEE_NAME, '') AS EMP_NAME
-    FROM [dbo].[View_Dboard_Trans_Process_Detail_Data] WITH (NOLOCK)
-    WHERE ENTRY_STATUS = 'FRESH'
-      AND TRANS_TYPE_NAME IN ('Stitching Issue', 'Alter Issue')
-      AND ISNULL(BAL_QTY_PIECES, 0) > 0
-      AND (
-          EMPLOYEE_NAME = ?
-          OR EMPLOYEE_NAME LIKE ?
-          OR (EMPLOYEE_CODE = ? AND EMPLOYEE_NAME LIKE ?)
-      )
-    ORDER BY TRANS_TYPE_NAME, TRANS_DATE DESC
-    """
-    name_like = f"%{emp_name}%"
-    name_snippet = f"%{emp_name.split('-')[1] if '-' in emp_name else emp_name}%"
-
-    cur_t.execute(report_141_query, (emp_name, name_like, emp_c, name_snippet))
-    p_rows = cur_t.fetchall()
-
-    # If no records found by exact name, fallback to code match
-    if not p_rows:
-        fallback_query = """
-        SELECT 
-            TRANS_TYPE_NAME,
-            ISNULL(LOT_NO, '') AS LOT_NO,
-            ISNULL(BARCODE, ISNULL(VOUCHER_NO, '')) AS BARCODE_NO,
-            ISNULL(ITEM_NAME, '') AS ITEM_NAME,
-            ISNULL(SKU_CODE, '') AS SKU_CODE,
-            ISNULL(SIZE, '') AS SIZE,
-            ISNULL(BAL_QTY_PIECES, 0) AS BAL_QTY_PIECES,
-            CONVERT(VARCHAR(10), TRANS_DATE, 105) AS ISSUE_DATE,
-            ISNULL(VOUCHER_NO, '') AS VOUCHER_NO,
-            ISNULL(EMPLOYEE_NAME, '') AS EMP_NAME
-        FROM [dbo].[View_Dboard_Trans_Process_Detail_Data] WITH (NOLOCK)
-        WHERE ENTRY_STATUS = 'FRESH'
-          AND TRANS_TYPE_NAME IN ('Stitching Issue', 'Alter Issue')
-          AND ISNULL(BAL_QTY_PIECES, 0) > 0
-          AND (EMPLOYEE_CODE = ? OR EMPLOYEE_NAME LIKE ?)
-        ORDER BY TRANS_TYPE_NAME, TRANS_DATE DESC
-        """
-        cur_t.execute(fallback_query, (emp_c, f"{emp_c}-%"))
-        p_rows = cur_t.fetchall()
-
-    conn_trans.close()
 
     sti_pcs = 0.0
     sti_lots = 0
