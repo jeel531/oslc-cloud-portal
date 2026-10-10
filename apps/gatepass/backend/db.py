@@ -12,7 +12,10 @@ import base64
 import pyodbc
 from typing import Dict, Any, List, Optional, Tuple
 from pathlib import Path
-from config import DB_CONFIG, LOCAL_IMAGE_DIRS, FLOOR_KEYWORDS, DEFAULT_FLOOR
+try:
+    from apps.gatepass.backend.config import DB_CONFIG, LOCAL_IMAGE_DIRS, FLOOR_KEYWORDS, DEFAULT_FLOOR
+except ImportError:
+    from config import DB_CONFIG, LOCAL_IMAGE_DIRS, FLOOR_KEYWORDS, DEFAULT_FLOOR
 
 # Global In-Memory Employee Cache for instant search
 _EMPLOYEE_CACHE: List[Dict[str, Any]] = []
