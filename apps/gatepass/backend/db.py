@@ -12,7 +12,7 @@ import base64
 import pyodbc
 from typing import Dict, Any, List, Optional, Tuple
 from pathlib import Path
-from apps.gatepass.backend.config import DB_CONFIG, LOCAL_IMAGE_DIRS, FLOOR_KEYWORDS, DEFAULT_FLOOR
+from config import DB_CONFIG, LOCAL_IMAGE_DIRS, FLOOR_KEYWORDS, DEFAULT_FLOOR
 
 # Global In-Memory Employee Cache for instant search
 _EMPLOYEE_CACHE: List[Dict[str, Any]] = []
@@ -140,51 +140,110 @@ def detect_department(dept_raw: Optional[str], code: str, name: str) -> str:
     return "KARIGAR"
 
 
-def find_local_photo(code: str) -> Optional[bytes]:
+def find_local_photo(code: str, name: str = "") -> Optional[bytes]:
     """Searches local image directories for worker photo if not in DB."""
-    clean_code = re.sub(r"[^\w]", "", code).upper()
+    candidates = []
+    if code:
+        clean_code = re.sub(r"[^\w]", "", code).upper()
+        if clean_code:
+            candidates.append(clean_code)
+        clean_num = re.sub(r"[^\d]", "", code)
+        if clean_num:
+            candidates.extend([f"M{clean_num}", f"P{clean_num}", f"B{clean_num}", f"BT{clean_num}", clean_num])
+    if name:
+        clean_name = name.split("-")[0].strip().upper()
+        if clean_name and clean_name not in candidates:
+            candidates.append(clean_name)
+
     for img_dir in LOCAL_IMAGE_DIRS:
         p = Path(img_dir)
         if not p.exists():
             continue
-        for ext in [".jpg", ".jpeg", ".png", ".webp", ".JPG", ".PNG"]:
-            target = p / f"{clean_code}{ext}"
-            if target.exists():
-                try:
-                    return target.read_bytes()
-                except Exception:
-                    pass
-        try:
-            for f in p.iterdir():
-                if f.stem.upper().startswith(clean_code) and f.suffix.lower() in [".jpg", ".jpeg", ".png"]:
-                    return f.read_bytes()
-        except Exception:
-            pass
+        for cand in candidates:
+            for ext in [".jpg", ".jpeg", ".png", ".webp", ".JPG", ".PNG"]:
+                target = p / f"{cand}{ext}"
+                if target.exists():
+                    try:
+                        return target.read_bytes()
+                    except Exception:
+                        pass
+            try:
+                for f in p.iterdir():
+                    if f.stem.upper().startswith(cand) and f.suffix.lower() in [".jpg", ".jpeg", ".png"]:
+                        return f.read_bytes()
+            except Exception:
+                pass
     return None
 
 
-def search_workers_with_photos(query: str, limit: int = 30, active_only: bool = True) -> List[Dict[str, Any]]:
+def search_workers_with_photos(query: str = "", limit: int = 30, active_only: bool = True) -> List[Dict[str, Any]]:
     """
-    Searches workers by number (e.g. 84, 101, 287), code (M84, P414, P571), or name.
-    Only active workers are shown by default to eliminate past/inactive workers.
-    Satisfies: 'AMA HAVE J KARI KAR DIGI MA ACTIV HOY TENU J AVE TEVU KAR'
+    Searches workers by number (e.g. 84, 101, 287, 431), code (M84, P414, B11, BT18), or name.
+    If query is empty, returns the top active workers with photos so the app populates immediately.
+    Supports comma-separated or space-separated multiple codes.
     """
-    q = (query or "").strip().upper()
-    if not q:
-        q = "M101"
+    raw_q = (query or "").strip().upper()
 
-    # Extract digits from query (e.g. "178" from "M178", " 178 ", etc.)
-    clean_num = re.sub(r"[^\d]", "", q)
-    m_code = f"M{clean_num}" if clean_num else q
-    p_code = f"P{clean_num}" if clean_num else q
-    like_q = f"%{q}%"
-    like_num = f"%{clean_num}%" if clean_num else like_q
+    # Multi-token check: e.g. "84, 101" or "84 101 287" or "M84, M101"
+    split_tokens = [t.strip() for t in re.split(r"[,+]+", raw_q) if t.strip()]
+    if len(split_tokens) <= 1:
+        # Also check space-separated if tokens look like codes/numbers
+        space_tokens = [t.strip() for t in raw_q.split() if t.strip()]
+        if len(space_tokens) > 1 and all(re.match(r"^[A-Z]?\d+$", t) for t in space_tokens):
+            split_tokens = space_tokens
+
+    if len(split_tokens) > 1:
+        merged_results = []
+        seen_ids = set()
+        for tok in split_tokens[:10]:
+            sub_res = search_workers_with_photos(tok, limit=10, active_only=active_only)
+            for item in sub_res:
+                if item["id"] not in seen_ids:
+                    seen_ids.add(item["id"])
+                    merged_results.append(item)
+        return merged_results
 
     conn = get_connection(DB_CONFIG["master_db"])
     cur = conn.cursor()
 
     def fetch_rows(req_active: bool):
         act_filter = "AND m.IS_ACTIVE = 1" if req_active else ""
+        if not raw_q:
+            # Default empty search: return top active workers prioritizing those with photos
+            sql = f"""
+            SELECT TOP (?)
+                m.GENERAL_SETTING_ID,
+                UPPER(LTRIM(RTRIM(ISNULL(m.GENERAL_SETTING_CODE, '')))) AS CODE,
+                LTRIM(RTRIM(ISNULL(m.GENERAL_SETTING_NAME, ''))) AS NAME,
+                LTRIM(RTRIM(ISNULL(m.TEXT_VALUE2, ''))) AS DEPARTMENT_RAW,
+                ISNULL(m.UPLOAD_DOC_UIDs, '') AS DOC_UID,
+                m.IS_ACTIVE,
+                COALESCE(d.FILE_DATA_THUMB, d.FILE_DATA) AS THUMB_DATA,
+                d.FILE_DATA,
+                d.UPLOAD_DOC_NAME
+            FROM [dbo].[MASTER_GENERAL_SETTING] m WITH (NOLOCK)
+            LEFT JOIN [dbo].[MASTER_UPLOAD_DOCUMENT] d WITH (NOLOCK)
+                ON TRY_CAST(m.UPLOAD_DOC_UIDs AS INT) = d.UPLOAD_DOC_ID
+            WHERE m.GENERAL_SETTING_TYPE_ID = 60
+              {act_filter}
+            ORDER BY 
+                CASE WHEN d.FILE_DATA IS NOT NULL OR d.FILE_DATA_THUMB IS NOT NULL THEN 1 ELSE 0 END DESC,
+                m.IS_ACTIVE DESC,
+                m.GENERAL_SETTING_CODE ASC
+            """
+            cur.execute(sql, (limit,))
+            return cur.fetchall()
+
+        # Query has search term
+        clean_num = re.sub(r"[^\d]", "", raw_q)
+        m_code = f"M{clean_num}" if clean_num else raw_q
+        p_code = f"P{clean_num}" if clean_num else raw_q
+        b_code = f"B{clean_num}" if clean_num else raw_q
+        bt_code = f"BT{clean_num}" if clean_num else raw_q
+        like_q = f"%{raw_q}%"
+        like_num = f"%{clean_num}%" if clean_num else like_q
+        like_start = f"{raw_q}%"
+
         sql = f"""
         SELECT TOP (?)
             m.GENERAL_SETTING_ID,
@@ -193,7 +252,7 @@ def search_workers_with_photos(query: str, limit: int = 30, active_only: bool = 
             LTRIM(RTRIM(ISNULL(m.TEXT_VALUE2, ''))) AS DEPARTMENT_RAW,
             ISNULL(m.UPLOAD_DOC_UIDs, '') AS DOC_UID,
             m.IS_ACTIVE,
-            d.FILE_DATA_THUMB,
+            COALESCE(d.FILE_DATA_THUMB, d.FILE_DATA) AS THUMB_DATA,
             d.FILE_DATA,
             d.UPLOAD_DOC_NAME
         FROM [dbo].[MASTER_GENERAL_SETTING] m WITH (NOLOCK)
@@ -202,28 +261,36 @@ def search_workers_with_photos(query: str, limit: int = 30, active_only: bool = 
         WHERE m.GENERAL_SETTING_TYPE_ID = 60
           {act_filter}
           AND (
-              m.GENERAL_SETTING_CODE = ?
-              OR m.GENERAL_SETTING_CODE = ?
-              OR m.GENERAL_SETTING_CODE = ?
+              LTRIM(RTRIM(m.GENERAL_SETTING_CODE)) = ?
+              OR LTRIM(RTRIM(m.GENERAL_SETTING_CODE)) = ?
+              OR LTRIM(RTRIM(m.GENERAL_SETTING_CODE)) = ?
+              OR LTRIM(RTRIM(m.GENERAL_SETTING_CODE)) = ?
+              OR LTRIM(RTRIM(m.GENERAL_SETTING_CODE)) = ?
+              OR LTRIM(RTRIM(m.GENERAL_SETTING_CODE)) = ?
               OR m.GENERAL_SETTING_CODE LIKE ?
               OR m.GENERAL_SETTING_CODE LIKE ?
               OR m.GENERAL_SETTING_NAME LIKE ?
               OR m.GENERAL_SETTING_NAME LIKE ?
+              OR ISNULL(m.TEXT_VALUE8, '') LIKE ?
+              OR ISNULL(m.TEXT_VALUE9, '') LIKE ?
           )
         ORDER BY 
             CASE 
-                WHEN m.GENERAL_SETTING_CODE = ? OR m.GENERAL_SETTING_CODE = ? THEN 1
-                WHEN m.GENERAL_SETTING_CODE LIKE ? THEN 2
-                ELSE 3
+                WHEN LTRIM(RTRIM(m.GENERAL_SETTING_CODE)) = ? THEN 1
+                WHEN LTRIM(RTRIM(m.GENERAL_SETTING_CODE)) = ? THEN 2
+                WHEN m.GENERAL_SETTING_CODE LIKE ? THEN 3
+                WHEN m.GENERAL_SETTING_NAME LIKE ? THEN 4
+                ELSE 5
             END,
             m.IS_ACTIVE DESC,
             CASE WHEN d.FILE_DATA IS NOT NULL OR d.FILE_DATA_THUMB IS NOT NULL THEN 1 ELSE 0 END DESC,
-            m.GENERAL_SETTING_ID DESC
+            m.GENERAL_SETTING_CODE ASC
         """
         cur.execute(sql, (
             limit,
-            q, m_code, p_code, like_q, like_num, like_q, like_num,
-            q, m_code, like_q
+            raw_q, m_code, p_code, b_code, bt_code, clean_num,
+            like_q, like_num, like_start, like_q, like_q, like_q,
+            raw_q, m_code, like_start, like_start
         ))
         return cur.fetchall()
 
@@ -238,8 +305,6 @@ def search_workers_with_photos(query: str, limit: int = 30, active_only: bool = 
     conn.close()
 
     results = []
-    seen_names = set()
-
     for r in rows:
         gid, code_val, name_val, dept_raw, doc_uid, is_act, thumb_data, file_data, doc_name = r
         if not code_val and not name_val:
@@ -248,10 +313,9 @@ def search_workers_with_photos(query: str, limit: int = 30, active_only: bool = 
         dept = detect_department(dept_raw, code_val, name_val)
         floor = detect_floor_from_name(name_val, dept)
 
-        # Get thumbnail or file data for photo
         photo_bytes = thumb_data or file_data
         if not photo_bytes:
-            photo_bytes = find_local_photo(code_val)
+            photo_bytes = find_local_photo(code_val, name_val)
 
         photo_b64 = None
         if photo_bytes:
@@ -290,7 +354,8 @@ def fetch_worker_full_profile_by_id(worker_id: int) -> Optional[Dict[str, Any]]:
         LTRIM(RTRIM(ISNULL(m.TEXT_VALUE2, ''))) AS DEPARTMENT_RAW,
         ISNULL(m.UPLOAD_DOC_UIDs, '') AS DOC_UID,
         d.UPLOAD_DOC_NAME,
-        d.FILE_DATA,
+        COALESCE(d.FILE_DATA, d.FILE_DATA_THUMB) AS FILE_DATA,
+        d.FILE_DATA_THUMB,
         m.IS_ACTIVE
     FROM [dbo].[MASTER_GENERAL_SETTING] m WITH (NOLOCK)
     LEFT JOIN [dbo].[MASTER_UPLOAD_DOCUMENT] d WITH (NOLOCK)
@@ -304,30 +369,81 @@ def fetch_worker_full_profile_by_id(worker_id: int) -> Optional[Dict[str, Any]]:
     if not row:
         return None
 
-    emp_id, emp_c, emp_name, dept_raw, doc_uid, doc_name, file_data, is_act = row
+    emp_id, emp_c, emp_name, dept_raw, doc_uid, doc_name, file_data, thumb_data, is_act = row
 
     dept = detect_department(dept_raw, emp_c, emp_name)
     floor = detect_floor_from_name(emp_name, dept)
 
-    photo_bytes = file_data
+    photo_bytes = file_data or thumb_data
     if not photo_bytes:
-        photo_bytes = find_local_photo(emp_c)
+        photo_bytes = find_local_photo(emp_c, emp_name)
 
     photo_b64 = None
     if photo_bytes:
         photo_b64 = base64.b64encode(photo_bytes).decode("utf-8")
 
     # Fetch live 141 Pending Mall Report (Stitching Issue & Alter Issue)
-    conn_trans = get_connection(DB_CONFIG["database"])
-    cur_t = conn_trans.cursor()
+    p_rows = []
+    try:
+        conn_trans = get_connection(DB_CONFIG["database"])
+        cur_t = conn_trans.cursor()
 
-    report_141_query = """
-    SELECT 
-        TRANS_TYPE_NAME,
-        ISNULL(LOT_NO, '') AS LOT_NO,
-        ISNULL(BARCODE, ISNULL(VOUCHER_NO, '')) AS BARCODE_NO,
-        ISNULL(ITEM_NAME, '') AS ITEM_NAME,
-        ISNULL(SKU_CODE, '') AS SKU_CODE,
+        report_141_query = """
+        SELECT 
+            TRANS_TYPE_NAME,
+            ISNULL(LOT_NO, '') AS LOT_NO,
+            ISNULL(BARCODE, ISNULL(VOUCHER_NO, '')) AS BARCODE_NO,
+            ISNULL(ITEM_NAME, '') AS ITEM_NAME,
+            ISNULL(SKU_CODE, '') AS SKU_CODE,
+            ISNULL(SIZE, '') AS SIZE,
+            ISNULL(BAL_QTY_PIECES, 0) AS BAL_QTY_PIECES,
+            CONVERT(VARCHAR(10), TRANS_DATE, 105) AS ISSUE_DATE,
+            ISNULL(VOUCHER_NO, '') AS VOUCHER_NO,
+            ISNULL(EMPLOYEE_NAME, '') AS EMP_NAME
+        FROM [dbo].[View_Dboard_Trans_Process_Detail_Data] WITH (NOLOCK)
+        WHERE ENTRY_STATUS = 'FRESH'
+          AND TRANS_TYPE_NAME IN ('Stitching Issue', 'Alter Issue')
+          AND ISNULL(BAL_QTY_PIECES, 0) > 0
+          AND (
+              EMPLOYEE_NAME = ?
+              OR EMPLOYEE_NAME LIKE ?
+              OR (EMPLOYEE_CODE = ? AND EMPLOYEE_NAME LIKE ?)
+          )
+        ORDER BY TRANS_TYPE_NAME, TRANS_DATE DESC
+        """
+        name_like = f"%{emp_name}%"
+        name_snippet = f"%{emp_name.split('-')[1] if '-' in emp_name else emp_name}%"
+
+        cur_t.execute(report_141_query, (emp_name, name_like, emp_c, name_snippet))
+        p_rows = cur_t.fetchall()
+
+        # If no records found by exact name, fallback to code match
+        if not p_rows:
+            fallback_query = """
+            SELECT 
+                TRANS_TYPE_NAME,
+                ISNULL(LOT_NO, '') AS LOT_NO,
+                ISNULL(BARCODE, ISNULL(VOUCHER_NO, '')) AS BARCODE_NO,
+                ISNULL(ITEM_NAME, '') AS ITEM_NAME,
+                ISNULL(SKU_CODE, '') AS SKU_CODE,
+                ISNULL(SIZE, '') AS SIZE,
+                ISNULL(BAL_QTY_PIECES, 0) AS BAL_QTY_PIECES,
+                CONVERT(VARCHAR(10), TRANS_DATE, 105) AS ISSUE_DATE,
+                ISNULL(VOUCHER_NO, '') AS VOUCHER_NO,
+                ISNULL(EMPLOYEE_NAME, '') AS EMP_NAME
+            FROM [dbo].[View_Dboard_Trans_Process_Detail_Data] WITH (NOLOCK)
+            WHERE ENTRY_STATUS = 'FRESH'
+              AND TRANS_TYPE_NAME IN ('Stitching Issue', 'Alter Issue')
+              AND ISNULL(BAL_QTY_PIECES, 0) > 0
+              AND (EMPLOYEE_CODE = ? OR EMPLOYEE_NAME LIKE ?)
+            ORDER BY TRANS_TYPE_NAME, TRANS_DATE DESC
+            """
+            cur_t.execute(fallback_query, (emp_c, f"{emp_c}-%"))
+            p_rows = cur_t.fetchall()
+
+        conn_trans.close()
+    except Exception as exc:
+        print(f"Warning: 141 query failed for worker {emp_id}: {exc}")
         ISNULL(SIZE, '') AS SIZE,
         ISNULL(BAL_QTY_PIECES, 0) AS BAL_QTY_PIECES,
         CONVERT(VARCHAR(10), TRANS_DATE, 105) AS ISSUE_DATE,
