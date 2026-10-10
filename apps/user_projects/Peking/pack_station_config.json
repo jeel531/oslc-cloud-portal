@@ -1,0 +1,11 @@
+{
+  "mrp_printer": "TSC TE244",
+  "shipping_printer": "TSC DA310",
+  "mrp_width_mm": 100.0,
+  "mrp_height_mm": 50.0,
+  "shipping_width_mm": 100.0,
+  "shipping_height_mm": 150.0,
+  "host": "0.0.0.0",
+  "port": 8787,
+  "retail_printer": "TSC TE244"
+}
