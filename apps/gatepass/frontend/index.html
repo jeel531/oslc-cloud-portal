@@ -4,19 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OSLC Karigar Gate Pass System | Created By JEEL VAGHANI</title>
-    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
-    <link rel="shortcut icon" href="img/favicon.ico">
-    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="/static/img/favicon.svg">
+    <link rel="shortcut icon" href="/static/img/favicon.ico">
+    <link rel="manifest" href="/static/manifest.json">
     <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="OSLC Gate Pass">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/print.css" media="print">
+    <link rel="apple-touch-icon" href="/static/img/oslc_logo.svg">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="stylesheet" href="/static/css/style.css?v=2.2">
+    <link rel="stylesheet" href="/static/css/print.css?v=2.2" media="print">
+</head>
 <body>
     <header class="top-header">
         <div class="brand-section">
-            <img src="img/oslc_logo.svg" alt="OSLC HOUSE" class="brand-header-logo">
+            <img src="/static/img/oslc_logo.svg" alt="OSLC HOUSE" class="brand-header-logo">
         </div>
 
         <!-- Navigation Tabs -->
@@ -48,11 +53,17 @@
                 <span class="net-copy-pill" id="txtNetCopy">📋 Copy</span>
             </button>
 
+            <!-- Force Update / Refresh Button for All PCs -->
+            <button type="button" id="btnAppRefresh" class="btn-network-badge" style="background:#134e4a;border-color:#2dd4bf;color:#5eead4;cursor:pointer" onclick="forceAppUpdate()" title="નવા અપડેટ માટે તરત રિફ્રેશ કરો (Force Refresh & Update)">
+                <span>🔄</span>
+                <span id="txtUpdateBtn">Auto-Update ON</span>
+            </button>
+
             <!-- Android App APK Download Button -->
-            <a href="OSLC_GatePass.apk" download="OSLC_GatePass.apk" class="btn-apk-badge" title="Download Android App APK (મોબાઈલ માટે એપ ડાઉનલોડ કરો)">
+            <a href="/static/OSLC_GatePass.apk" download="OSLC_GatePass.apk" class="btn-apk-badge" title="Download Android App APK (મોબાઈલ માટે એપ ડાઉનલોડ કરો)">
                 <span class="apk-icon">📱</span>
-                <span>Android APK</span>
-                <span class="apk-down-pill">⬇️ Install</span>
+                <span id="txtApkBtn">Android APK</span>
+                <span class="apk-down-pill" id="txtApkInstall">⬇️ Install</span>
             </a>
 
             <div class="author-badge">✨ CREATED BY JEEL VAGHANI</div>
@@ -82,14 +93,14 @@
 
                 <!-- Date & Int No -->
                 <div class="input-row">
-                    <div class="form-group" style="flex: 1.2;">
+                    <div class="form-group u-flex-12">
                         <label for="passDate" id="lblPassDate">Date (તારીખ):</label>
                         <input type="date" id="passDate" class="form-control">
                     </div>
-                    <div class="form-group" style="flex: 0.8;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <label for="intNo" id="lblIntNo" style="margin-bottom: 0;">Int No. (અંદર નં):</label>
-                            <button type="button" id="btnNewPassEntry" class="btn-new-pass-badge" title="Start Fresh New Gate Pass with Next Number">➕ New Entry</button>
+                    <div class="form-group u-flex-08">
+                        <div class="int-no-header-row">
+                            <label for="intNo" id="lblIntNo" class="u-mb-0">Int No. (અંદર નં):</label>
+                            <button type="button" id="btnNewPassEntry" class="btn-new-pass-badge" title="Start Fresh New Gate Pass with Next Number"><span id="txtBtnNewEntry">➕ New Entry</span></button>
                         </div>
                         <input type="text" id="intNo" class="form-control" value="01">
                     </div>
@@ -101,6 +112,7 @@
                     <div class="search-wrapper">
                         <div class="search-input-box">
                             <input type="text" id="karigarInput" placeholder="Type number like 84, 101, 287 or P414..." autocomplete="off">
+                            <button type="button" id="btnClearFormInput" class="btn-clear-basket" style="padding: 6px 12px; margin: 0 4px; border-radius: 8px;" title="ક્લિયર કરો (Clear Selection)">✕ Clear</button>
                             <button type="button" id="searchBtn" class="search-btn" title="Search">
                                 <span id="txtSearchBtn">Search</span>
                             </button>
@@ -111,26 +123,37 @@
 
                 <!-- Quick Selection Chips -->
                 <div class="quick-chips-wrapper">
-                    <span style="font-size: 11px; color: var(--text-dim); align-self: center;" id="txtQuickLabel">Quick:</span>
-                    <button type="button" class="chip-btn" data-code="84">84 (M84 Active Karigars)</button>
-                    <button type="button" class="chip-btn" data-code="178">178 (M178 Mafujul)</button>
-                    <button type="button" class="chip-btn" data-code="287">287 (M287 Karigars)</button>
-                    <button type="button" class="chip-btn" data-code="101">101 (M101 With Mall)</button>
-                    <button type="button" class="chip-btn" data-code="135">135 (M135 All Clear)</button>
-                    <button type="button" class="chip-btn" data-code="P571">P571 (Cutting Dept)</button>
-                    <button type="button" class="chip-btn" data-code="P414">P414 (Production)</button>
+                    <span class="u-txt-dim-hint" id="txtQuickLabel">Quick:</span>
+                    <button type="button" class="chip-btn" id="btnQuick84" data-code="84">84 (M84 Active Karigars)</button>
+                    <button type="button" class="chip-btn" id="btnQuick178" data-code="178">178 (M178 Mafujul)</button>
+                    <button type="button" class="chip-btn" id="btnQuick287" data-code="287">287 (M287 Karigars)</button>
+                    <button type="button" class="chip-btn" id="btnQuick101" data-code="101">101 (M101 With Mall)</button>
+                    <button type="button" class="chip-btn" id="btnQuick135" data-code="135">135 (M135 All Clear)</button>
+                    <button type="button" class="chip-btn" id="btnQuickP571" data-code="P571">P571 (Cutting Dept)</button>
+                    <button type="button" class="chip-btn" id="btnQuickP414" data-code="P414">P414 (Production)</button>
                 </div>
 
                 <!-- Multi-Worker Visual Selection Grid (Only shown when search query is entered) -->
-                <div id="workersResultsContainer" class="workers-results-container" style="display: none;">
+                <div id="workersResultsContainer" class="workers-results-container u-hidden">
                     <div class="workers-results-header">
                         <span id="workersCountText">Matching Karigars (કારીગરો ફોટા સાથે):</span>
                         <div class="multi-select-actions">
                             <button type="button" id="btnSelectAllWorkers" class="btn-xs-action">✓ Select All (બધા પસંદ કરો)</button>
-                            <span id="selectedCountBadge" class="selected-count-badge" style="display: none;">0 Selected</span>
+                            <span id="selectedCountBadge" class="selected-count-badge u-hidden">0 Selected</span>
                         </div>
                     </div>
                     <div id="workersGrid" class="workers-grid"></div>
+                </div>
+
+                <!-- Selected Karigars Chips Basket -->
+                <div id="selectedWorkersBasket" class="selected-workers-basket u-hidden">
+                    <div class="basket-header">
+                        <span class="basket-title" id="txtBasketTitle"><span id="lblBasketPrefix">👥 પસંદ કરેલ કારીગરો</span> (<span id="basketCount">0</span> <span id="lblBasketSuffix">કારીગરો બેચમાં</span>):</span>
+                        <div class="basket-actions">
+                            <button type="button" id="btnClearSelectedWorkers" class="btn-clear-basket">🗑️ <span id="txtBtnClearBasket">Clear All</span></button>
+                        </div>
+                    </div>
+                    <div id="selectedWorkersChips" class="selected-workers-chips"></div>
                 </div>
             </div>
 
@@ -142,14 +165,14 @@
                 </div>
 
                 <!-- Multi-worker selection banner when multiple workers are picked -->
-                <div id="multiWorkerBanner" class="multi-worker-banner" style="display: none;">
+                <div id="multiWorkerBanner" class="multi-worker-banner u-hidden">
                     <span class="icon">👥</span>
                     <span id="multiWorkerBannerText">2 Workers Selected. Gate passes will be issued sequentially.</span>
                 </div>
 
                 <div class="worker-card">
                     <div class="worker-photo-box">
-                        <img id="workerPhotoImg" src="" alt="Worker Photo" style="display: none;">
+                        <img id="workerPhotoImg" src="" alt="Worker Photo" class="u-hidden">
                         <div id="workerPhotoPlaceholder" class="worker-photo-placeholder">
                             <span class="icon">👤</span>
                             <span id="txtNoPhoto">No Worker Selected</span>
@@ -163,32 +186,32 @@
                         </div>
                         <div class="worker-floor-tag">
                             <span id="lblDeptTag">🏷️ Dept:</span>
-                            <strong id="workerDeptDisplay" style="color: #60a5fa;">--</strong>
+                            <strong id="workerDeptDisplay" class="worker-dept-highlight">--</strong>
                         </div>
                     </div>
                 </div>
 
                 <!-- Editable Fields for Pass -->
-                <div class="input-row" style="margin-top: 12px; margin-bottom: 0;">
-                    <div class="form-group" style="flex: 1;">
+                <div class="input-row u-mt-12-mb-0">
+                    <div class="form-group u-flex-1">
                         <label for="deptInput" id="lblDept">Department (વિભાગ):</label>
                         <input type="text" id="deptInput" class="form-control" value="KARIGAR">
                     </div>
-                    <div class="form-group" style="flex: 1;">
+                    <div class="form-group u-flex-1">
                         <label for="floorSelect" id="lblFloor">Floor No (માળ નં):</label>
                         <select id="floorSelect" class="form-control">
-                            <option value="GROUND FLOOR">GROUND FLOOR</option>
-                            <option value="1ST FLOOR">1ST FLOOR (1st Floor)</option>
-                            <option value="2ND FLOOR">2ND FLOOR (2nd Floor)</option>
-                            <option value="3RD FLOOR" selected>3RD FLOOR (3rd Floor)</option>
-                            <option value="4TH FLOOR">4TH FLOOR (4th Floor)</option>
-                            <option value="5TH FLOOR">5TH FLOOR (5th Floor)</option>
-                            <option value="BASEMENT">BASEMENT</option>
+                            <option value="GROUND FLOOR" id="optFloorGround">GROUND FLOOR</option>
+                            <option value="1ST FLOOR" id="optFloor1">1ST FLOOR (1st Floor)</option>
+                            <option value="2ND FLOOR" id="optFloor2">2ND FLOOR (2nd Floor)</option>
+                            <option value="3RD FLOOR" id="optFloor3" selected>3RD FLOOR (3rd Floor)</option>
+                            <option value="4TH FLOOR" id="optFloor4">4TH FLOOR (4th Floor)</option>
+                            <option value="5TH FLOOR" id="optFloor5">5TH FLOOR (5th Floor)</option>
+                            <option value="BASEMENT" id="optFloorBase">BASEMENT</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="input-row" style="margin-top: 10px; margin-bottom: 0;">
+                <div class="input-row u-mt-10-mb-0">
                     <div class="form-group">
                         <label for="outTimeInput" id="lblOutTime">Out Time (જવાનો સમય):</label>
                         <input type="text" id="outTimeInput" class="form-control" placeholder="e.g. 11:30 AM">
@@ -199,7 +222,7 @@
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-top: 10px;">
+                <div class="form-group u-mt-10">
                     <label for="reasonInput" id="lblReason">Reason / Purpose (જવાનું કારણ):</label>
                     <input type="text" id="reasonInput" class="form-control" value="Personal Work" placeholder="Personal Work / Lunch / Hospital">
                 </div>
@@ -219,9 +242,9 @@
                                 <option value="GHANSHYAM BHAI">GHANSHYAM BHAI</option>
                                 <option value="SHIV">SHIV</option>
                                 <option value="RAFIK / TIPU">RAFIK / TIPU</option>
-                                <option value="OTHER">➕ OTHER (મેન્યુઅલ નામ દાખલ કરો)</option>
+                                <option value="OTHER" id="optSigPermOther">➕ OTHER (મેન્યુઅલ નામ દાખલ કરો)</option>
                             </select>
-                            <input type="text" id="signPermissionOtherInput" class="form-control manual-sig-input" placeholder="✏️ મેન્યુઅલ નામ લખો..." style="display: none;">
+                            <input type="text" id="signPermissionOtherInput" class="form-control manual-sig-input" placeholder="✏️ મેન્યુઅલ નામ લખો..." class="u-hidden">
                         </div>
                         <div class="sig-config-card">
                             <label for="signCheckingSelect" id="lblSigChk">2. Checking Done (ચેકિંગ):</label>
@@ -230,9 +253,9 @@
                                 <option value="GHANSHYAM BHAI">GHANSHYAM BHAI</option>
                                 <option value="TIPU">TIPU</option>
                                 <option value="RAFIK">RAFIK</option>
-                                <option value="OTHER">➕ OTHER (મેન્યુઅલ નામ દાખલ કરો)</option>
+                                <option value="OTHER" id="optSigChkOther">➕ OTHER (મેન્યુઅલ નામ દાખલ કરો)</option>
                             </select>
-                            <input type="text" id="signCheckingOtherInput" class="form-control manual-sig-input" placeholder="✏️ મેન્યુઅલ નામ લખો..." style="display: none;">
+                            <input type="text" id="signCheckingOtherInput" class="form-control manual-sig-input" placeholder="✏️ મેન્યુઅલ નામ લખો..." class="u-hidden">
                         </div>
                         <div class="sig-config-card">
                             <label for="signIssuedSelect" id="lblSigIss">3. Gate Pass Issued (પ્રિન્ટ):</label>
@@ -240,9 +263,9 @@
                                 <option value="JEEL BHAI" selected>JEEL BHAI (Jeel Vaghani)</option>
                                 <option value="MADAN BHAI">MADAN BHAI</option>
                                 <option value="GHANSHYAM BHAI">GHANSHYAM BHAI</option>
-                                <option value="OTHER">➕ OTHER (મેન્યુઅલ નામ દાખલ કરો)</option>
+                                <option value="OTHER" id="optSigIssOther">➕ OTHER (મેન્યુઅલ નામ દાખલ કરો)</option>
                             </select>
-                            <input type="text" id="signIssuedOtherInput" class="form-control manual-sig-input" placeholder="✏️ મેન્યુઅલ નામ લખો..." style="display: none;">
+                            <input type="text" id="signIssuedOtherInput" class="form-control manual-sig-input" placeholder="✏️ મેન્યુઅલ નામ લખો..." class="u-hidden">
                         </div>
                     </div>
                 </div>
@@ -342,34 +365,34 @@
                         <div id="alertTitle" class="alert-title">
                             <span>✅ ALL CLEAR: NO PENDING MALL</span>
                         </div>
-                        <span id="totalPendingBadge" style="font-weight: 800; font-size: 14px;">0 Pcs</span>
+                        <span id="totalPendingBadge" class="u-bold-14">0 Pcs</span>
                     </div>
 
                     <div class="stat-pills">
                         <div class="stat-pill">
-                            <span class="label">Stitching Issue (STI):</span>
+                            <span class="label" id="lblStiPendingTitle">Stitching Issue (STI):</span>
                             <span id="stiPendingVal" class="val">0 Pcs</span>
-                            <span id="stiLotsVal" style="font-size: 11px; color: var(--text-dim);">0 Lots</span>
+                            <span id="stiLotsVal" class="u-txt-dim-hint">0 Lots</span>
                         </div>
                         <div class="stat-pill">
-                            <span class="label">Alter Issue (Alter):</span>
+                            <span class="label" id="lblAlterPendingTitle">Alter Issue (Alter):</span>
                             <span id="alterPendingVal" class="val">0 Pcs</span>
-                            <span id="alterLotsVal" style="font-size: 11px; color: var(--text-dim);">0 Lots</span>
+                            <span id="alterLotsVal" class="u-txt-dim-hint">0 Lots</span>
                         </div>
                     </div>
 
                     <!-- Scrollable table of pending lots with Barcode No -->
-                    <div id="pendingTableContainer" class="pending-table-container" style="display: none;">
+                    <div id="pendingTableContainer" class="pending-table-container u-hidden">
                         <table class="pending-table">
                             <thead>
                                 <tr>
-                                    <th>Process</th>
-                                    <th>Lot No</th>
-                                    <th>Barcode No</th>
-                                    <th>Item / SKU</th>
-                                    <th>Size</th>
-                                    <th>Bal Pcs</th>
-                                    <th>Issue Date</th>
+                                    <th id="thProcess">Process</th>
+                                    <th id="thLot">Lot No</th>
+                                    <th id="thBarcode">Barcode No</th>
+                                    <th id="thItem">Item / SKU</th>
+                                    <th id="thSize">Size</th>
+                                    <th id="thBal">Bal Pcs</th>
+                                    <th id="thDate">Issue Date</th>
                                 </tr>
                             </thead>
                             <tbody id="pendingTableBody"></tbody>
@@ -380,22 +403,59 @@
 
             <!-- Primary Action Buttons -->
             <div class="action-buttons-group">
-                <button type="button" id="printPassBtn" class="btn-primary-action ready">
+                <!-- Live Workflow Save Status Banner -->
+                <div id="passSaveStatusBanner" class="pass-save-status-banner">
+                    <span class="status-icon" id="passSaveStatusIcon">📝</span>
+                    <span id="passSaveStatusText">વિગતો ભરીને પહેલા <strong>[💾 ૧. SAVE PASS]</strong> દબાવો, પછી <strong>[🖨️ ૨. PRINT]</strong> નીકળશે.</span>
+                </div>
+
+                <!-- Step 1: Save Gate Pass Button -->
+                <button type="button" id="savePassBtn" class="btn-action-save">
+                    <span>💾</span>
+                    <span id="txtSavePass">૧. SAVE GATE PASS (પહેલા સેવ કરો)</span>
+                </button>
+
+                <!-- Paper Size & Print Configuration Toolbar (A4 Standard vs A5 Small Page) -->
+                <div class="print-config-toolbar">
+                    <div class="print-config-header-row">
+                        <span class="print-config-title" id="lblPrintSettings">📐 કાગળ સાઇઝ (Paper Size):</span>
+                    </div>
+                    <div class="print-toolbar-buttons">
+                        <!-- Paper Size Selector -->
+                        <div class="paper-size-pill-group">
+                            <button type="button" id="btnPaperA4" class="paper-btn active" title="A4 Standard Page (મોટું પેજ - સામાન્ય પ્રિન્ટ)">
+                                <span>📄</span>
+                                <span id="txtPaperA4">A4 મોટું પેજ</span>
+                            </button>
+                            <button type="button" id="btnPaperA5" class="paper-btn" title="A5 Small Page (નાનું પેજ / અડધું પેજ - ઉપરથી એકદમ સીધું પ્રિન્ટ)">
+                                <span>📑</span>
+                                <span id="txtPaperA5">A5 નાનું પેજ</span>
+                            </button>
+                        </div>
+
+                        <!-- Print Upright Status Badge -->
+                        <div class="print-orientation-pill" title="પ્રિન્ટ હંમેશા કાગળના ઉપરના છેડાથી એકદમ સીધી નીકળશે">
+                            <span>⬆️</span>
+                            <span id="txtPrintOrientation">સીધું પ્રિન્ટ (Top)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Print Gate Pass Button -->
+                <button type="button" id="printPassBtn" class="btn-action-print">
                     <span>🖨️</span>
-                    <span id="printBtnText">PRINT GATE PASS (HALF A4 PAGE - પ્રિન્ટ કાઢો)</span>
+                    <span id="printBtnText">૨. PRINT GATE PASS (ફક્ત ૧ જ પ્રિન્ટ)</span>
                 </button>
-                <button type="button" id="print2On1Btn" class="btn-print-2up" title="૧ પેજમાં ૨ પાસ પ્રિન્ટ કરો">
-                    <span>📄📄</span>
-                    <span id="txtPrint2UpBtn">PRINT 2 ON 1 PAGE (૧ પેજમાં ૨ પાસ)</span>
-                </button>
+
+                <!-- Secondary Print & Export Options -->
                 <div class="btn-secondary-group">
+                    <button type="button" id="print2On1Btn" class="btn-secondary" title="૧ પેજમાં ૨ પાસ (૨ નકલ) પ્રિન્ટ કરો">
+                        <span>📄📄</span>
+                        <span id="txtPrint2UpBtn">PRINT 2 ON 1 (૧ પેજમાં ૨ પાસ / ૨ નકલ)</span>
+                    </button>
                     <button type="button" id="downloadExcelBtn" class="btn-secondary">
                         <span>📥</span>
                         <span id="txtDownloadExcel">Download Excel (.xlsx)</span>
-                    </button>
-                    <button type="button" id="savePassBtn" class="btn-secondary">
-                        <span>💾</span>
-                        <span id="txtSavePass">Issue & Save Pass</span>
                     </button>
                 </div>
             </div>
@@ -405,11 +465,13 @@
         <!-- Right Preview Column -->
         <section class="preview-col">
             <div class="preview-header-bar">
-                <div class="card-title" style="margin-bottom: 0;">
-                    <span id="txtPreviewTitle">Official Gate Pass Preview (Half A4 Sheet Format)</span>
+                <div class="card-title u-mb-0 u-flex-align-center-gap">
+                    <span id="txtPreviewTitle">Official Gate Pass Preview</span>
+                    <span id="previewPaperBadge" class="preview-paper-pill a4">📄 A4 મોટું પેજ</span>
+                    <span id="previewFlipBadge" class="preview-flip-pill u-hidden">🔄 180° FLIPPED</span>
                 </div>
                 <div class="preview-view-toggles">
-                    <button type="button" id="toggleSingleView" class="toggle-btn active">Single Pass (Half A4)</button>
+                    <button type="button" id="toggleSingleView" class="toggle-btn active">Single Pass</button>
                     <button type="button" id="toggleMultiView" class="toggle-btn">Batch / Multi-Pass View</button>
                 </div>
             </div>
@@ -420,7 +482,7 @@
                 <!-- Physical Gate Pass Slip (Exact Excel & Half-A4 Format) -->
                 <div class="gatepass-slip" id="mainGatepassSlip">
                     <div class="slip-header">
-                        <img src="img/oslc_logo_print.svg" alt="OSLC HOUSE" class="slip-brand-logo">
+                        <img src="/static/img/oslc_logo_print.svg" alt="OSLC HOUSE" class="slip-brand-logo">
                     </div>
 
                     <div class="slip-body">
@@ -434,7 +496,7 @@
                                 <div class="slip-field">
                                     <span class="lbl">Int No. : </span>
                                     <span class="val" id="previewIntNo">01</span>
-                                    <span id="previewReprintBadge" class="slip-reprint-tag" style="display: none;">[REPRINT]</span>
+                                    <span id="previewReprintBadge" class="slip-reprint-tag u-hidden">[REPRINT]</span>
                                 </div>
                             </div>
 
@@ -481,8 +543,8 @@
                         <!-- Right Photo Column -->
                         <div class="slip-photo-col">
                             <div class="slip-photo-frame">
-                                <img id="previewPhotoImg" src="" alt="Worker Photo" style="display: none;">
-                                <span id="previewPhotoPlaceholder" style="font-size: 11px; color: #64748b; font-weight: 700; text-align: center;">PHOTO</span>
+                                <img id="previewPhotoImg" src="" alt="Worker Photo" class="u-hidden">
+                                <span id="previewPhotoPlaceholder" class="preview-photo-placeholder-txt">PHOTO</span>
                             </div>
                             <div class="slip-photo-caption">DIGIBIZZ ID</div>
                         </div>
@@ -524,7 +586,7 @@
                             [REPORT 141 CLEAR] NO PENDING GOODS (STI: 0 | ALTER: 0 PCS) - ALL CLEAR
                         </div>
                         <!-- Embedded table when goods are pending -->
-                        <div id="slipMallTableWrapper" style="display: none; margin-top: 5px;">
+                        <div id="slipMallTableWrapper" class="slip-mall-table-wrapper u-hidden">
                             <div class="slip-mall-header">REPORT 141 PENDING GOODS WITH KARIGAR:</div>
                             <table class="slip-mall-table">
                                 <thead>
@@ -554,25 +616,28 @@
             <div class="card history-section">
                 <div class="card-title">
                     <span id="txtRecentPassesTitle">Recent Issued Passes (તાજેતરના ગેટ પાસ)</span>
-                    <span id="historyCountBadge" class="worker-code-badge">0 Passes</span>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button type="button" id="btnClearTodayPasses" class="btn-delete-row" style="font-size: 11px; padding: 2px 8px;" title="આજના તમામ પાસ ક્લિયર / ડિલીટ કરો">🗑️ આજના પાસ ક્લિયર</button>
+                        <span id="historyCountBadge" class="worker-code-badge">0 Passes</span>
+                    </div>
                 </div>
                 <div class="history-table-container">
                     <table class="history-table">
                         <thead>
                             <tr>
-                                <th>Int No</th>
-                                <th>Time</th>
-                                <th>Code</th>
-                                <th>Name</th>
-                                <th>Dept</th>
-                                <th>Tools</th>
-                                <th>141 Mall</th>
-                                <th>Action</th>
+                                <th id="thHistInt">Int No</th>
+                                <th id="thHistTime">Time</th>
+                                <th id="thHistCode">Code</th>
+                                <th id="thHistName">Name</th>
+                                <th id="thHistDept">Dept</th>
+                                <th id="thHistTools">Tools</th>
+                                <th id="thHistMall">141 Mall</th>
+                                <th id="thHistAction">Action</th>
                             </tr>
                         </thead>
                         <tbody id="historyTableBody">
                             <tr>
-                                <td colspan="8" style="text-align: center; color: var(--text-dim); padding: 18px;">
+                                <td colspan="8" class="u-text-center-empty">
                                     No gate passes issued yet for this date.
                                 </td>
                             </tr>
@@ -588,7 +653,7 @@
     <!-- ========================================================================= -->
     <!-- VIEW 2: DEDICATED REPORT & HISTORY TAB (REPORTS & PASS REGISTER)            -->
     <!-- ========================================================================= -->
-    <main id="viewReportsHistory" class="reports-container" style="display: none;">
+    <main id="viewReportsHistory" class="reports-container u-hidden">
 
         <div class="report-page-header">
             <div class="report-title-group">
@@ -659,7 +724,7 @@
                 </div>
 
                 <!-- Search Input -->
-                <div class="filter-group" style="flex: 1.5;">
+                <div class="filter-group u-flex-15">
                     <label id="lblRptSearch">Search Karigar / Int No (કારીગર / નં સર્ચ):</label>
                     <input type="text" id="rptFilterSearch" class="form-control" placeholder="Search by name, code (M84, 101, 287), int no...">
                 </div>
@@ -668,31 +733,31 @@
                 <div class="filter-group">
                     <label id="lblRptMallFilter">141 Mall Filter:</label>
                     <select id="rptFilterMall" class="form-control">
-                        <option value="ALL">All Passes (બધા જ)</option>
-                        <option value="WITH_MALL">⚠️ With Pending Mall (માલ બાકી)</option>
-                        <option value="CLEAR">✅ All Clear Only (ક્લિયર)</option>
+                        <option value="ALL" id="optMallAll">All Passes (બધા જ)</option>
+                        <option value="WITH_MALL" id="optMallWith">⚠️ With Pending Mall (માલ બાકી)</option>
+                        <option value="CLEAR" id="optMallClear">✅ All Clear Only (ક્લિયર)</option>
                     </select>
                 </div>
 
                 <!-- Filter Buttons -->
-                <div class="filter-buttons" style="align-self: flex-end;">
-                    <button type="button" id="rptBtnApplyFilter" class="btn-primary" style="padding: 10px 18px;">
-                        <span>🔍 Search</span>
+                <div class="filter-buttons u-align-self-end">
+                    <button type="button" id="rptBtnApplyFilter" class="btn-primary btn-filter-apply">
+                        <span id="txtRptApplyBtn">🔍 Search</span>
                     </button>
-                    <button type="button" id="rptBtnResetFilter" class="btn-secondary" style="padding: 10px 14px;">
-                        <span>Reset</span>
+                    <button type="button" id="rptBtnResetFilter" class="btn-secondary btn-filter-reset">
+                        <span id="txtRptResetBtn">Reset</span>
                     </button>
                 </div>
             </div>
 
             <!-- Quick Date Filter Buttons -->
             <div class="quick-date-chips">
-                <span style="font-size: 12px; color: var(--text-dim); align-self: center;" id="txtQuickDateFilters">Quick Filters:</span>
-                <button type="button" class="chip-btn rpt-chip" data-filter="today">આજે (Today)</button>
-                <button type="button" class="chip-btn rpt-chip" data-filter="yesterday">ગઈકાલે (Yesterday)</button>
-                <button type="button" class="chip-btn rpt-chip" data-filter="this_week">આ અઠવાડિયે (This Week)</button>
-                <button type="button" class="chip-btn rpt-chip" data-filter="this_month">આ મહિને (This Month)</button>
-                <button type="button" class="chip-btn rpt-chip" data-filter="all">તમામ રેકોર્ડ (All Records)</button>
+                <span class="u-txt-dim-hint-12" id="txtQuickDateFilters">Quick Filters:</span>
+                <button type="button" class="chip-btn rpt-chip" id="chipToday" data-filter="today">આજે (Today)</button>
+                <button type="button" class="chip-btn rpt-chip" id="chipYesterday" data-filter="yesterday">ગઈકાલે (Yesterday)</button>
+                <button type="button" class="chip-btn rpt-chip" id="chipThisWeek" data-filter="this_week">આ અઠવાડિયે (This Week)</button>
+                <button type="button" class="chip-btn rpt-chip" id="chipThisMonth" data-filter="this_month">આ મહિને (This Month)</button>
+                <button type="button" class="chip-btn rpt-chip" id="chipAll" data-filter="all">તમામ રેકોર્ડ (All Records)</button>
             </div>
         </div>
 
@@ -700,8 +765,11 @@
         <div class="card report-table-card">
             <div class="report-table-toolbar">
                 <span id="rptTableCountText">Showing 0 Records</span>
-                <div class="report-table-actions">
-                    <span style="font-size: 12px; color: var(--text-muted);" id="txtReprintHint">
+                <div class="report-table-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <button type="button" id="btnClearAllHistoryPasses" class="btn-delete-row" style="font-size: 11px; padding: 4px 10px;" title="ડેટા ક્લિયર કરો (Clear Gate Pass Records)">
+                        🗑️ ડેટા ક્લિયર કરો (Clear Data)
+                    </button>
+                    <span class="u-txt-muted-12" id="txtReprintHint">
                         💡 "REPRINT" ક્લિક કરવાથી ઓરિજિનલ <strong>Int No. બદલાયા વગર</strong> નવો એન્ટ્રી લોગ થશે અને પ્રિન્ટ નીકળશે!
                     </span>
                 </div>
@@ -711,18 +779,18 @@
                 <table class="master-report-table">
                     <thead>
                         <tr>
-                            <th>Sr</th>
-                            <th>Int No</th>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Worker Code</th>
-                            <th>Karigar Name</th>
-                            <th>Department</th>
-                            <th>Floor</th>
-                            <th>Tools Returned</th>
-                            <th>141 Mall Status</th>
-                            <th>Type</th>
-                            <th>Actions</th>
+                            <th id="thRptSr">Sr</th>
+                            <th id="thRptInt">Int No</th>
+                            <th id="thRptDate">Date</th>
+                            <th id="thRptTime">Time</th>
+                            <th id="thRptCode">Worker Code</th>
+                            <th id="thRptName">Karigar Name</th>
+                            <th id="thRptDept">Department</th>
+                            <th id="thRptFloor">Floor</th>
+                            <th id="thRptTools">Tools Returned</th>
+                            <th id="thRptMall">141 Mall Status</th>
+                            <th id="thRptType">Type</th>
+                            <th id="thRptActions">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="rptTableBody">
@@ -747,7 +815,7 @@
     </div>
 
     <!-- Alert Modal for Checklist Block -->
-    <div id="checklistBlockModal" class="modal-backdrop" style="display: none;">
+    <div id="checklistBlockModal" class="modal-backdrop u-hidden">
         <div class="modal-box">
             <div class="modal-header">
                 <span class="modal-icon">🚫</span>
@@ -769,6 +837,6 @@
         </div>
     </div>
 
-    <script src="js/app.js"></script>
+    <script src="/static/js/app.js?v=2.2"></script>
 </body>
 </html>

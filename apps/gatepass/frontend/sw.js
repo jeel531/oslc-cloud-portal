@@ -2,7 +2,7 @@
  * OSLC Karigar Gate Pass System - Service Worker
  * Enables PWA install prompt & fast caching for mobile devices
  */
-const CACHE_NAME = 'oslc-gatepass-v1';
+const CACHE_NAME = 'oslc-gatepass-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/static/css/style.css',

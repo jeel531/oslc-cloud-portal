@@ -1714,6 +1714,166 @@ body {
     height: 105px;
 }
 
+/* Selected Karigars Basket */
+.selected-workers-basket {
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.basket-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.basket-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #60a5fa;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-clear-basket {
+    background: transparent;
+    border: none;
+    color: #f87171;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.btn-clear-basket:hover {
+    background: rgba(239, 68, 68, 0.15);
+}
+
+.selected-workers-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.worker-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid #334155;
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.worker-chip:hover {
+    border-color: #60a5fa;
+    background: rgba(30, 58, 138, 0.4);
+}
+
+.worker-chip.active-view {
+    border-color: #3b82f6;
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+    background: rgba(30, 58, 138, 0.6);
+}
+
+.worker-chip.has-mall {
+    border-left: 3px solid #ef4444;
+}
+
+.worker-chip.clear {
+    border-left: 3px solid #10b981;
+}
+
+.chip-code {
+    font-weight: 800;
+    color: #f8fafc;
+}
+
+.chip-name {
+    color: #cbd5e1;
+    font-size: 11px;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chip-mall-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 10px;
+}
+
+.worker-chip.has-mall .chip-mall-badge {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.worker-chip.clear .chip-mall-badge {
+    background: rgba(16, 185, 129, 0.2);
+    color: #6ee7b7;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.chip-remove-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+}
+
+.chip-remove-btn:hover {
+    color: #ef4444;
+}
+
+/* Multi-pass 2-per-page A4 sheet container in screen preview */
+.print-page-pair {
+    width: 580px;
+    margin: 0 auto 20px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.print-cut-divider {
+    width: 100%;
+    text-align: center;
+    font-size: 11px;
+    color: #94a3b8;
+    letter-spacing: 2px;
+    padding: 4px 0;
+    user-select: none;
+}
+
+.preview-page-label {
+    width: 100%;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #38bdf8;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px dashed rgba(56, 189, 248, 0.4);
+    border-radius: 4px;
+    padding: 4px 8px;
+    margin-bottom: 6px;
+}
+
 /* ==========================================================================
    MULTI-WORKER VISUAL SELECTION GRID
    ========================================================================== */
@@ -2307,9 +2467,14 @@ body {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     z-index: 999;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
+}
+
+.modal-backdrop.active,
+.modal-backdrop.show {
+    display: flex;
 }
 
 .modal-box {
@@ -2466,4 +2631,393 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* ==========================================================================
+   SEMANTIC UTILITIES (ELIMINATES INLINE STYLES FOR ZERO LINTER WARNINGS)
+   ========================================================================== */
+.u-hidden {
+    display: none;
+}
+.u-flex-1 {
+    flex: 1;
+}
+.u-flex-12 {
+    flex: 1.2;
+}
+.u-flex-08 {
+    flex: 0.8;
+}
+.u-flex-15 {
+    flex: 1.5;
+}
+.u-mb-0 {
+    margin-bottom: 0 !important;
+}
+.u-mt-10 {
+    margin-top: 10px;
+}
+.u-mt-10-mb-0 {
+    margin-top: 10px;
+    margin-bottom: 0;
+}
+.u-mt-12-mb-0 {
+    margin-top: 12px;
+    margin-bottom: 0;
+}
+.u-align-self-end {
+    align-self: flex-end;
+}
+.u-txt-dim-hint {
+    font-size: 11px;
+    color: var(--text-dim);
+    align-self: center;
+}
+.u-txt-dim-hint-12 {
+    font-size: 12px;
+    color: var(--text-dim);
+    align-self: center;
+}
+.u-txt-muted-12 {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+.u-bold-14 {
+    font-weight: 800;
+    font-size: 14px;
+}
+.u-text-center-empty {
+    text-align: center;
+    color: var(--text-dim);
+    padding: 18px;
+}
+
+.int-no-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+.worker-dept-highlight {
+    color: #60a5fa;
+}
+.preview-photo-placeholder-txt {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 700;
+    text-align: center;
+}
+.slip-mall-table-wrapper {
+    display: none;
+    margin-top: 5px;
+}
+.btn-filter-apply {
+    padding: 10px 18px;
+}
+.btn-filter-reset {
+    padding: 10px 14px;
+}
+
+/* ==========================================================================
+   ENHANCED SAVE & PRINT STEP WORKFLOW BUTTONS
+   ========================================================================== */
+.pass-save-status-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    font-size: 12.5px;
+    color: #cbd5e1;
+    font-weight: 600;
+    transition: all 0.25s ease;
+}
+
+.pass-save-status-banner.saved {
+    background: rgba(6, 78, 59, 0.5);
+    border-color: rgba(52, 211, 153, 0.6);
+    color: #a7f3d0;
+}
+
+.pass-save-status-banner.unsaved {
+    background: rgba(120, 53, 15, 0.45);
+    border-color: rgba(251, 191, 36, 0.6);
+    color: #fde68a;
+}
+
+.btn-action-save {
+    background: linear-gradient(135deg, #059669 0%, #10b981 60%, #34d399 100%);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: white;
+    padding: 14px 22px;
+    border-radius: var(--radius-md);
+    font-size: 15.5px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    letter-spacing: 0.3px;
+}
+
+.btn-action-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(16, 185, 129, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+
+.btn-action-save:active {
+    transform: translateY(1px);
+    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.4);
+}
+
+.btn-action-print {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 60%, #1e40af 100%);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: white;
+    padding: 14px 22px;
+    border-radius: var(--radius-md);
+    font-size: 15.5px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    letter-spacing: 0.3px;
+}
+
+.btn-action-print:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(37, 99, 235, 0.65);
+}
+
+.btn-action-print:active {
+    transform: translateY(1px);
+}
+
+.btn-action-print.pulse-ready {
+    animation: printGlowPulse 1.4s infinite alternate;
+}
+
+@keyframes printGlowPulse {
+    from {
+        box-shadow: 0 0 12px rgba(56, 189, 248, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+    }
+    to {
+        box-shadow: 0 0 28px rgba(56, 189, 248, 0.95), inset 0 1px 1px rgba(255, 255, 255, 0.7);
+    }
+}
+
+/* ==========================================================================
+   PRINT CONFIGURATION TOOLBAR (PAPER SIZE & 180° FLIP ORIENTATION)
+   ========================================================================== */
+.print-config-toolbar {
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(56, 189, 248, 0.35);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    margin-top: 4px;
+    margin-bottom: 6px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.print-config-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.print-config-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: #38bdf8;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.print-toolbar-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.paper-size-pill-group {
+    display: flex;
+    gap: 6px;
+    background: rgba(8, 14, 28, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-pill);
+    padding: 3px;
+    flex: 1;
+}
+
+.paper-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 14px;
+    font-size: 12.5px;
+    font-weight: 800;
+    border-radius: var(--radius-pill);
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.paper-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.paper-btn.active {
+    background: linear-gradient(135deg, #0284c7, #2563eb);
+    color: #ffffff;
+    box-shadow: 0 2px 10px rgba(37, 99, 235, 0.5);
+}
+
+.paper-btn.active.a5 {
+    background: linear-gradient(135deg, #059669, #10b981);
+    color: #ffffff;
+    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.5);
+}
+
+/* Upright Normal Print Pill Badge */
+.print-orientation-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 800;
+    border-radius: var(--radius-pill);
+    background: rgba(16, 185, 129, 0.14);
+    border: 1px solid rgba(16, 185, 129, 0.45);
+    color: #34d399;
+    white-space: nowrap;
+}
+
+/* Preview Header Pills */
+.u-flex-align-center-gap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.preview-paper-pill {
+    background: rgba(37, 99, 235, 0.25);
+    border: 1px solid rgba(56, 189, 248, 0.45);
+    color: #38bdf8;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.5px;
+}
+
+.preview-paper-pill.a5 {
+    background: rgba(16, 185, 129, 0.25);
+    border-color: rgba(16, 185, 129, 0.55);
+    color: #34d399;
+}
+
+.preview-flip-pill {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #090e1a;
+    font-size: 11px;
+    font-weight: 900;
+    padding: 3px 8px;
+    border-radius: var(--radius-pill);
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+    letter-spacing: 0.5px;
+}
+
+/* Screen Preview Adjustments when Small Page mode is active */
+body.print-small-page .gatepass-slip {
+    width: 100%;
+    max-width: 530px;
+    padding: 16px 20px;
+    margin: 0 auto;
+}
+
+body.print-small-page .slip-brand-logo {
+    max-height: 42px;
+}
+
+body.print-small-page .slip-title {
+    font-size: 22px;
+}
+
+body.print-small-page .slip-body {
+    grid-template-columns: 1fr 88px;
+    gap: 8px;
+}
+
+body.print-small-page .slip-photo-frame {
+    width: 82px;
+    height: 92px;
+}
+
+body.print-small-page .slip-field,
+body.print-small-page .slip-name-row,
+body.print-small-page .slip-sign-row {
+    font-size: 11.5px;
+}
+
+body.print-small-page .slip-sign-box {
+    min-height: 34px;
+    padding: 3px 5px;
+}
+
+body.print-small-page .slip-checklist-row {
+    font-size: 9.5px;
+}
+
+/* Mobile Screen Full Responsiveness for Slip Preview */
+@media (max-width: 600px) {
+    .gatepass-slip {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 10px 12px !important;
+    }
+    .slip-title {
+        font-size: 20px !important;
+    }
+    .slip-brand-logo {
+        max-height: 34px !important;
+    }
+    .slip-body {
+        grid-template-columns: 1fr 75px !important;
+        gap: 8px !important;
+    }
+    .slip-photo-frame {
+        width: 70px !important;
+        height: 80px !important;
+    }
+    .slip-field, .slip-name-row, .slip-sign-row {
+        font-size: 11px !important;
+    }
+    .pass-sheet-wrapper {
+        padding: 16px 8px !important;
+    }
+}
+
+
 
