@@ -4,11 +4,11 @@
 
   // Smart Server Discovery
   const SERVERS = [
-    'https://headphones-numbers-contest-onto.trycloudflare.com',
+    'https://relaxation-synthetic-recorded-gtk.trycloudflare.com',
     'http://192.168.100.106:8095',
-    'http://192.168.100.106:8000',
+    'http://192.168.100.106:8080',
     'http://localhost:8095',
-    'http://localhost:8000'
+    'http://localhost:8080'
   ];
 
   const isWebOrigin = !!(
