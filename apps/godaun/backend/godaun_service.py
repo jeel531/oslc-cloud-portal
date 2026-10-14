@@ -296,7 +296,7 @@ def get_summary():
             SUM(CASE WHEN TRANS_DATE >= ? THEN QTY_PIECES ELSE 0 END) AS MONTH_QTY
         FROM View_Dboard_Trans_All_Daily_Summary
         WHERE TRANS_DATE >= ?
-          AND TRANS_TYPE_NAME IN ('WMS Stock Inward', 'WMS Order Pickup')
+          AND TRANS_TYPE_NAME IN ('WMS Stock Inward', 'WMS Order Pickup', 'WMS Stock Outward')
         GROUP BY TRANS_TYPE_NAME
     """
     cur.execute(query, (today_str, month_start, month_start))
@@ -312,11 +312,11 @@ def get_summary():
         today_val = safe_float(r[1])
         month_val = safe_float(r[2])
         if t_type == 'WMS Stock Inward':
-            today_inward = today_val
-            month_inward = month_val
-        elif t_type == 'WMS Order Pickup':
-            today_outward = today_val
-            month_outward = month_val
+            today_inward += today_val
+            month_inward += month_val
+        elif t_type in ('WMS Order Pickup', 'WMS Stock Outward'):
+            today_outward += today_val
+            month_outward += month_val
 
     conn.close()
 
@@ -352,7 +352,7 @@ def get_daywise_report(month: str = Query(default="")):
             SUM(QTY_PIECES) AS TOTAL_QTY
         FROM View_Dboard_Trans_All_Daily_Summary
         WHERE TRANS_DATE LIKE ? + '%'
-          AND TRANS_TYPE_NAME IN ('WMS Stock Inward', 'WMS Order Pickup')
+          AND TRANS_TYPE_NAME IN ('WMS Stock Inward', 'WMS Order Pickup', 'WMS Stock Outward')
         GROUP BY TRANS_DATE, TRANS_TYPE_NAME
         ORDER BY TRANS_DATE ASC
     """
@@ -384,9 +384,9 @@ def get_daywise_report(month: str = Query(default="")):
             }
 
         if t_type == 'WMS Stock Inward':
-            days_map[d_str]["inward"] = int(qty)
-        elif t_type == 'WMS Order Pickup':
-            days_map[d_str]["outward"] = int(qty)
+            days_map[d_str]["inward"] += int(qty)
+        elif t_type in ('WMS Order Pickup', 'WMS Stock Outward'):
+            days_map[d_str]["outward"] += int(qty)
 
     sorted_days = sorted(days_map.values(), key=lambda x: x["date"])
     res = {
@@ -411,52 +411,29 @@ def get_day_drilldown(date_str: str = Query(..., alias="date"), report_type: str
     cur = conn.cursor()
 
     items = []
-    if report_type == "inward":
-        query = """
-            SELECT TOP 100
-                ISNULL(ITEM_NAME, 'N/A') AS ITEM_NAME,
-                ISNULL(SIZE, '-') AS SIZE,
-                ISNULL(SKU_CODE, 'N/A') AS SKU_CODE,
-                ISNULL(ITEM_GROUP_NAME, 'GENERAL') AS CATEGORY,
-                SUM(QTY_PIECES) as TOTAL_QTY
-            FROM View_Dboard_Trans_All_Daily_Summary
-            WHERE TRANS_DATE = ? 
-              AND TRANS_TYPE_NAME = 'WMS Stock Inward'
-            GROUP BY ITEM_NAME, SIZE, SKU_CODE, ITEM_GROUP_NAME
-            ORDER BY TOTAL_QTY DESC
-        """
-        cur.execute(query, (date_str,))
-        for r in cur.fetchall():
-            items.append({
-                "design": r[0],
-                "size": r[1],
-                "sku": r[2],
-                "category": r[3],
-                "qty": int(safe_float(r[4]))
-            })
-    else:
-        query = """
-            SELECT TOP 100
-                ISNULL(BILL_NO, 'BOX') AS BOX_NO,
-                ISNULL(VOUCHER_NO, '') AS VOUCHER_NO,
-                SUM(QTY_PIECES) AS TOTAL_QTY,
-                COUNT(*) AS ENTRIES,
-                ISNULL(CREATED_BY, '') AS CREATED_BY
-            FROM View_Dboard_Common_Dashboard
-            WHERE TRANS_DATE = ? 
-              AND PROCESS_NAME = 'Portal Box Creation (ASIN)'
-            GROUP BY BILL_NO, VOUCHER_NO, CREATED_BY
-            ORDER BY TOTAL_QTY DESC
-        """
-        cur.execute(query, (date_str,))
-        for r in cur.fetchall():
-            items.append({
-                "box_no": r[0],
-                "voucher_no": r[1],
-                "qty": int(safe_float(r[2])),
-                "entries": int(r[3]),
-                "created_by": r[4]
-            })
+    t_name_cond = "TRANS_TYPE_NAME = 'WMS Stock Inward'" if report_type == "inward" else "TRANS_TYPE_NAME IN ('WMS Order Pickup', 'WMS Stock Outward')"
+    query = f"""
+        SELECT 
+            ISNULL(ITEM_NAME, 'N/A') AS ITEM_NAME,
+            ISNULL(SIZE, '-') AS SIZE,
+            ISNULL(SKU_CODE, 'N/A') AS SKU_CODE,
+            ISNULL(ITEM_GROUP_NAME, 'GENERAL') AS CATEGORY,
+            SUM(QTY_PIECES) as TOTAL_QTY
+        FROM View_Dboard_Trans_All_Daily_Summary
+        WHERE TRANS_DATE = ? 
+          AND {t_name_cond}
+        GROUP BY ITEM_NAME, SIZE, SKU_CODE, ITEM_GROUP_NAME
+        ORDER BY TOTAL_QTY DESC
+    """
+    cur.execute(query, (date_str,))
+    for r in cur.fetchall():
+        items.append({
+            "design": r[0],
+            "size": r[1],
+            "sku": r[2],
+            "category": r[3],
+            "qty": int(safe_float(r[4]))
+        })
     conn.close()
     res = {
         "success": True,
@@ -477,20 +454,21 @@ def get_user_summary(date_str: str = Query(..., alias="date"), report_type: str 
     conn = get_db_connection()
     cur = conn.cursor()
 
-    p_name = "WMS Stock Inward" if report_type == "inward" else "WMS Order Pickup"
+    p_filter = "PROCESS_NAME = 'WMS Stock Inward'" if report_type == "inward" else "PROCESS_NAME IN ('WMS Order Pickup', 'WMS Stock Outward')"
+    p_name = "WMS Stock Inward" if report_type == "inward" else "WMS Order Pickup & Stock Outward"
 
-    query = """
+    query = f"""
         SELECT 
             ISNULL(CREATED_BY, 'UNKNOWN') AS USER_NAME,
             SUM(QTY_PIECES) AS TOTAL_QTY,
             COUNT(*) AS ENTRIES
         FROM View_Dboard_Common_Dashboard
-        WHERE TRANS_DATE = ? AND PROCESS_NAME = ?
+        WHERE TRANS_DATE = ? AND {p_filter}
           AND (BARCODE IS NOT NULL AND BARCODE <> '')
         GROUP BY CREATED_BY
         ORDER BY TOTAL_QTY DESC
     """
-    cur.execute(query, (date_str, p_name))
+    cur.execute(query, (date_str,))
     rows = cur.fetchall()
     conn.close()
 
@@ -533,10 +511,10 @@ def get_user_detail(
     conn = get_db_connection()
     cur = conn.cursor()
 
-    p_name = "WMS Stock Inward" if report_type == "inward" else "WMS Order Pickup"
+    p_filter = "PROCESS_NAME = 'WMS Stock Inward'" if report_type == "inward" else "PROCESS_NAME IN ('WMS Order Pickup', 'WMS Stock Outward')"
 
-    query = """
-        SELECT TOP 200
+    query = f"""
+        SELECT 
             ISNULL(VOUCHER_NO, '') AS VOUCHER_NO,
             ISNULL(BILL_NO, '-') AS BILL_NO,
             ISNULL(DESIGN_NO, 'N/A') AS DESIGN_NO,
@@ -545,12 +523,12 @@ def get_user_detail(
             CREATED_DATE
         FROM View_Dboard_Common_Dashboard
         WHERE TRANS_DATE = ? 
-          AND PROCESS_NAME = ?
+          AND {p_filter}
           AND CREATED_BY = ?
           AND (BARCODE IS NOT NULL AND BARCODE <> '')
         ORDER BY CREATED_DATE DESC
     """
-    cur.execute(query, (date_str, p_name, user_name))
+    cur.execute(query, (date_str, user_name))
     items = []
     for r in cur.fetchall():
         dt_str = ""
@@ -588,13 +566,13 @@ def fetch_salary_report_data(from_date: str, to_date: str, in_rate: float, out_r
         SELECT 
             ISNULL(CREATED_BY, 'UNKNOWN') AS NAME,
             SUM(CASE WHEN PROCESS_NAME = 'WMS Stock Inward' THEN QTY_PIECES ELSE 0 END) AS IN_PCS,
-            SUM(CASE WHEN PROCESS_NAME = 'WMS Order Pickup' THEN QTY_PIECES ELSE 0 END) AS OUT_PCS
+            SUM(CASE WHEN PROCESS_NAME IN ('WMS Order Pickup', 'WMS Stock Outward') THEN QTY_PIECES ELSE 0 END) AS OUT_PCS
         FROM View_Dboard_Common_Dashboard
         WHERE TRANS_DATE >= ? AND TRANS_DATE <= ?
-          AND PROCESS_NAME IN ('WMS Stock Inward', 'WMS Order Pickup')
+          AND PROCESS_NAME IN ('WMS Stock Inward', 'WMS Order Pickup', 'WMS Stock Outward')
           AND (BARCODE IS NOT NULL AND BARCODE <> '')
         GROUP BY CREATED_BY
-        ORDER BY (SUM(CASE WHEN PROCESS_NAME = 'WMS Stock Inward' THEN QTY_PIECES ELSE 0 END) + SUM(CASE WHEN PROCESS_NAME = 'WMS Order Pickup' THEN QTY_PIECES ELSE 0 END)) DESC
+        ORDER BY (SUM(CASE WHEN PROCESS_NAME = 'WMS Stock Inward' THEN QTY_PIECES ELSE 0 END) + SUM(CASE WHEN PROCESS_NAME IN ('WMS Order Pickup', 'WMS Stock Outward') THEN QTY_PIECES ELSE 0 END)) DESC
     """
     cur.execute(query, (from_date, to_date))
     rows = cur.fetchall()
@@ -708,11 +686,11 @@ def get_user_datewise(
         SELECT 
             TRANS_DATE,
             SUM(CASE WHEN PROCESS_NAME = 'WMS Stock Inward' THEN QTY_PIECES ELSE 0 END) AS IN_PCS,
-            SUM(CASE WHEN PROCESS_NAME = 'WMS Order Pickup' THEN QTY_PIECES ELSE 0 END) AS OUT_PCS
+            SUM(CASE WHEN PROCESS_NAME IN ('WMS Order Pickup', 'WMS Stock Outward') THEN QTY_PIECES ELSE 0 END) AS OUT_PCS
         FROM View_Dboard_Common_Dashboard
         WHERE TRANS_DATE >= ? AND TRANS_DATE <= ?
           AND CREATED_BY = ?
-          AND PROCESS_NAME IN ('WMS Stock Inward', 'WMS Order Pickup')
+          AND PROCESS_NAME IN ('WMS Stock Inward', 'WMS Order Pickup', 'WMS Stock Outward')
           AND (BARCODE IS NOT NULL AND BARCODE <> '')
         GROUP BY TRANS_DATE
         ORDER BY TRANS_DATE ASC

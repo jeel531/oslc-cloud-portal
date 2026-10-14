@@ -2382,7 +2382,7 @@
       heroReportTitle.textContent = 'WMS Stock Inward Total (કુલ ઇનવર્ડ)';
       userReportHeading.textContent = 'Inward: User Name પ્રમાણે Total Qty.';
     } else {
-      heroReportTitle.textContent = 'WMS Order Pickup Total (કુલ આઉટવર્ડ)';
+      heroReportTitle.textContent = 'WMS Order Pickup & Stock Outward Total (કુલ આઉટવર્ડ)';
       userReportHeading.textContent = 'Outward: User Name પ્રમાણે Total Qty.';
     }
 
