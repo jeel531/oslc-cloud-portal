@@ -332,6 +332,7 @@ def redir_barcode(): return RedirectResponse(url="/barcode/", status_code=301)
 
 # Health & Overview Status Endpoint
 @master_app.get("/health")
+@master_app.get("/api/health")
 def health_endpoint():
     return {
         "ok": True,
@@ -343,6 +344,7 @@ def health_endpoint():
         "server_time": time.strftime("%Y-%m-%d %H:%M:%S"),
         "time": time.time()
     }
+
 
 @master_app.get("/api/hub-status")
 def hub_status():
