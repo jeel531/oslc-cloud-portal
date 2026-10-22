@@ -10,3 +10,5 @@ WshShell.Run "python master_server.py", 0, False
 WshShell.Run "python ""D:\NOTA\MY PC\server.py""", 0, False
 ' Run auto-cloud sync daemon hidden (auto pushes every new project to server)
 WshShell.Run "python auto_cloud_sync.py", 0, False
+' Run 24/7 Tunnel Watchdog hidden (keeps tunnel alive and auto-updates desktop links)
+WshShell.Run "python tunnel_watchdog.py", 0, False
