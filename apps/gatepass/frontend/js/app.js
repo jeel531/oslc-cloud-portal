@@ -848,7 +848,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Register Service Worker for PWA Android App Installation
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/static/sw.js')
+            navigator.serviceWorker.register('sw.js')
                 .then(reg => console.log('[PWA] ServiceWorker registered:', reg.scope))
                 .catch(err => console.log('[PWA] ServiceWorker failed:', err));
         });
