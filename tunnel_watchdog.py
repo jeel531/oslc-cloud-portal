@@ -77,12 +77,18 @@ def write_share_links(url: str):
 
         # 4. Save live_url.json for frontend
         import json
-        with open(STATUS_FILE, "w", encoding="utf-8") as f:
-            json.dump({"url": url, "updated_at": time.strftime("%Y-%m-%d %H:%M:%S")}, f)
+        # 5. Run sync_all_devices to update Surge and all 15 REPRR project launchers
+        try:
+            sync_script = ROOT / "sync_all_devices.py"
+            if sync_script.exists():
+                subprocess.Popen([sys.executable, str(sync_script)])
+        except Exception as se:
+            print(f"[WATCHDOG] sync_all_devices trigger error: {se}")
 
         print(f"[WATCHDOG] Updated all Desktop links to: {url}")
     except Exception as e:
         print(f"[WATCHDOG ERROR] Failed to write links: {e}")
+
 
 def run_tunnel():
     print("=" * 60)
