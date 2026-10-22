@@ -184,13 +184,82 @@ for route in MK_API_ROUTES:
         methods=["GET", "POST"]
     )
 
-# Static asset mounts at root for legacy/relative asset requests
+# Frontend paths
+GODAUN_FRONTEND = ROOT / "apps" / "godaun" / "frontend"
+STOCK_FRONTEND = ROOT / "apps" / "stock" / "frontend"
 ALTER_FRONTEND = ROOT / "apps" / "alter" / "frontend"
-PO_ASSETS = ROOT / "apps" / "po" / "frontend" / "assets"
-if ALTER_FRONTEND.exists():
-    master_app.mount("/static", StaticFiles(directory=str(ALTER_FRONTEND)), name="alter_static")
+PO_FRONTEND = ROOT / "apps" / "po" / "frontend"
+PO_ASSETS = PO_FRONTEND / "assets"
+GATEPASS_FRONTEND = ROOT / "apps" / "gatepass" / "frontend"
+MK_FRONTEND = ROOT / "apps" / "mk" / "frontend"
+BARCODE_FRONTEND = ROOT / "apps" / "barcode" / "frontend"
+
+STATIC_CANDIDATE_DIRS = [
+    GATEPASS_FRONTEND,
+    BARCODE_FRONTEND,
+    ALTER_FRONTEND,
+    MK_FRONTEND,
+    STOCK_FRONTEND,
+    GODAUN_FRONTEND,
+    PO_FRONTEND,
+    ROOT / "portal_ui"
+]
+
+import mimetypes
+from fastapi.responses import RedirectResponse
+
+@master_app.get("/static/{asset_path:path}")
+async def serve_multi_static(asset_path: str):
+    for fdir in STATIC_CANDIDATE_DIRS:
+        target = fdir / asset_path
+        if target.exists() and target.is_file():
+            mime, _ = mimetypes.guess_type(str(target))
+            return FileResponse(target, media_type=mime)
+    return HTMLResponse("Static asset not found", status_code=404)
+
+@master_app.get("/styles.css")
+async def serve_root_styles(request: Request):
+    referer = request.headers.get("referer", "")
+    if "barcode" in referer and (BARCODE_FRONTEND / "styles.css").exists():
+        return FileResponse(BARCODE_FRONTEND / "styles.css", media_type="text/css")
+    if (ALTER_FRONTEND / "styles.css").exists():
+        return FileResponse(ALTER_FRONTEND / "styles.css", media_type="text/css")
+    if (BARCODE_FRONTEND / "styles.css").exists():
+        return FileResponse(BARCODE_FRONTEND / "styles.css", media_type="text/css")
+    return HTMLResponse("", status_code=404)
+
+@master_app.get("/JsBarcode.all.min.js")
+async def serve_root_jsbarcode():
+    f = BARCODE_FRONTEND / "JsBarcode.all.min.js"
+    if f.exists():
+        return FileResponse(f, media_type="application/javascript")
+    return HTMLResponse("", status_code=404)
+
+@master_app.get("/oslc_logo.png")
+async def serve_root_oslc_logo():
+    f = ALTER_FRONTEND / "oslc_logo.png"
+    if f.exists():
+        return FileResponse(f, media_type="image/png")
+    return HTMLResponse("", status_code=404)
+
 if PO_ASSETS.exists():
     master_app.mount("/assets", StaticFiles(directory=str(PO_ASSETS)), name="po_assets")
+
+# Trailing slash redirects for clean URLs
+@master_app.get("/godaun")
+def redir_godaun(): return RedirectResponse(url="/godaun/", status_code=301)
+@master_app.get("/stock")
+def redir_stock(): return RedirectResponse(url="/stock/", status_code=301)
+@master_app.get("/alter")
+def redir_alter(): return RedirectResponse(url="/alter/", status_code=301)
+@master_app.get("/po")
+def redir_po(): return RedirectResponse(url="/po/", status_code=301)
+@master_app.get("/gatepass")
+def redir_gatepass(): return RedirectResponse(url="/gatepass/", status_code=301)
+@master_app.get("/mk")
+def redir_mk(): return RedirectResponse(url="/mk/", status_code=301)
+@master_app.get("/barcode")
+def redir_barcode(): return RedirectResponse(url="/barcode/", status_code=301)
 
 # Health & Overview Status Endpoint
 @master_app.get("/api/hub-status")
@@ -201,13 +270,13 @@ def hub_status():
         "cloud_mode": "24x7 Active",
         "server_time": time.strftime("%Y-%m-%d %H:%M:%S"),
         "modules": {
-            "godaun": {"name": "Godaun In/Out Report", "path": "/godaun", "status": "active"},
-            "stock": {"name": "Stock Warehouse Report", "path": "/stock", "status": "active"},
-            "alter": {"name": "Karigar Alter Report", "path": "/alter", "status": "active"},
-            "po": {"name": "PO & Cutting Dashboard", "path": "/po", "status": "active"},
-            "gatepass": {"name": "Karigar Gate Pass System", "path": "/gatepass", "status": "active"},
-            "mk": {"name": "MK Checking Report", "path": "/mk", "status": "active"},
-            "barcode": {"name": "Godaun Barcode Print", "path": "/barcode", "status": "active"}
+            "godaun": {"name": "Godaun In/Out Report", "path": "/godaun/", "status": "active"},
+            "stock": {"name": "Stock Warehouse Report", "path": "/stock/", "status": "active"},
+            "alter": {"name": "Karigar Alter Report", "path": "/alter/", "status": "active"},
+            "po": {"name": "PO & Cutting Dashboard", "path": "/po/", "status": "active"},
+            "gatepass": {"name": "Karigar Gate Pass System", "path": "/gatepass/", "status": "active"},
+            "mk": {"name": "MK Checking Report", "path": "/mk/", "status": "active"},
+            "barcode": {"name": "Godaun Barcode Print", "path": "/barcode/", "status": "active"}
         }
     }
 
