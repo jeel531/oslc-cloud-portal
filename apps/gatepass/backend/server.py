@@ -307,6 +307,20 @@ def serve_index():
         return Response("index.html not found", media_type="text/plain")
     return FileResponse(str(index_file))
 
+@app.get("/manifest.json")
+def serve_manifest():
+    f = STATIC_DIR / "manifest.json"
+    if f.exists():
+        return FileResponse(str(f), media_type="application/manifest+json")
+    return Response("Not found", status_code=404)
+
+@app.get("/sw.js")
+def serve_sw():
+    f = STATIC_DIR / "sw.js"
+    if f.exists():
+        return FileResponse(str(f), media_type="application/javascript")
+    return Response("Not found", status_code=404)
+
 
 if __name__ == "__main__":
     import uvicorn
