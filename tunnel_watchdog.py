@@ -77,6 +77,11 @@ def write_share_links(url: str):
 
         # 4. Save live_url.json for frontend
         import json
+        try:
+            STATUS_FILE.parent.mkdir(parents=True, exist_ok=True)
+            STATUS_FILE.write_text(json.dumps({"url": url, "updated_at": time.strftime("%Y-%m-%d %H:%M:%S")}, indent=2), encoding="utf-8")
+        except Exception as je:
+            print(f"[WATCHDOG] Failed to save live_url.json: {je}")
         # 5. Run sync_all_devices to update Surge and all 15 REPRR project launchers
         try:
             sync_script = ROOT / "sync_all_devices.py"
