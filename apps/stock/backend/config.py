@@ -11,9 +11,9 @@ import os
 class DBConfig:
     server: str = os.getenv("OSLC_DIGI_SERVER", "103.118.17.67,3595")
     database: str = os.getenv("OSLC_DIGI_DATABASE", "DigiBizz_PROD_Om_Sai_Trans_2026_27")
-    username: str = os.getenv("OSLC_DIGI_USERNAME", "_oslc_report-user")
-    password: str = os.getenv("OSLC_DIGI_PASSWORD", "_oslc_report-user@Abc@#123#")
-    driver: str = os.getenv("OSLC_DIGI_DRIVER", "SQL Server")
+    username: str = os.getenv("OSLC_DIGI_USERNAME", "_DigiCorp_OmSai")
+    password: str = os.getenv("OSLC_DIGI_PASSWORD", "1h9vMK_U9!@DigiOmSaiCorp@#2021#")
+    driver: str = os.getenv("OSLC_DIGI_DRIVER", "ODBC Driver 17 for SQL Server")
     timeout: int = 15
 
     @property

@@ -6,11 +6,11 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class DBConfig:
-    driver: str = "{SQL Server}"
+    driver: str = "{ODBC Driver 17 for SQL Server}"
     server: str = "103.118.17.67,3595"
     database: str = "DigiBizz_PROD_Om_Sai_Trans_2026_27"
-    username: str = "_oslc_report-user"
-    password: str = "_oslc_report-user@Abc@#123#"
+    username: str = "_DigiCorp_OmSai"
+    password: str = "1h9vMK_U9!@DigiOmSaiCorp@#2021#"
     timeout: int = 15
 
     @property
