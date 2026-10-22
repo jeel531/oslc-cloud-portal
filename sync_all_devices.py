@@ -17,6 +17,13 @@ import time
 import subprocess
 from pathlib import Path
 
+if sys.stdout.encoding != 'utf-8':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+
+
 ROOT = Path(r"D:\OSLC_CLOUD_MASTER_PORTAL")
 REPRR_ROOT = Path(r"C:\Users\PC-106\Downloads\REPRR\📁_TAMAM_PROJECTS_ALG_ALG")
 DESKTOP = Path(r"C:\Users\PC-106\Desktop")
