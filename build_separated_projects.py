@@ -9,8 +9,15 @@ Every single project gets its own folder with:
 No master hub, no merging!
 """
 import os
+import sys
 import shutil
 from pathlib import Path
+
+if sys.stdout.encoding != 'utf-8':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
 
 REPRR_DIR = Path(r"C:\Users\PC-106\Downloads\REPRR")
 FINAL_PROJECT_DIR = Path(r"D:\MY ALL OSLC FINAL PROJECT")
