@@ -1,4 +1,4 @@
-// OSLC Cloud Master Hub - Dynamic Frontend Script
+// OSLC Cloud Master Hub - Dynamic Frontend Script with PWA & Auto-Update
 document.addEventListener("DOMContentLoaded", () => {
   const btnCopyShare = document.getElementById("btnCopyShare");
   const btnShareWhatsApp = document.getElementById("btnShareWhatsApp");
@@ -7,8 +7,72 @@ document.addEventListener("DOMContentLoaded", () => {
   const syncStatusText = document.getElementById("syncStatusText");
   const userProjectsGrid = document.getElementById("userProjectsGrid");
   const btnRefreshProjects = document.getElementById("btnRefreshProjects");
+  const pwaInstallBanner = document.getElementById("pwaInstallBanner");
+  const btnInstallPwa = document.getElementById("btnInstallPwa");
+  const apkDownloadsGrid = document.getElementById("apkDownloadsGrid");
 
-  // Copy Main URL
+  // ==========================================
+  // 1. PWA REGISTRATION & AUTO-UPDATE ENGINE
+  // ==========================================
+  let deferredPrompt = null;
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').then((registration) => {
+      // Check for updates
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            console.log('[PWA] New update available! Auto-updating...');
+            // New version installed: notify user
+            const updateToast = document.createElement('div');
+            updateToast.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#22c55e;color:#fff;padding:12px 20px;border-radius:10px;font-weight:700;z-index:99999;box-shadow:0 10px 25px rgba(0,0,0,0.5);';
+            updateToast.innerText = '⚡ નવું અપડેટ આવી ગયું છે! પેજ રિફ્રેશ થઈ રહ્યું છે...';
+            document.body.appendChild(updateToast);
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+          }
+        });
+      });
+    }).catch((err) => {
+      console.log('[PWA] Service Worker registration failed:', err);
+    });
+  }
+
+  // Handle Chrome / Mobile Install Prompt (Play Store experience)
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (pwaInstallBanner) {
+      pwaInstallBanner.style.display = 'flex';
+    }
+  });
+
+  if (btnInstallPwa) {
+    btnInstallPwa.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          console.log('[PWA] User accepted the install prompt');
+          if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
+        }
+        deferredPrompt = null;
+      } else {
+        alert("Chrome બ્રાઉઝરમાં ઉપર જમણી બાજુ ૩ ટપકાં (Three Dots) પર ક્લિક કરીને 'Add to Home screen' અથવા 'Install app' સિલેક્ટ કરો.");
+      }
+    });
+  }
+
+  window.addEventListener('appinstalled', () => {
+    console.log('[PWA] App successfully installed on device!');
+    if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
+  });
+
+  // ==========================================
+  // 2. SHARING & COPY SHORTCUTS
+  // ==========================================
   if (btnCopyShare) {
     btnCopyShare.addEventListener("click", async () => {
       try {
@@ -23,18 +87,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Share on WhatsApp
   if (btnShareWhatsApp) {
     btnShareWhatsApp.addEventListener("click", () => {
       const url = window.location.origin;
       const text = encodeURIComponent(
-        `🏭 *OM SAI LATEST CREATION - Cloud Master Hub*\n\nતમામ રિપોર્ટ્સ અને પ્રોજેક્ટ્સ લાઈવ જોવા માટે નીચેની લિંક ખોલો:\n👉 ${url}\n\n(૨૪ કલાક મોબાઈલ અને કમ્પ્યુટરમાં ચાલુ રહેશે)`
+        `🏭 *OM SAI LATEST CREATION - Cloud Master Hub*\n\nતમામ રિપોર્ટ્સ અને પ્રોજેક્ટ્સ લાઈવ જોવા માટે નીચેની લિંક ખોલો:\n👉 ${url}\n\n(૨૪ કલાક મોબાઈલ અને કમ્પ્યુટરમાં ચાલુ રહેશે - કોઈ પણ APK વગર સીધું ચાલશે!)`
       );
       window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
     });
   }
 
-  // Refresh Projects Button
   if (btnRefreshProjects) {
     btnRefreshProjects.addEventListener("click", () => {
       btnRefreshProjects.innerText = "⏳ લોડિંગ...";
@@ -46,7 +108,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Check Backend Status
+  // ==========================================
+  // 3. HEALTH & STATUS ENGINE
+  // ==========================================
   async function checkHubHealth() {
     try {
       const res = await fetch("/api/hub-status");
@@ -65,7 +129,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Check Auto-Sync Status
   async function checkSyncStatus() {
     try {
       const res = await fetch("/api/sync-status");
@@ -89,7 +152,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Load and Render Auto-Discovered User Projects
+  // ==========================================
+  // 4. USER PROJECTS (AUTO-DISCOVERED)
+  // ==========================================
   async function loadUserProjects() {
     if (!userProjectsGrid) return;
     try {
@@ -145,10 +210,54 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // ==========================================
+  // 5. ANDROID APK DOWNLOADS ENGINE
+  // ==========================================
+  async function loadApks() {
+    if (!apkDownloadsGrid) return;
+    try {
+      const res = await fetch("/api/apks");
+      if (!res.ok) return;
+      const data = await res.json();
+      const apks = data.apks || [];
+
+      if (apks.length === 0) {
+        apkDownloadsGrid.innerHTML = `
+          <div style="grid-column: 1 / -1; color: #94a3b8; padding: 16px; text-align: center;">
+            કોઈ APK ફાઈલ મળી નથી.
+          </div>
+        `;
+        return;
+      }
+
+      let html = "";
+      apks.forEach((apk) => {
+        html += `
+          <a href="${apk.url}" download class="card card-emerald" style="text-decoration:none;">
+            <div class="card-icon">🤖</div>
+            <div class="card-body">
+              <div class="card-tag">Android APK (${apk.size_mb} MB)</div>
+              <h3 class="card-title">${apk.title}</h3>
+              <p class="card-desc">મોબાઈલ માટે ડાયરેક્ટ ઇન્સ્ટોલેશન ફાઈલ (${apk.name}).</p>
+              <div class="card-footer" style="margin-top: 16px;">
+                <span class="btn-open">📥 ડાઉનલોડ કરો (${apk.size_mb} MB)</span>
+                <span class="status-indicator">Direct APK</span>
+              </div>
+            </div>
+          </a>
+        `;
+      });
+      apkDownloadsGrid.innerHTML = html;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   // Initial runs
   checkHubHealth();
   checkSyncStatus();
   loadUserProjects();
+  loadApks();
 
   // Periodic polls
   setInterval(checkHubHealth, 30000);
