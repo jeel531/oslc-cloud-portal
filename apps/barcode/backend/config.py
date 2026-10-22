@@ -16,9 +16,9 @@ DB_CONFIG = {
     "server": "103.118.17.67,3595",
     "master_database": "DigiBizz_PROD_Om_Sai_Master",
     "trans_database": "DigiBizz_PROD_Om_Sai_Trans_2026_27",
-    "username": "_oslc_report-user",
-    "password": "_oslc_report-user@Abc@#123#",
-    "driver": "SQL Server",
+    "username": "_DigiCorp_OmSai",
+    "password": "1h9vMK_U9!@DigiOmSaiCorp@#2021#",
+    "driver": "ODBC Driver 17 for SQL Server",
 }
 
 # Web Server
