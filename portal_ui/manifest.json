@@ -1,0 +1,24 @@
+{
+  "name": "OSLC Cloud Master Hub - Om Sai Latest Creation",
+  "short_name": "OSLC Hub",
+  "description": "OM SAI LATEST CREATION - 7 Core Manufacturing & Warehouse Systems Live",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0f1d",
+  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/portal_static/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/portal_static/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
