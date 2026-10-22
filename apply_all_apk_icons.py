@@ -168,8 +168,11 @@ def inject_icons_into_apk(apk_path: Path, branded_img: Image.Image) -> bool:
     if not apk_path.exists():
         return False
 
-    temp_unaligned = apk_path.with_suffix(".unaligned.apk")
-    temp_aligned = apk_path.with_suffix(".aligned.apk")
+    TMP_DIR = Path(r"C:\Users\PC-106\AppData\Local\Temp\oslc_sign")
+    TMP_DIR.mkdir(parents=True, exist_ok=True)
+    temp_unaligned = TMP_DIR / f"unaligned_{apk_path.name}"
+    temp_aligned = TMP_DIR / f"aligned_{apk_path.name}"
+
 
     densities = {
         48: ["res/mipmap-mdpi/ic_launcher.png"],
