@@ -1,21 +1,20 @@
 {
-  "name": "OSLC Cloud Master Hub - Om Sai Latest Creation",
-  "short_name": "OSLC Hub",
-  "description": "OM SAI LATEST CREATION - 7 Core Manufacturing & Warehouse Systems Live",
-  "start_url": "/",
+  "name": "OSLC ERP Master Portal | Created by JEEL VAGHANI",
+  "short_name": "OSLC ERP",
+  "description": "OSLC ERP Master Portal | Created by JEEL VAGHANI - Created by JEEL VAGHANI • OSLC HOUSE",
+  "start_url": "./",
   "display": "standalone",
-  "background_color": "#0a0f1d",
-  "theme_color": "#6366f1",
-  "orientation": "portrait-primary",
+  "background_color": "#070b19",
+  "theme_color": "#070b19",
   "icons": [
     {
-      "src": "/portal_static/icon-192.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/portal_static/icon-512.png",
+      "src": "app_icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

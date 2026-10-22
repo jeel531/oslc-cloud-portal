@@ -1,0 +1,23 @@
+{
+  "name": "OSLC Godaun Shelf Barcode Print Pro | Created by JEEL VAGHANI",
+  "short_name": "OSLC Barcode",
+  "description": "OSLC Godaun Shelf Barcode Print Pro | Created by JEEL VAGHANI - Created by JEEL VAGHANI • OSLC HOUSE",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#05130b",
+  "theme_color": "#05130b",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "app_icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
