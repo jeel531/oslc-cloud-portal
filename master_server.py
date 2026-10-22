@@ -277,6 +277,40 @@ async def serve_root_oslc_logo():
         return FileResponse(f, media_type="image/png")
     return HTMLResponse("", status_code=404)
 
+@master_app.get("/{module}/app_icon.png")
+async def serve_module_icon(module: str):
+    module_dirs = {
+        "gatepass": GATEPASS_FRONTEND,
+        "godaun": GODAUN_FRONTEND,
+        "alter": ALTER_FRONTEND,
+        "stock": STOCK_FRONTEND,
+        "po": PO_FRONTEND,
+        "mk": MK_FRONTEND,
+        "barcode": BARCODE_FRONTEND,
+        "portal": ROOT / "portal_ui"
+    }
+    fdir = module_dirs.get(module.lower())
+    if fdir and (fdir / "app_icon.png").exists():
+        return FileResponse(fdir / "app_icon.png", media_type="image/png")
+    return HTMLResponse("Icon not found", status_code=404)
+
+@master_app.get("/{module}/icon-192.png")
+async def serve_module_icon_192(module: str):
+    module_dirs = {
+        "gatepass": GATEPASS_FRONTEND,
+        "godaun": GODAUN_FRONTEND,
+        "alter": ALTER_FRONTEND,
+        "stock": STOCK_FRONTEND,
+        "po": PO_FRONTEND,
+        "mk": MK_FRONTEND,
+        "barcode": BARCODE_FRONTEND,
+        "portal": ROOT / "portal_ui"
+    }
+    fdir = module_dirs.get(module.lower())
+    if fdir and (fdir / "icon-192.png").exists():
+        return FileResponse(fdir / "icon-192.png", media_type="image/png")
+    return HTMLResponse("Icon not found", status_code=404)
+
 if PO_ASSETS.exists():
     master_app.mount("/assets", StaticFiles(directory=str(PO_ASSETS)), name="po_assets")
 
