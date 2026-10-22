@@ -331,14 +331,29 @@ def redir_mk(): return RedirectResponse(url="/mk/", status_code=301)
 def redir_barcode(): return RedirectResponse(url="/barcode/", status_code=301)
 
 # Health & Overview Status Endpoint
+@master_app.get("/health")
+def health_endpoint():
+    return {
+        "ok": True,
+        "status": "online",
+        "app": "OSLC_CLOUD_MASTER_PORTAL",
+        "version": "V01.01",
+        "company": "OM SAI LATEST CREATION",
+        "created_by": "JEEL VAGHANI",
+        "server_time": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "time": time.time()
+    }
+
 @master_app.get("/api/hub-status")
 def hub_status():
     return {
         "status": "online",
         "company": "OM SAI LATEST CREATION",
+        "created_by": "JEEL VAGHANI",
         "cloud_mode": "24x7 Active",
         "server_time": time.strftime("%Y-%m-%d %H:%M:%S"),
         "modules": {
+            "erp": {"name": "OSLC Factory Live Cloud ERP", "path": "/erp/", "status": "active"},
             "godaun": {"name": "Godaun In/Out Report", "path": "/godaun/", "status": "active"},
             "stock": {"name": "Stock Warehouse Report", "path": "/stock/", "status": "active"},
             "alter": {"name": "Karigar Alter Report", "path": "/alter/", "status": "active"},
@@ -348,6 +363,64 @@ def hub_status():
             "barcode": {"name": "Godaun Barcode Print", "path": "/barcode/", "status": "active"}
         }
     }
+
+# ----------------- OSLC Factory ERP (Port 8000) Proxy -----------------
+import httpx
+ERP_BACKEND_URL = "http://127.0.0.1:8000"
+
+@master_app.api_route("/erp", methods=["GET", "POST", "PUT", "DELETE"])
+@master_app.api_route("/erp/", methods=["GET", "POST", "PUT", "DELETE"])
+@master_app.api_route("/erp/{subpath:path}", methods=["GET", "POST", "PUT", "DELETE"])
+async def proxy_erp(request: Request, subpath: str = ""):
+    target = f"{ERP_BACKEND_URL}/{subpath}"
+    if request.url.query:
+        target += f"?{request.url.query}"
+    
+    headers = dict(request.headers)
+    headers.pop("host", None)
+    headers.pop("content-length", None)
+    body = await request.body()
+    
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            rp_resp = await client.request(
+                method=request.method,
+                url=target,
+                headers=headers,
+                content=body,
+                follow_redirects=True
+            )
+            # Content-Type header
+            resp_headers = {}
+            for k, v in rp_resp.headers.items():
+                if k.lower() not in ["content-encoding", "transfer-encoding", "content-length"]:
+                    resp_headers[k] = v
+            return Response(
+                content=rp_resp.content,
+                status_code=rp_resp.status_code,
+                headers=resp_headers
+            )
+    except Exception as e:
+        return HTMLResponse(f"<h3>OSLC Factory ERP Connection Error: {e}</h3>", status_code=502)
+
+@master_app.api_route("/static/{subpath:path}", methods=["GET"])
+async def proxy_erp_static(request: Request, subpath: str = ""):
+    target = f"{ERP_BACKEND_URL}/static/{subpath}"
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            rp_resp = await client.get(target)
+            resp_headers = {}
+            for k, v in rp_resp.headers.items():
+                if k.lower() not in ["content-encoding", "transfer-encoding", "content-length"]:
+                    resp_headers[k] = v
+            return Response(
+                content=rp_resp.content,
+                status_code=rp_resp.status_code,
+                headers=resp_headers
+            )
+    except Exception:
+        return Response(status_code=404)
+
 
 # ----------------- Mount Sub-Applications -----------------
 master_app.mount("/godaun", godaun_app)
