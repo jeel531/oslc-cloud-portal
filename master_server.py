@@ -134,6 +134,7 @@ for route in PO_API_ROUTES:
 GATEPASS_API_ROUTES = [
     "/api/issue",
     "/api/search_workers",
+    "/api/search",
     "/api/history",
     "/api/next_int_no",
     "/api/excel",
@@ -151,6 +152,22 @@ for route in GATEPASS_API_ROUTES:
 
 @master_app.api_route("/api/worker/{path:path}", methods=["GET", "POST"])
 async def proxy_gatepass_worker(request: Request, path: str):
+    return await forward_to_app(gatepass_app, request)
+
+@master_app.api_route("/api/karigar/{path:path}", methods=["GET", "POST"])
+async def proxy_gatepass_karigar(request: Request, path: str):
+    return await forward_to_app(gatepass_app, request)
+
+@master_app.api_route("/api/gatepass/{path:path}", methods=["GET", "POST", "DELETE"])
+async def proxy_gatepass_record(request: Request, path: str):
+    return await forward_to_app(gatepass_app, request)
+
+@master_app.api_route("/api/reprint/{path:path}", methods=["GET", "POST"])
+async def proxy_gatepass_reprint_path(request: Request, path: str):
+    return await forward_to_app(gatepass_app, request)
+
+@master_app.api_route("/api/delete/{path:path}", methods=["GET", "POST", "DELETE"])
+async def proxy_gatepass_delete_path(request: Request, path: str):
     return await forward_to_app(gatepass_app, request)
 
 # 6. Barcode APIs
@@ -208,12 +225,30 @@ STATIC_CANDIDATE_DIRS = [
 import mimetypes
 from fastapi.responses import RedirectResponse
 
+MIME_OVERRIDE = {
+    ".css": "text/css; charset=utf-8",
+    ".js": "application/javascript; charset=utf-8",
+    ".json": "application/json; charset=utf-8",
+    ".svg": "image/svg+xml",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".ico": "image/x-icon",
+    ".woff": "font/woff",
+    ".woff2": "font/woff2",
+    ".ttf": "font/ttf",
+    ".apk": "application/vnd.android.package-archive",
+    ".html": "text/html; charset=utf-8"
+}
+
 @master_app.get("/static/{asset_path:path}")
 async def serve_multi_static(asset_path: str):
+    clean_path = asset_path.split("?")[0]
     for fdir in STATIC_CANDIDATE_DIRS:
-        target = fdir / asset_path
+        target = fdir / clean_path
         if target.exists() and target.is_file():
-            mime, _ = mimetypes.guess_type(str(target))
+            ext = target.suffix.lower()
+            mime = MIME_OVERRIDE.get(ext) or mimetypes.guess_type(str(target))[0] or "application/octet-stream"
             return FileResponse(target, media_type=mime)
     return HTMLResponse("Static asset not found", status_code=404)
 
