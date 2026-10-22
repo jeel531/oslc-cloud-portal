@@ -298,6 +298,45 @@ PORTAL_UI_DIR = ROOT / "portal_ui"
 if PORTAL_UI_DIR.exists():
     master_app.mount("/portal_static", StaticFiles(directory=str(PORTAL_UI_DIR)), name="portal_static")
 
+@master_app.get("/manifest.json")
+async def get_manifest():
+    manifest_file = PORTAL_UI_DIR / "manifest.json"
+    if manifest_file.exists():
+        return FileResponse(manifest_file, media_type="application/manifest+json")
+    return JSONResponse({})
+
+@master_app.get("/sw.js")
+async def get_service_worker():
+    sw_file = PORTAL_UI_DIR / "sw.js"
+    if sw_file.exists():
+        return FileResponse(sw_file, media_type="application/javascript")
+    return HTMLResponse("// no-op", media_type="application/javascript")
+
+@master_app.get("/api/apks")
+def list_apks():
+    desktop = Path(r"C:\Users\PC-106\Desktop")
+    apks = []
+    if desktop.exists():
+        for f in sorted(desktop.glob("*.apk")):
+            apks.append({
+                "name": f.name,
+                "title": f.stem.replace("_", " ").replace("-", " ").title(),
+                "size_mb": round(f.stat().st_size / (1024 * 1024), 2),
+                "url": f"/download/apk/{f.name}"
+            })
+    return {"apks": apks, "count": len(apks)}
+
+@master_app.get("/download/apk/{filename}")
+async def download_apk(filename: str):
+    fpath = Path(r"C:\Users\PC-106\Desktop") / filename
+    if fpath.exists() and fpath.suffix.lower() == ".apk":
+        return FileResponse(
+            fpath, 
+            filename=filename, 
+            media_type="application/vnd.android.package-archive"
+        )
+    return HTMLResponse("<h3>APK ફાઈલ મળી નથી</h3>", status_code=404)
+
 @master_app.get("/", response_class=HTMLResponse)
 async def master_portal_home():
     index_file = PORTAL_UI_DIR / "index.html"
