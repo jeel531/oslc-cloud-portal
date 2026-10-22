@@ -4,7 +4,14 @@ Updates all HTML headers to display the exact matching luxury 3D app_icon.png
 and the 'CREATED BY JEEL VAGHANI • OSLC HOUSE' royal badge.
 """
 import re
+import sys
 from pathlib import Path
+
+if sys.stdout.encoding != 'utf-8':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
 
 BASE_DIR = Path(r"D:\OSLC_CLOUD_MASTER_PORTAL")
 
