@@ -550,7 +550,13 @@ async def download_apk(filename: str):
         )
     return HTMLResponse("<h3>APK ફાઈલ મળી નથી</h3>", status_code=404)
 
+@master_app.get("/health")
+@master_app.head("/health")
+def master_health():
+    return {"status": "ok", "app": "OSLC Cloud Master Portal", "timestamp": time.time()}
+
 @master_app.get("/", response_class=HTMLResponse)
+@master_app.head("/")
 async def master_portal_home():
     index_file = PORTAL_UI_DIR / "index.html"
     if index_file.exists():
@@ -558,6 +564,7 @@ async def master_portal_home():
     return HTMLResponse("<h1>OSLC Cloud Master Portal is Online</h1>")
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", "8080"))
+    port = int(os.getenv("PORT", "10000"))
     print(f"Starting OSLC Master Cloud Portal on http://0.0.0.0:{port}")
     uvicorn.run("master_server:master_app", host="0.0.0.0", port=port, reload=False)
+
