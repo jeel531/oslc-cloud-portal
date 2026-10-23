@@ -25,16 +25,23 @@ STATUS_FILE = ROOT / "portal_ui" / "live_url.json"
 def write_share_links(url: str):
     """Updates Desktop link files with the active live URL."""
     try:
+        cloud_url = "https://oslc-cloud-portal.onrender.com"
+        surge_url = "https://oslcerp-live.surge.sh/"
+
         # 1. Update BIJA_PC_NE_PHONE_MA_MOKLVA_MATE.txt
         txt1 = DESKTOP / "BIJA_PC_NE_PHONE_MA_MOKLVA_MATE.txt"
         content1 = f"""========================================================================================
        📦 OM SAI LATEST CREATION - OSLC CLOUD MASTER HUB (બધા માટે લાઈવ લિંક) 📦
+       👑 CREATED BY JEEL VAGHANI • 24x7 ACTIVE 👑
 ========================================================================================
 
 ✅ ૧. બીજાના મોબાઈલ ફોનમાં મોકલવા માટે (WhatsApp પર આ લિંક મોકલો):
 ----------------------------------------------------------------------------------------
-👉 લાઈવ લિંક:
-   {url}
+👉 ૨૪ કલાક લાઈવ ક્લાઉડ લિંક (PC બંધ હોય તોય ચાલશે):
+   {cloud_url}
+
+👉 ફિક્સ સર્જ લિંક (તમામ ફોન માટે):
+   {surge_url}
 
 📱 મોબાઈલમાં વાપરવાની રીત:
 ૧. આ લિંક કોઈપણ મોબાઈલમાં (Android કે iPhone) ગમે તે બ્રાઉઝર (Chrome/Safari) માં ખોલી શકાય છે.
@@ -50,6 +57,9 @@ def write_share_links(url: str):
    http://192.168.100.106:8080/
 
 👉 ઘરના નેટ કે બહારના પર્સનલ નેટ પર હોય તો:
+   {cloud_url}
+
+👉 લોકલ ટનલ લિંક:
    {url}
 
 ========================================================================================
@@ -60,10 +70,13 @@ def write_share_links(url: str):
         txt2 = DESKTOP / "SHARE_LINK_FOR_OTHER_PC.txt"
         content2 = f"""================================================================================
    OM SAI LATEST CREATION - SHARE LINK FOR OTHER PC & MOBILE
+   👑 CREATED BY JEEL VAGHANI • OSLC HOUSE 👑
 ================================================================================
 
 તમારા કોઈપણ બીજા PC, લેપટોપ અથવા મોબાઈલમાં (પર્સનલ ઇન્ટરનેટ પરથી):
-👉 LIVE LINK: {url}
+👉 LIVE CLOUD LINK (PC બંધ હોય તોય ૨૪ કલાક ચાલુ): {cloud_url}
+👉 SURGE FIXED LINK: {surge_url}
+👉 TEMPORARY TUNNEL: {url}
 
 સ્થાનિક ઓફિસ Wi-Fi પરથી:
 👉 LOCAL IP LINK: http://192.168.100.106:8080/
@@ -71,9 +84,9 @@ def write_share_links(url: str):
 """
         txt2.write_text(content2, encoding="utf-8")
 
-        # 3. Update Desktop URL shortcut
+        # 3. Update Desktop URL shortcut to permanent 24/7 Cloud
         url_file = DESKTOP / "OSLC Online App.url"
-        url_file.write_text(f"[InternetShortcut]\nURL={url}\n", encoding="utf-8")
+        url_file.write_text(f"[InternetShortcut]\nURL={cloud_url}\n", encoding="utf-8")
 
         # 4. Save live_url.json for frontend
         import json
