@@ -1,0 +1,152 @@
+🚨 *OSLC WMS GODAUN CHORI REPORT*
+━━━━━━━━━━━━━━━━━━━━━━
+📅 *તારીખ:* 2026-10-17
+⏱️ *શિફ્ટ:* આખો દિવસ (All Day / 24 કલાક)
+
+📊 *કુલ ચોરી સમરી (THEFT SUMMARY):*
+▪️ કુલ ડુપ્લિકેટ પીસ (Chori): *2,499 PC*
+▪️ ઇનવર્ડ ચોરી (Inward Dupes): *2,438 PC*
+▪️ આઉટવર્ડ ચોરી (Outward Dupes): *61 PC*
+▪️ કુલ સંડોવાયેલા કર્મચારી: *11 જણા*
+
+👥 *કર્મચારી વાઇઝ ચોરી લિસ્ટ (WORKER BREAKDOWN):*
+━━━━━━━━━━━━━━━━━━━━━━
+1. 👤 *MAYURVAGHELA*: *1,276 PC* (IN: 1258 | OUT: 18 | 54.7%)
+2. 👤 *AMIT*: *818 PC* (IN: 812 | OUT: 6 | 26.1%)
+3. 👤 *AZAHAR*: *262 PC* (IN: 258 | OUT: 4 | 7.7%)
+4. 👤 *SONU*: *57 PC* (IN: 31 | OUT: 26 | 2.1%)
+5. 👤 *ZEEL*: *42 PC* (IN: 41 | OUT: 1 | 1.7%)
+6. 👤 *PARVEEN*: *27 PC* (IN: 23 | OUT: 4 | 1.1%)
+7. 👤 *KIRAN*: *6 PC* (IN: 6 | OUT: 0 | 0.5%)
+8. 👤 *JUAEL*: *5 PC* (IN: 5 | OUT: 0 | 0.3%)
+9. 👤 *LALBABU*: *3 PC* (IN: 2 | OUT: 1 | 0.4%)
+10. 👤 *TOHIMUL*: *2 PC* (IN: 1 | OUT: 1 | 0.3%)
+11. 👤 *RAVI*: *1 PC* (IN: 1 | OUT: 0 | 0.1%)
+
+🔍 *ડુપ્લિકેટ બારકોડ વિગતો (SHELF, TIME, BARCODE):*
+━━━━━━━━━━━━━━━━━━━━━━
+🔹 *#1* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-101` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#2* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-11` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#3* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-12` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#4* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-13` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#5* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-17` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#6* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-18` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#7* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-19` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#8* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-20` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#9* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-27` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#10* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-28` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#11* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-3` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#12* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-30` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#13* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-32` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#14* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-33` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#15* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-35` (🔁 #2)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#16* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-36` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#17* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-38` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#18* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-40` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#19* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-43` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#20* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-49` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#21* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-52` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#22* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-6` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#23* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-62` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#24* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-64` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#25* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-67` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#26* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-68` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#27* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-75` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#28* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-79` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#29* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-81` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+🔹 *#30* | 👤 *AZAHAR* | ⏱️ 11:59:04 PM (Night (???))
+   📍 *Shelf:* ZA3188 (ZA01) | 📂 WMS Stock Inward
+   📦 *Barcode:* `A30370-84` (🔁 #3)
+   🏷️ *Design:* K2699 (L) | 📄 *Voucher:* 184539/STKIN
+
+...અને બીજા *1970* ડુપ્લિકેટ બારકોડ રેકોર્ડ્સ.
+
+━━━━━━━━━━━━━━━━━━━━━━
+⚡ *OSLC Live Godaun Monitoring System*
