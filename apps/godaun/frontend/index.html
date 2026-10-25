@@ -3,12 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>OSLC In Out Stock Report | Created by JEEL VAGHANI</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>OSLC IN OUT REPORT - Live Stock &amp; Piece Rate</title>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=4.0">
+  <link rel="stylesheet" href="style.css?v=11.0">
 </head>
 <body>
   <div class="app-container">
@@ -16,18 +19,11 @@
     <!-- Top Header -->
     <header class="app-header">
       <div class="header-left">
-        <div class="logo-box" style="padding:0;background:none;border:none;">
-          <img src="app_icon.png" alt="OSLC In-Out" style="width:48px;height:48px;border-radius:12px;box-shadow:0 0 16px rgba(6,182,212,0.6);border:1px solid rgba(255,255,255,0.2);">
+        <div class="logo-box">
+          <img src="oslc_logo.png" alt="OSLC Logo" class="brand-logo-img">
         </div>
         <div class="header-title-wrap">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <h1 class="main-title">OSLC IN OUT REPORT</h1>
-            <div class="creator-badge-luxury" style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(245,158,11,0.22),rgba(217,119,6,0.38));border:1px solid #f59e0b;color:#fef3c7;font-weight:800;font-size:11px;padding:3px 12px;border-radius:20px;box-shadow:0 0 12px rgba(245,158,11,0.4);">
-              <span>👑</span>
-              <span>CREATED BY JEEL VAGHANI • OSLC HOUSE</span>
-              <span>✨</span>
-            </div>
-          </div>
+          <h1 class="main-title">OSLC IN OUT REPORT</h1>
           <div class="subtitle-badge">
             <span class="live-dot"></span>
             <span class="subtitle-text">DigiBizz Live Connected</span>
@@ -45,6 +41,13 @@
           </svg>
           <span class="head-btn-text">ID મેનેજ</span>
         </button>
+
+        <!-- Hours Entry Button (Admin Only) -->
+        <button id="btnOpenHoursHead" class="action-btn hours-head-btn hidden" title="રોજ ની કલાક એન્ટ્રી કરો (Daily Hours Entry)" aria-label="Daily Hours Entry">
+          <span style="font-size: 15px;">⏱️</span>
+          <span class="head-btn-text">કલાક એન્ટ્રી</span>
+        </button>
+
 
         <!-- Current User Profile Badge -->
         <div id="userBadgeWrap" class="user-badge-chip" title="હાલનું લોગિન">
@@ -97,6 +100,12 @@
           <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
         </svg>
         <span>લાઈવ સ્કેનિંગ (Live Scan)</span>
+      </button>
+      <!-- WMS GODAUN CHORI REPORT GROUP TAB -->
+      <button class="main-tab-btn chori-tab-btn" id="tabViewChori" data-view="chori" title="WMS Godaun Chori Report ગ્રૂપ">
+        <span class="chori-tab-icon">🚨</span>
+        <span class="chori-tab-text">WMS Godaun Chori Report</span>
+        <span class="chori-admin-badge">નવું ગ્રૂપ (NEW)</span>
       </button>
     </nav>
 
@@ -182,10 +191,59 @@
             </div>
           </div>
 
+          <!-- Shift Selection Bar (સવાર શિફ્ટ / રાત શિફ્ટ / આખો દિવસ) -->
+          <div class="shift-selection-card">
+            <div class="shift-title-row">
+              <span class="shift-title-icon">⏰</span>
+              <span class="shift-title-text">શિફ્ટ પસંદ કરો (Select Shift):</span>
+            </div>
+            <div class="shift-pills-row" id="salaryShiftPills">
+              <button type="button" class="shift-pill-btn active" id="shiftPillAll" data-shift="all">
+                <span class="shift-btn-icon">🔄</span>
+                <span class="shift-btn-text">આખો દિવસ (24 કલાક)</span>
+              </button>
+              <button type="button" class="shift-pill-btn shift-day-btn" id="shiftPillDay" data-shift="day">
+                <span class="shift-btn-icon">☀️</span>
+                <span class="shift-btn-text">સવાર શિફ્ટ (07:30 AM - 07:30 PM)</span>
+                <span class="shift-tag-pill">Day Shift</span>
+              </button>
+              <button type="button" class="shift-pill-btn shift-night-btn" id="shiftPillNight" data-shift="night">
+                <span class="shift-btn-icon">🌙</span>
+                <span class="shift-btn-text">રાત શિફ્ટ (07:30 PM - 07:30 AM)</span>
+                <span class="shift-tag-pill">Night Shift</span>
+              </button>
+            </div>
+          </div>
+
           <!-- Current Active Date Range Display Banner -->
           <div class="active-range-banner">
             <span class="range-live-dot"></span>
-            <span class="range-banner-text">હાલનો રિપોર્ટ: <strong id="currentRangeText">21/09/2026 થી 21/09/2026</strong> નો લાઈવ ડેટા</span>
+            <span class="range-banner-text">હાલનો રિપોર્ટ: <strong id="currentRangeText">21/09/2026 થી 21/09/2026</strong> | <span id="currentShiftBannerTag" class="shift-banner-chip">🔄 આખો દિવસ</span> નો લાઈવ ડેટા</span>
+          </div>
+        </div>
+
+        <!-- Admin Deduction View Switcher (માઇનસ કર્યા વગર vs માઇનસ કર્યા પછી vs બંને સાથે) -->
+        <div class="admin-deduction-switch-bar" id="adminDeductionModeBar">
+          <div class="switch-bar-title">
+            <span class="switch-title-icon">⚖️</span>
+            <span class="switch-title-text">એડમિન રિપોર્ટ મોડ (Admin View Mode):</span>
+          </div>
+          <div class="deduction-pills-row">
+            <button type="button" class="deduction-mode-pill active" id="btnModeGross" data-mode="gross">
+              <span class="mode-icon">✅</span>
+              <span class="mode-text">કુલ સ્કેન (Gross Pcs - DigiBizz મેચ)</span>
+              <span class="mode-subtag">DigiBizz ERP સાથે ૧૦૦% મેળ</span>
+            </button>
+            <button type="button" class="deduction-mode-pill" id="btnModeNet" data-mode="net">
+              <span class="mode-icon">💰</span>
+              <span class="mode-text">માઇનસ કર્યા પછી (Net Pcs)</span>
+              <span class="mode-subtag">ચોરી / ડુપ્લિકેટ કપાત બાદ</span>
+            </button>
+            <button type="button" class="deduction-mode-pill" id="btnModeCompare" data-mode="compare">
+              <span class="mode-icon">🔍</span>
+              <span class="mode-text">બંને સાથે સરખાવો (તુલના / Compare)</span>
+              <span class="mode-subtag">Gross vs Chori vs Net</span>
+            </button>
           </div>
         </div>
 
@@ -277,15 +335,19 @@
               </div>
             </div>
 
-            <!-- Download Excel Button -->
-            <div class="excel-action-wrap">
-              <button type="button" id="btnDownloadExcel" class="btn-download-excel full-width" aria-label="Download Excel Sheet">
+            <!-- Action Buttons Row: Daily Hours Entry + Download Excel -->
+            <div class="excel-action-wrap dual-actions-wrap">
+              <button type="button" id="btnOpenHoursModal" class="btn-hours-primary" aria-label="Daily Hours Entry">
+                <span class="btn-hours-icon">⏱️</span>
+                <span>દૈનિક કલાક એન્ટ્રી (DAILY HOURS ENTRY)</span>
+              </button>
+              <button type="button" id="btnDownloadExcel" class="btn-download-excel" aria-label="Download Excel Sheet">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                   <polyline points="7 10 12 15 17 10"></polyline>
                   <line x1="12" y1="15" x2="12" y2="3"></line>
                 </svg>
-                <span>📥 આખો રિપોર્ટ એક્સેલ ડાઉનલોડ કરો (DOWNLOAD EXCEL)</span>
+                <span>📥 આખો રિપોર્ટ એક્સેલ ડાઉનલોડ કરો</span>
               </button>
             </div>
 
@@ -293,29 +355,46 @@
         </div>
 
         <!-- Metric KPI Cards Summary -->
-        <div class="kpi-cards-grid">
+        <div class="kpi-cards-grid kpi-4cards-grid">
           <div class="kpi-card kpi-inward">
-            <span class="kpi-title">INWARD (0.20)</span>
+            <span class="kpi-title">INWARD (<span id="dispKpiInRate">0.20</span>)</span>
             <div class="kpi-numbers">
               <span class="kpi-pcs" id="kpiInPcs">0</span>
               <span class="kpi-amt" id="kpiInAmt">₹0.00</span>
             </div>
+            <div class="kpi-sub-line" id="kpiInSubLine">
+              <span class="sub-gross">ERP મેળ: 0</span> &bull; <span class="sub-net">Net: 0</span>
+            </div>
           </div>
           <div class="kpi-card kpi-outward">
-            <span class="kpi-title">OUTWARD (0.35)</span>
+            <span class="kpi-title">OUTWARD (<span id="dispKpiOutRate">0.35</span>)</span>
             <div class="kpi-numbers">
               <span class="kpi-pcs" id="kpiOutPcs">0</span>
               <span class="kpi-amt" id="kpiOutAmt">₹0.00</span>
             </div>
+            <div class="kpi-sub-line" id="kpiOutSubLine">
+              <span class="sub-gross">ERP મેળ: 0</span> &bull; <span class="sub-net">Net: 0</span>
+            </div>
           </div>
           <div class="kpi-card kpi-total">
-            <span class="kpi-title">TOTAL HISSAB</span>
+            <span class="kpi-title">TOTAL HISSAB (કુલ મેળ)</span>
             <div class="kpi-numbers">
               <span class="kpi-pcs" id="kpiTotalPcs">0 Pcs</span>
               <span class="kpi-amt highlight" id="kpiTotalAmt">₹0.00</span>
             </div>
+            <div class="kpi-sub-line" id="kpiTotalSubLine">
+              <span class="sub-gross">ERP મેળ: 0 Pcs</span> &bull; <span class="sub-net">Net: 0</span>
+            </div>
+          </div>
+          <div class="kpi-card kpi-hours">
+            <span class="kpi-title">TOTAL WORKING HOURS</span>
+            <div class="kpi-numbers">
+              <span class="kpi-pcs" id="kpiTotalHours">0 hrs</span>
+              <span class="kpi-amt highlight-blue" id="kpiAvgHours">0.0 Pcs/Hr</span>
+            </div>
           </div>
         </div>
+
 
         <!-- ============================================== -->
         <!-- TOP 1 TO TOP 5 DASHBOARD LEADERBOARD           -->
@@ -361,16 +440,19 @@
                 <th class="th-out">OUT</th>
                 <th class="th-out-rate" id="thOutRateLabel">0.35</th>
                 <th class="th-total-pc">TOTAL PC</th>
+                <th class="th-hours" id="thHoursLabel">HOURS (કલાક)</th>
                 <th class="th-total-amt">TOTAL AMT</th>
+                <th class="th-time" id="thTimeLabel">TIME (સમય)</th>
               </tr>
             </thead>
             <tbody id="salaryTableBody">
               <tr>
-                <td colspan="7" class="loading-cell">
+                <td colspan="8" class="loading-cell">
                   <div class="table-spinner"></div>
                   <span>લાઈવ ડેટા મેળવી રહ્યા છીએ...</span>
                 </td>
               </tr>
+
             </tbody>
             <tfoot id="salaryTableFoot">
               <!-- Dynamically rendered total row matching photo -->
@@ -409,6 +491,28 @@
             <button class="pill-btn active" id="livePillToday">આજે (Today)</button>
             <button class="pill-btn" id="livePillYesterday">ગઈકાલે</button>
             <button class="pill-btn" id="livePillDayBefore">૨ દિવસ પહેલા</button>
+          </div>
+
+          <!-- Shift Selection in Live Scanning -->
+          <div class="shift-selection-card compact-shift-card">
+            <div class="shift-title-row">
+              <span class="shift-title-icon">⏰</span>
+              <span class="shift-title-text">શિફ્ટ ફિલ્ટર (Shift):</span>
+            </div>
+            <div class="shift-pills-row" id="liveShiftPills">
+              <button type="button" class="shift-pill-btn active" id="liveShiftPillAll" data-lshift="all">
+                <span class="shift-btn-icon">🔄</span>
+                <span>આખો દિવસ</span>
+              </button>
+              <button type="button" class="shift-pill-btn shift-day-btn" id="liveShiftPillDay" data-lshift="day">
+                <span class="shift-btn-icon">☀️</span>
+                <span>સવાર (07:30 - 19:30)</span>
+              </button>
+              <button type="button" class="shift-pill-btn shift-night-btn" id="liveShiftPillNight" data-lshift="night">
+                <span class="shift-btn-icon">🌙</span>
+                <span>રાત (19:30 - 07:30)</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -455,6 +559,425 @@
               <div class="spinner"></div>
               <span>ડેટાબેઝમાંથી યુઝર સમરી લોડ થઈ રહી છે...</span>
             </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW: CHORI KARI (ચોરી કરી) - ADMIN ONLY      -->
+      <!-- ============================================== -->
+      <section id="viewChoriReport" class="view-panel hidden">
+        
+        <!-- Chori Hero Warning Card -->
+        <div class="chori-hero-card">
+          <div class="chori-hero-header">
+            <div class="chori-hero-icon-wrap">
+              <span class="chori-hero-icon">🚨</span>
+            </div>
+            <div class="chori-hero-titles">
+              <div class="chori-title-badge-row">
+                <h2 class="chori-main-title">🚨 WMS Godaun Chori Report ગ્રૂપ (ચોરી રિપોર્ટ)</h2>
+                <span class="chori-admin-only-tag">⚡ OSLC ERP AUTOMATED</span>
+              </div>
+              <p class="chori-sub-title">OSLC ERP સિસ્ટમ નંબરથી આપોઆપ મોકલાતો લાઈવ ચોરી રિપોર્ટ: સેમ ડેટમાં સેમ બારકોડ ઇનવર્ડ/આઉટવર્ડ ડુપ્લિકેટ સ્કેન, શેલ્ફ, રેક, સમય, શિફ્ટ અને પીસ વિગતો સહિત</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- WhatsApp Notifications & Dual Accounts (Matches Screenshot Exactly) -->
+        <div class="card wa-dual-dashboard" style="background:#eaf8f3; border:1.5px solid #a7f3d0; border-radius:14px; padding:18px 20px; margin-bottom:18px; box-shadow:0 4px 20px rgba(16,185,129,0.08); font-family:inherit;">
+          
+          <!-- Top Right Floating Green Alert Badge -->
+          <div style="display:flex; justify-content:flex-end; margin-bottom:-6px;">
+            <div style="background:#059669; color:#ffffff; font-weight:700; font-size:12px; padding:5px 14px; border-radius:6px; box-shadow:0 2px 8px rgba(5,150,105,0.25); display:inline-flex; align-items:center; gap:6px;">
+              <span>✅</span> 100% Free Background Alerts Active! Even when APK is closed, alerts will ring!
+            </div>
+          </div>
+
+          <!-- Header Row: Title & Dual Active Pill -->
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:22px;">📲</span>
+              <h3 style="margin:0; font-size:17px; font-weight:800; color:#0f172a;">WhatsApp Notifications &amp; Dual Accounts</h3>
+            </div>
+            <div>
+              <span style="background:#ecfdf5; border:1.5px solid #10b981; color:#065f46; border-radius:999px; padding:4px 14px; font-size:12.5px; font-weight:800; display:inline-flex; align-items:center; gap:6px;">
+                <span style="width:9px; height:9px; border-radius:50%; background:#10b981; display:inline-block;"></span>
+                DUAL ACTIVE: Account 1 &amp; Account 2 (+2 Numbers Connected)
+              </span>
+            </div>
+          </div>
+
+          <!-- Dual Accounts 2-Column Grid -->
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:14px; margin-bottom:14px;">
+            <!-- Account 1 -->
+            <div style="background:#ffffff; border:1px solid #a7f3d0; border-radius:10px; padding:14px 16px; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <span style="color:#0f172a; font-weight:800; font-size:13.5px;">✅ Account 1 (Primary WhatsApp)</span>
+                <span style="background:#dcfce7; border:1px solid #86efac; color:#15803d; border-radius:999px; padding:2px 10px; font-size:11px; font-weight:800;">🟢 CONNECTED</span>
+              </div>
+              <div style="font-size:12px; color:#475569; margin-bottom:10px; line-height:1.5;">
+                📱 Active Sender: <strong style="color:#0f172a; font-family:monospace; font-size:12.5px;">+919537780826:4@s.whatsapp.net</strong><br>
+                ⚡ 100% Hands-free background dispatch active.
+              </div>
+              <div style="display:flex; justify-content:flex-end;">
+                <button type="button" onclick="window.logoutWhatsAppAccount('1')" style="background:#b91c1c; color:#ffffff; border:none; border-radius:6px; padding:6px 14px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 6px rgba(185,28,28,0.25);">
+                  <span>🔒</span> Logout / Clear Account 1
+                </button>
+              </div>
+            </div>
+
+            <!-- Account 2 -->
+            <div style="background:#ffffff; border:1px solid #a7f3d0; border-radius:10px; padding:14px 16px; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <span style="color:#0f172a; font-weight:800; font-size:13.5px;">✅ Account 2 (OSLC ERP JEEL VAGHANI)</span>
+                <span style="background:#dcfce7; border:1px solid #86efac; color:#15803d; border-radius:999px; padding:2px 10px; font-size:11px; font-weight:800;">🟢 CONNECTED</span>
+              </div>
+              <div style="font-size:12px; color:#475569; margin-bottom:10px; line-height:1.5;">
+                📱 Active Sender: <strong style="color:#0f172a; font-family:monospace; font-size:12.5px;">+919537780826:3@s.whatsapp.net</strong><br>
+                ⚡ 100% Hands-free background dispatch active.
+              </div>
+              <div style="display:flex; justify-content:flex-end;">
+                <button type="button" onclick="window.logoutWhatsAppAccount('2')" style="background:#b91c1c; color:#ffffff; border:none; border-radius:6px; padding:6px 14px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 6px rgba(185,28,28,0.25);">
+                  <span>🔒</span> Logout / Clear Account 2
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mint Info Box (Number Hide & Group Mode) -->
+          <div style="background:#f0fdf4; border:1.5px solid #86efac; border-radius:10px; padding:14px 18px; margin-bottom:16px; font-size:12.5px; color:#1e293b; line-height:1.7;">
+            <div style="font-weight:800; color:#0f172a; margin-bottom:4px; font-size:13.5px; display:flex; align-items:center; gap:6px;">
+              <span>🔒</span> <b>૧૦૦% ઓટોમેટિક - નંબર છુપાવો &amp; 'OSLC ERP JEEL VAGHANI' નામ બતાવો:</b>
+            </div>
+            <div>
+              👉 <b>પદ્ધતિ ૧ (ઑટોમેટિક ગૃપ મોડ - સેવ કરવાની જરૂર નથી):</b> નીચે આપેલું <b>'OSLC ERP JEEL VAGHANI'</b> ગૃપ ચાલુ છે. તેમાં કોઈનો નંબર દેખાતો નથી. ચેટ લિસ્ટમાં સીધું <b>'OSLC ERP JEEL VAGHANI'</b> નામ જ દેખાય છે, અને કોઈને ફોનમાં નંબર સેવ પણ કરવો પડતો નથી! ✅
+            </div>
+            <div style="margin-top:4px; display:flex; align-items:center; flex-wrap:wrap; gap:6px;">
+              <span>👉 <b>પદ્ધતિ ૨ (ડાયરેક્ટ ૧-ટુ-૧ ચેટ માટે):</b> નીચે </span>
+              <button type="button" onclick="window.sendContactCardToPhone('919033157999')" style="background:#ffffff; border:1px solid #10b981; color:#065f46; font-size:11.5px; font-weight:800; padding:2px 8px; border-radius:6px; cursor:pointer;">📇 Send Contact Card to Phone</button>
+              <span>અથવા</span>
+              <a href="/api/godaun/whatsapp-vcard" download="OSLC_ERP_JEEL_VAGHANI.vcf" style="background:#ffffff; border:1px solid #10b981; color:#065f46; font-size:11.5px; font-weight:800; padding:2px 8px; border-radius:6px; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">📥 Download Contact (.vcf)</a>
+              <span>થી તમારા ફોનમાં ૧ ક્લિકમાં સેવ કરી શકો છો!</span>
+            </div>
+          </div>
+
+          <!-- Dedicated Godaun Chori WhatsApp Group Info Strip -->
+          <div style="background:#ffffff; border:1px solid #93c5fd; border-radius:10px; padding:12px 16px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; box-shadow:0 2px 8px rgba(59,130,246,0.06);">
+            <div style="font-size:12.5px; color:#1e293b;">
+              🏢 <b>Official WhatsApp Group:</b> <strong style="color:#1d4ed8; font-size:13.5px;">🚨 WMS Godaun Chori Report</strong> &nbsp;|&nbsp;
+              🔗 <a href="https://chat.whatsapp.com/IYcWXIh5oRKARdoK5Iy1R7" target="_blank" style="color:#0284c7; font-weight:800; text-decoration:underline;">ઓપન / જોઈન WhatsApp ગ્રૂપ (Join Link)</a><br>
+              <small style="color:#64748b;">Group JID: <code style="font-family:monospace; color:#0284c7;">120363430986633216@g.us</code> | 100% Free Dual Auto-Bot Port 8008 Active</small>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button type="button" onclick="window.sendChoriViaErpWhatsApp('919033157999')" style="font-weight:800; background:linear-gradient(135deg, #059669, #047857); color:#fff; border:none; padding:8px 16px; border-radius:8px; font-size:12.5px; cursor:pointer; box-shadow:0 2px 10px rgba(5,150,105,0.3); display:inline-flex; align-items:center; gap:6px;">
+                <span>🚀</span> ગ્રૂપ તથા ફોન પર હમણાં જ મોકલો
+              </button>
+            </div>
+          </div>
+
+          <!-- Active WhatsApp Recipient (Only 1 Number: +91 9033157999) -->
+          <div style="margin-bottom:12px;">
+            <div style="font-weight:800; color:#0f172a; margin-bottom:8px; font-size:13px; display:flex; align-items:center; gap:6px;">
+              <span>👥</span> એકમાત્ર રજિસ્ટર્ડ WhatsApp નંબર (+91 90331 57999):
+            </div>
+            <div id="waActiveRecipientsList" style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+              <!-- JEEL VAGHANI (Admin) -->
+              <div data-user="JEEL" style="display:inline-flex; align-items:center; gap:6px;">
+                <span style="background:#dcfce7; border:1px solid #86efac; color:#166534; font-size:13px; font-weight:800; border-radius:6px; padding:6px 14px;">
+                  JEEL VAGHANI : +91 90331 57999 ✅ (Active Live Report)
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dashed Red Divider Line -->
+          <div style="border-top:1px dashed #f87171; margin:14px 0;"></div>
+
+          <!-- WhatsApp Disabled by Admin (5 Users Blocked / Stopped) -->
+          <div>
+            <div style="font-weight:800; color:#991b1b; margin-bottom:8px; font-size:13px; display:flex; align-items:center; gap:6px;">
+              <span>🔴</span> WhatsApp Disabled by Admin (5 Users Blocked / Stopped):
+            </div>
+            <div id="waDisabledRecipientsList" style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+              <!-- MAULIK -->
+              <div data-user="MAULIK" style="display:inline-flex; align-items:center; gap:6px;">
+                <span style="background:#fef2f2; border:1px solid #fecaca; color:#991b1b; font-size:12px; font-weight:700; border-radius:6px; padding:4px 10px;">
+                  MAULIK : +91 95866 68368 📵 (બંધ)
+                </span>
+                <button type="button" onclick="window.toggleWaRecipient('MAULIK', '+91 95866 68368', true)" style="background:#059669; color:#ffffff; border:none; border-radius:6px; padding:4px 10px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
+                  <span>📲</span> ચાલુ કરો
+                </button>
+              </div>
+
+              <!-- JIGAR -->
+              <div data-user="JIGAR" style="display:inline-flex; align-items:center; gap:6px;">
+                <span style="background:#fef2f2; border:1px solid #fecaca; color:#991b1b; font-size:12px; font-weight:700; border-radius:6px; padding:4px 10px;">
+                  JIGAR : +91 74055 27613 📵 (બંધ)
+                </span>
+                <button type="button" onclick="window.toggleWaRecipient('JIGAR', '+91 74055 27613', true)" style="background:#059669; color:#ffffff; border:none; border-radius:6px; padding:4px 10px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
+                  <span>📲</span> ચાલુ કરો
+                </button>
+              </div>
+
+              <!-- JEEL-R -->
+              <div data-user="JEEL-R" style="display:inline-flex; align-items:center; gap:6px;">
+                <span style="background:#fef2f2; border:1px solid #fecaca; color:#991b1b; font-size:12px; font-weight:700; border-radius:6px; padding:4px 10px;">
+                  JEEL-R : +91 7041181117 📵 (બંધ)
+                </span>
+                <button type="button" onclick="window.toggleWaRecipient('JEEL-R', '+91 7041181117', true)" style="background:#059669; color:#ffffff; border:none; border-radius:6px; padding:4px 10px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
+                  <span>📲</span> ચાલુ કરો
+                </button>
+              </div>
+
+              <!-- REHA -->
+              <div data-user="REHA" style="display:inline-flex; align-items:center; gap:6px;">
+                <span style="background:#fef2f2; border:1px solid #fecaca; color:#991b1b; font-size:12px; font-weight:700; border-radius:6px; padding:4px 10px;">
+                  REHA : +91 98982 98695 📵 (બંધ)
+                </span>
+                <button type="button" onclick="window.toggleWaRecipient('REHA', '+91 98982 98695', true)" style="background:#059669; color:#ffffff; border:none; border-radius:6px; padding:4px 10px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
+                  <span>📲</span> ચાલુ કરો
+                </button>
+              </div>
+
+              <!-- SHIVAM -->
+              <div data-user="SHIVAM" style="display:inline-flex; align-items:center; gap:6px;">
+                <span style="background:#fef2f2; border:1px solid #fecaca; color:#991b1b; font-size:12px; font-weight:700; border-radius:6px; padding:4px 10px;">
+                  SHIVAM : +91 72029 44081 📵 (બંધ)
+                </span>
+                <button type="button" onclick="window.toggleWaRecipient('SHIVAM', '+91 72029 44081', true)" style="background:#059669; color:#ffffff; border:none; border-radius:6px; padding:4px 10px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
+                  <span>📲</span> ચાલુ કરો
+                </button>
+              </div>
+            </div>
+
+            <!-- Footer Note -->
+            <div style="font-size:11.5px; color:#64748b; margin-top:10px; display:flex; align-items:center; gap:5px;">
+              <span>💡</span> આ યુઝર્સને WhatsApp એલર્ટ્સ નહીં જાય. ચાલુ કરવા માટે [📲 ચાલુ કરો] અથવા નીચે User Directory માંથી [📲 Allow WhatsApp] બટન દબાવો.
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Chori Filter Controls Card -->
+        <div class="date-controls-card chori-controls-card">
+          <div class="date-range-row">
+            <div class="date-box">
+              <div class="date-box-header">
+                <span class="date-box-label">કઈ તારીખથી (FROM DATE):</span>
+                <span class="date-box-val-text" id="choriDispFromDate">21/09/2026</span>
+              </div>
+              <div class="date-input-wrapper">
+                <input type="date" id="choriFromDate" class="styled-date-input big-date" value="2026-09-21" title="શરૂઆત તારીખ">
+              </div>
+            </div>
+
+            <div class="date-box">
+              <div class="date-box-header">
+                <span class="date-box-label">કઈ તારીખ સુધી (TO DATE):</span>
+                <span class="date-box-val-text" id="choriDispToDate">21/09/2026</span>
+              </div>
+              <div class="date-input-wrapper">
+                <input type="date" id="choriToDate" class="styled-date-input big-date" value="2026-09-21" title="અંતિમ તારીખ">
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Date Range Pills for Chori -->
+          <div class="date-actions-row">
+            <button type="button" id="btnChoriGetReport" class="btn-get-report chori-btn-get" aria-label="ચોરી રિપોર્ટ મેળવો">
+              <span class="btn-icon">🚨</span>
+              <span>ચોરી રિપોર્ટ મેળવો (GET REPORT)</span>
+            </button>
+
+            <button type="button" id="btnChoriErpWhatsApp" class="btn-whatsapp-erp-chori" onclick="window.sendChoriViaErpWhatsApp('919033157999')" aria-label="ERP બીજા નંબરથી WhatsApp મોકલો" title="OSLC ERP સિસ્ટમ નંબર પરથી +91 90331 57999 પર આપોઆપ મોકલો">
+              <span class="btn-icon">⚡</span>
+              <span>ERP બીજા નંબરથી મોકલો (+91 90331 57999)</span>
+            </button>
+
+            <button type="button" id="btnChoriWhatsApp" class="btn-whatsapp-chori" onclick="window.sendChoriToWhatsApp('919033157999')" aria-label="WhatsApp પર મોકલો" title="WMS Godaun Chori Report WhatsApp પર મોકલો">
+              <span class="btn-icon">📲</span>
+              <span>WhatsApp Chat</span>
+            </button>
+
+            <button type="button" id="btnChoriCopy" class="btn-copy-chori" onclick="window.copyChoriReport()" aria-label="રિપોર્ટ કોપી" title="આખો ચોરી રિપોર્ટ મેસેજ કોપી કરો">
+              <span class="btn-icon">📋</span>
+              <span>મેસેજ કોપી કરો (Copy)</span>
+            </button>
+
+            <button type="button" id="btnChoriExportExcel" class="btn-excel-export" aria-label="એક્સેલ ડાઉનલોડ">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Excel ડાઉનલોડ</span>
+            </button>
+          </div>
+
+          <div class="quick-pills-row chori-quick-pills">
+            <button type="button" class="pill-btn active" id="choriPillToday">આજે (Today)</button>
+            <button type="button" class="pill-btn" id="choriPillYesterday">ગઈકાલે</button>
+            <button type="button" class="pill-btn" id="choriPill7Days">છેલ્લા ૭ દિવસ</button>
+            <button type="button" class="pill-btn" id="choriPillMonth">આ મહિનો</button>
+          </div>
+
+          <!-- Shift & Process Filters -->
+          <div class="chori-filters-inline-grid">
+            <!-- Shift selection -->
+            <div class="chori-filter-group">
+              <label class="chori-filter-lbl">⏰ શિફ્ટ (Shift):</label>
+              <div class="chori-mini-pills" id="choriShiftPills">
+                <button type="button" class="mini-pill-btn active" data-shift="all">આખો દિવસ</button>
+                <button type="button" class="mini-pill-btn" data-shift="day">☀️ સવાર</button>
+                <button type="button" class="mini-pill-btn" data-shift="night">🌙 રાત</button>
+              </div>
+            </div>
+
+            <!-- Process Selection -->
+            <div class="chori-filter-group">
+              <label class="chori-filter-lbl">🔄 પ્રોસેસ (Process):</label>
+              <div class="chori-mini-pills" id="choriProcessPills">
+                <button type="button" class="mini-pill-btn active" data-process="all">બંને (All)</button>
+                <button type="button" class="mini-pill-btn" data-process="inward">📥 Inward</button>
+                <button type="button" class="mini-pill-btn" data-process="outward">📤 Outward</button>
+              </div>
+            </div>
+
+            <!-- Worker Filter Dropdown -->
+            <div class="chori-filter-group chori-worker-group">
+              <label class="chori-filter-lbl" for="choriWorkerFilter">👤 કર્મચારી ફિલ્ટર:</label>
+              <select id="choriWorkerFilter" class="styled-select-input">
+                <option value="">બધા કર્મચારીઓ (All Workers)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Search Filter for Detailed Items -->
+          <div class="search-box-wrap" style="margin-top: 10px;">
+            <div class="search-input-inner">
+              <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="text" id="choriSearchInput" placeholder="વાઉચર / બારકોડ / નામ શોધો..." class="styled-search-input">
+            </div>
+          </div>
+        </div>
+
+        <!-- 5 High-Impact KPI Summary Cards -->
+        <div class="chori-kpi-grid">
+          <div class="chori-kpi-card kpi-chori-total">
+            <span class="chori-kpi-badge">🚨 કુલ ચોરી પીસ</span>
+            <div class="chori-kpi-val" id="choriKpiTotalPieces">0</div>
+            <span class="chori-kpi-sub">Total Duplicate Pieces</span>
+          </div>
+
+          <div class="chori-kpi-card kpi-chori-in">
+            <span class="chori-kpi-badge">📥 ઇનવર્ડ ચોરી</span>
+            <div class="chori-kpi-val" id="choriKpiInPieces">0</div>
+            <span class="chori-kpi-sub">Inward Duplicate Scans</span>
+          </div>
+
+          <div class="chori-kpi-card kpi-chori-out">
+            <span class="chori-kpi-badge">📤 આઉટવર્ડ ચોરી</span>
+            <div class="chori-kpi-val" id="choriKpiOutPieces">0</div>
+            <span class="chori-kpi-sub">Outward Duplicate Scans</span>
+          </div>
+
+          <div class="chori-kpi-card kpi-chori-workers">
+            <span class="chori-kpi-badge">👥 શંકાસ્પદ કર્મચારીઓ</span>
+            <div class="chori-kpi-val" id="choriKpiSuspectCount">0</div>
+            <span class="chori-kpi-sub">Workers With Duplicates</span>
+          </div>
+
+          <div class="chori-kpi-card kpi-chori-amt">
+            <span class="chori-kpi-badge">💰 કપાત કરેલ રકમ</span>
+            <div class="chori-kpi-val" id="choriKpiTotalDeductedAmt">₹0.00</div>
+            <span class="chori-kpi-sub">Deducted From Salary</span>
+          </div>
+        </div>
+
+        <!-- SECTION 1: WORKER-WISE THEFT SUMMARY TABLE -->
+        <div class="chori-section-card">
+          <div class="chori-section-header">
+            <div class="chori-section-title-wrap">
+              <span class="sec-icon">👥</span>
+              <div>
+                <h3 class="chori-section-title">કર્મચારી પ્રમાણે ચોરી સમરી (Worker-Wise Theft Summary)</h3>
+                <p class="chori-section-desc">કોણે કેટલી ચોરી કરી, કેટલા ટકા ડુપ્લિકેટ સ્કેન કર્યા અને કેટલા રૂપિયા કપાત થયા</p>
+              </div>
+            </div>
+            <span class="chori-count-chip" id="choriWorkersCountBadge">0 Workers</span>
+          </div>
+
+          <div class="photo-table-container">
+            <table class="photo-styled-table chori-table" id="choriWorkersTable">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">ક્રમ</th>
+                  <th>કર્મચારીનું નામ (ID)</th>
+                  <th>IN ચોરી પીસ</th>
+                  <th>OUT ચોરી પીસ</th>
+                  <th>કુલ ચોરી પીસ</th>
+                  <th>ચોરી ટકા (%)</th>
+                  <th>કપાત રકમ (₹)</th>
+                  <th>એક્શન</th>
+                </tr>
+              </thead>
+              <tbody id="choriWorkersTableBody">
+                <tr>
+                  <td colspan="8" class="loading-cell">
+                    <div class="table-spinner"></div>
+                    <span>ચોરી સમરી લોડ થઈ રહી છે...</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- SECTION 2: DETAILED DUPLICATE SCANS TABLE -->
+        <div class="chori-section-card">
+          <div class="chori-section-header">
+            <div class="chori-section-title-wrap">
+              <span class="sec-icon">📋</span>
+              <div>
+                <h3 class="chori-section-title">વિગતવાર ડુપ્લિકેટ સ્કેન વિગતો (Duplicate Barcodes Detail)</h3>
+                <p class="chori-section-desc">તારીખ, ચોક્કસ સમય, સ્કેન કરનાર, વાઉચર નંબર, પ્રોસેસ અને બારકોડ નંબર</p>
+              </div>
+            </div>
+            <span class="chori-count-chip" id="choriItemsCountBadge">0 Duplicates</span>
+          </div>
+
+          <div class="photo-table-container">
+            <table class="photo-styled-table chori-table" id="choriItemsTable">
+              <thead>
+                <tr>
+                  <th style="width: 45px;">#</th>
+                  <th>તારીખ & સમય</th>
+                  <th>શિફ્ટ (Shift)</th>
+                  <th>કર્મચારી (Worker ID)</th>
+                  <th>શેલ્ફ / રેક (Shelf)</th>
+                  <th>પ્રોસેસ</th>
+                  <th>વાઉચર નંબર</th>
+                  <th>બારકોડ નંબર</th>
+                  <th>રિપીટ સ્કેન</th>
+                  <th>ડિઝાઇન & સાઇઝ</th>
+                  <th>પીસ</th>
+                  <th>સ્ટેટસ</th>
+                </tr>
+              </thead>
+              <tbody id="choriItemsTableBody">
+                <tr>
+                  <td colspan="12" class="loading-cell">
+                    <div class="table-spinner"></div>
+                    <span>ડુપ્લિકેટ બારકોડ વિગતો લોડ થઈ રહી છે...</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -521,6 +1044,22 @@
             <div class="worker-quick-date-pills">
               <button type="button" class="pill-btn active" id="workerPillToday">આજે</button>
               <button type="button" class="pill-btn" id="workerPillYesterday">ગઈકાલે</button>
+            </div>
+          </div>
+
+          <!-- Worker Live Shift Selector -->
+          <div class="salary-shift-bar" style="margin-bottom: 14px;">
+            <span class="shift-bar-title">શિફ્ટ ફિલ્ટર (Shift):</span>
+            <div class="shift-pills-row">
+              <button type="button" class="shift-pill-btn active" id="pillWorkerLiveShiftAll" data-wshift="all">
+                ☀️🌙 આખો દિવસ (24 કલાક)
+              </button>
+              <button type="button" class="shift-pill-btn" id="pillWorkerLiveShiftDay" data-wshift="day">
+                ☀️ સવાર શિફ્ટ (Day)
+              </button>
+              <button type="button" class="shift-pill-btn" id="pillWorkerLiveShiftNight" data-wshift="night">
+                🌙 રાત શિફ્ટ (Night)
+              </button>
             </div>
           </div>
 
@@ -593,6 +1132,7 @@
                   <th>Design No. / Article</th>
                   <th>Bill No.</th>
                   <th class="text-right">Qty (Pcs)</th>
+                  <th>Time (સમય)</th>
                 </tr>
               </thead>
               <tbody id="workerItemsTableBody">
@@ -644,6 +1184,22 @@
                 <button type="button" class="pill-btn" id="workerSalaryPillToday">આજે</button>
               </div>
             </div>
+
+            <!-- Worker Salary Shift Selector -->
+            <div class="salary-shift-bar" style="margin-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 10px;">
+              <span class="shift-bar-title">શિફ્ટ ફિલ્ટર (Shift):</span>
+              <div class="shift-pills-row">
+                <button type="button" class="shift-pill-btn active" id="pillWorkerSalaryShiftAll" data-wsshift="all">
+                  ☀️🌙 આખો દિવસ (24 કલાક)
+                </button>
+                <button type="button" class="shift-pill-btn" id="pillWorkerSalaryShiftDay" data-wsshift="day">
+                  ☀️ સવાર શિફ્ટ (Day)
+                </button>
+                <button type="button" class="shift-pill-btn" id="pillWorkerSalaryShiftNight" data-wsshift="night">
+                  🌙 રાત શિફ્ટ (Night)
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- Worker Download Own Excel Button -->
@@ -669,7 +1225,9 @@
                   <th class="th-out">OUT</th>
                   <th class="th-out-rate" id="thWorkerDatewiseOutRate">0.35</th>
                   <th class="th-total-pc">TOTAL PC</th>
+                  <th class="th-hours">HOURS (કલાક)</th>
                   <th class="th-total-amt">TOTAL AMT</th>
+                  <th class="th-time">TIME RANGE (સમય)</th>
                 </tr>
               </thead>
               <tbody id="workerDatewiseTableBody">
@@ -763,7 +1321,9 @@
                   <th class="th-out">OUT</th>
                   <th class="th-out-rate" id="thDatewiseOutRate">0.35</th>
                   <th class="th-total-pc">TOTAL PC</th>
+                  <th class="th-hours">HOURS (કલાક)</th>
                   <th class="th-total-amt">TOTAL AMT</th>
+                  <th class="th-time">TIME RANGE (સમય)</th>
                 </tr>
               </thead>
               <tbody id="datewiseTableBody">
@@ -814,6 +1374,7 @@
                   <th>Design No. / Article</th>
                   <th>Bill No.</th>
                   <th class="text-right">Qty. (Pcs.)</th>
+                  <th>Time (સમય)</th>
                 </tr>
               </thead>
               <tbody id="drillTableBody">
@@ -831,7 +1392,8 @@
     <div id="loginModal" class="modal-backdrop login-backdrop hidden">
       <div class="modal-content login-card">
         <div class="login-brand-header">
-          <div class="login-logo-box">
+          <div class="login-logo-box" style="display:flex;align-items:center;justify-content:center;gap:10px;">
+            <img src="oslc_logo.png" alt="OSLC GODAUN" style="width:48px;height:48px;border-radius:12px;box-shadow:0 4px 14px rgba(16,185,129,0.35);">
             <span class="login-logo-text">OSLC</span>
           </div>
           <h2 class="login-title">OSLC GODAUN</h2>
@@ -1130,7 +1692,126 @@
       </div>
     </div>
 
+    <!-- ======================================================== -->
+    <!-- MODAL 7: DAILY WORKING HOURS ENTRY (કલાક એન્ટ્રી)        -->
+    <!-- ======================================================== -->
+    <div id="hoursEntryModal" class="modal-backdrop hidden">
+      <div class="modal-content modal-hours-content">
+        <div class="modal-header">
+          <div class="modal-header-info">
+            <h3 class="modal-title">⏱️ દૈનિક કલાક એન્ટ્રી (Working Hours Entry)</h3>
+            <p class="modal-subtitle">તારીખ પસંદ કરી દરેક કર્મચારીની કામ કરેલી કલાક (Hours) સેવ કરો</p>
+          </div>
+          <button id="btnCloseHoursModal" class="modal-close" aria-label="Close Hours Modal">&times;</button>
+        </div>
+
+        <div class="hours-modal-body">
+          <!-- Date Selection Strip -->
+          <div class="hours-date-strip">
+            <div class="hours-date-picker-box">
+              <label for="hoursEntryDate" class="hours-lbl">તારીખ પસંદ કરો (DATE):</label>
+              <div class="hours-input-date-wrap">
+                <input type="date" id="hoursEntryDate" class="styled-date-input" title="કલાક એન્ટ્રી તારીખ">
+                <span class="hours-date-display" id="hoursDateDisplay">--/--/----</span>
+              </div>
+            </div>
+
+            <!-- Quick Day Buttons -->
+            <div class="hours-quick-days">
+              <button type="button" class="pill-btn active" id="btnHoursToday">આજે</button>
+              <button type="button" class="pill-btn" id="btnHoursYesterday">ગઈકાલે</button>
+            </div>
+          </div>
+
+          <!-- Quick Bulk Presets Bar -->
+          <div class="hours-bulk-presets-bar">
+            <span class="bulk-label">⚡ બધા માટે એક ક્લિક:</span>
+            <div class="bulk-btns-row">
+              <button type="button" class="btn-bulk-preset preset-10" id="btnBulk10">બધાને 10 કલાક</button>
+              <button type="button" class="btn-bulk-preset preset-12" id="btnBulk12">બધાને 12 કલાક</button>
+              <button type="button" class="btn-bulk-preset preset-8" id="btnBulk8">બધાને 8 કલાક</button>
+              <button type="button" class="btn-bulk-preset preset-clear" id="btnBulkClear">🧹 ખાલી કરો</button>
+            </div>
+          </div>
+
+          <!-- Search Filter for Workers in Modal -->
+          <div class="hours-search-wrap">
+            <input type="text" id="hoursWorkerSearch" placeholder="કર્મચારીનું નામ શોધો..." class="styled-search-input">
+            <span class="hours-workers-count" id="hoursWorkersCountBadge">0 કામદારો</span>
+          </div>
+
+          <!-- Workers Hours List -->
+          <div class="hours-workers-list" id="hoursWorkersListContainer">
+            <!-- Dynamically populated worker hour rows -->
+          </div>
+
+          <!-- Status Message -->
+          <div id="hoursSaveStatusMsg" class="mgmt-status-msg hidden"></div>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="hours-modal-footer">
+          <div class="hours-summary-box">
+            <span>કુલ કામદારો: <strong id="hoursTotalWorkersCount">0</strong></span>
+            <span class="divider">|</span>
+            <span>કુલ કલાક: <strong id="hoursTotalHoursSum" class="highlight-val">0.0 hrs</strong></span>
+          </div>
+          <div class="hours-footer-btns">
+            <button type="button" id="btnCancelHours" class="btn-cancel-edit">રદ કરો</button>
+            <button type="button" id="btnSaveHoursSubmit" class="btn-save-hours">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              <span>💾 કલાક સેવ કરો (SAVE HOURS)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WhatsApp QR Code Scan Modal -->
+    <div id="waQrModal" class="modal-overlay hidden">
+      <div class="modal-box wa-qr-modal-box">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <span class="modal-icon">📲</span>
+            <div>
+              <h3 class="modal-title">બીજા નંબરને WhatsApp સાથે લિંક કરો</h3>
+              <p class="modal-subtitle">OSLC ERP બોટ સિસ્ટમ કનેક્શન (Scan to Link Device)</p>
+            </div>
+          </div>
+          <button type="button" class="modal-close-btn" onclick="window.closeWaQrModal()">✕</button>
+        </div>
+        <div class="wa-qr-body">
+          <div class="wa-qr-instructions">
+            <h4>📌 કઈ રીતે લિંક કરવું (Instructions):</h4>
+            <ol>
+              <li>જે <strong>બીજા નંબર</strong> પરથી મેસેજ મોકલવો છે તે ફોનમાં <strong>WhatsApp</strong> ખોલો.</li>
+              <li>ઉપર જમણી બાજુ <strong>૩ ટપકાં (Settings)</strong> પર ક્લિક કરો.</li>
+              <li><strong>Linked Devices (લિંક કરેલ ડિવાઇસ)</strong> પસંદ કરો.</li>
+              <li><strong>Link a Device</strong> દબાવીને આ સામે દેખાતો QR કોડ સ્કેન કરો.</li>
+            </ol>
+            <div class="wa-qr-status-live" id="waQrStatusLive">
+              <span class="status-pulse-dot"></span>
+              <span id="waQrStatusText">લાઈવ સ્કેનની રાહ જોવાઈ રહી છે...</span>
+            </div>
+          </div>
+          <div class="wa-qr-img-wrap">
+            <img id="waQrImg" src="http://f.1t.cl/api/qrCodeImage/orccs554px09gwv9rqmxyahh.png" alt="WhatsApp QR Code" />
+            <button type="button" class="btn-refresh-qr" onclick="window.refreshWaQr()">🔄 QR કોડ તાજો કરો</button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-modal-cancel" onclick="window.closeWaQrModal()">બંધ કરો</button>
+          <button type="button" class="btn-modal-primary" onclick="window.sendChoriToWhatsApp('919033157999')">📲 ડાયરેક્ટ WhatsApp Chat ખોલો</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Toast Notification Popup -->
+
     <div id="toastNotification" class="toast-popup hidden">
       <span id="toastIcon">✅</span>
       <span id="toastText">સંદેશ</span>
@@ -1138,7 +1819,7 @@
 
   </div>
 
-  <script src="app.js?v=4.0"></script>
+  <script src="app.js?v=10.0"></script>
   <script>
     function doGodaunHardRefresh() {
       try {
@@ -1179,7 +1860,7 @@
     }, true);
   </script>
 
-  <button id="floatingGodaunRefreshBtn" onclick="doGodaunHardRefresh()" title="Ctrl + F5 તાજું કરો" style="position:fixed;bottom:20px;right:20px;z-index:99999;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:1px solid rgba(255,255,255,0.3);padding:10px 18px;border-radius:50px;font-size:13px;font-weight:700;box-shadow:0 6px 20px rgba(16,185,129,0.5);cursor:pointer;display:flex;align-items:center;gap:8px;">
+  <button id="floatingGodaunRefreshBtn" onclick="doGodaunHardRefresh()" title="Ctrl + F5 તાજું કરો" style="position:fixed;bottom:76px;right:24px;z-index:99999;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:1px solid rgba(255,255,255,0.3);padding:10px 18px;border-radius:50px;font-size:13px;font-weight:700;box-shadow:0 6px 20px rgba(16,185,129,0.5);cursor:pointer;display:flex;align-items:center;gap:8px;">
     🔄 <span>Ctrl + F5 તાજું કરો</span>
   </button>
 </body>
