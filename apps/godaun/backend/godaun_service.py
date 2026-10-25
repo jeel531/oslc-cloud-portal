@@ -19,7 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, Response
 try:
-    from backend.hours_service import (
+    from .hours_service import (
         load_all_hours,
         save_all_hours,
         get_hours_for_date,
@@ -27,15 +27,35 @@ try:
         get_worker_hours_in_range,
         get_worker_daily_hours,
     )
-except ImportError:
-    from hours_service import (
-        load_all_hours,
-        save_all_hours,
-        get_hours_for_date,
-        set_hours_for_date,
-        get_worker_hours_in_range,
-        get_worker_daily_hours,
-    )
+except (ImportError, ValueError):
+    try:
+        from backend.hours_service import (
+            load_all_hours,
+            save_all_hours,
+            get_hours_for_date,
+            set_hours_for_date,
+            get_worker_hours_in_range,
+            get_worker_daily_hours,
+        )
+    except ImportError:
+        try:
+            from apps.godaun.backend.hours_service import (
+                load_all_hours,
+                save_all_hours,
+                get_hours_for_date,
+                set_hours_for_date,
+                get_worker_hours_in_range,
+                get_worker_daily_hours,
+            )
+        except ImportError:
+            from hours_service import (
+                load_all_hours,
+                save_all_hours,
+                get_hours_for_date,
+                set_hours_for_date,
+                get_worker_hours_in_range,
+                get_worker_daily_hours,
+            )
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
