@@ -420,6 +420,55 @@ async def save_hours_api(request: Request):
     except Exception as e:
         return {"success": False, "error": str(e)}
 
+@app.get("/api/godaun/db-config")
+def get_db_config_endpoint():
+    try:
+        cfg = load_config()
+        live_tunnel = ""
+        tunnel_files = [
+            Path("D:/OSLC_CLOUD_MASTER_PORTAL/portal_ui/live_url.json"),
+            ROOT.parent / "portal_ui" / "live_url.json"
+        ]
+        for tf in tunnel_files:
+            if tf.exists():
+                try:
+                    data = json.loads(tf.read_text(encoding="utf-8"))
+                    live_tunnel = data.get("url", "")
+                    if live_tunnel:
+                        break
+                except Exception:
+                    pass
+        return {
+            "success": True,
+            "server": cfg.get("server", "103.118.17.67:3595"),
+            "database": cfg.get("database", "DigiBizz_PROD_Om_Sai_Trans_2026_27"),
+            "username": cfg.get("username", "_DigiCorp_OmSai"),
+            "password": cfg.get("password", "1h9vMK_U9!@DigiOmSaiCorp@#2021#"),
+            "live_tunnel": live_tunnel or "https://storm-among-symantec-honest.trycloudflare.com"
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/godaun/db-config")
+async def update_db_config_endpoint(request: Request):
+    try:
+        body = await request.json()
+        cfg = load_config()
+        if "server" in body and body["server"]:
+            cfg["server"] = body["server"].strip()
+        if "database" in body and body["database"]:
+            cfg["database"] = body["database"].strip()
+        if "username" in body and body["username"]:
+            cfg["username"] = body["username"].strip()
+        if "password" in body and body["password"]:
+            cfg["password"] = body["password"].strip()
+        
+        CONFIG_FILE.write_text(json.dumps(cfg, indent=2), encoding="utf-8")
+        _cache.clear()
+        return {"success": True, "message": "Database credentials updated successfully", "config": cfg}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
 @app.get("/api/godaun/summary")
 
 def get_summary():

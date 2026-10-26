@@ -2,13 +2,13 @@
 (function() {
   'use strict';
 
-  // Smart Server Discovery
+  // Smart Server Discovery with Live Cloudflare Tunnel
   const SERVERS = [
-    'https://regards-freeware-translated-excellence.trycloudflare.com',
-    'http://192.168.100.106:8095',
+    'https://storm-among-symantec-honest.trycloudflare.com',
     'http://192.168.100.106:8080',
-    'http://localhost:8095',
-    'http://localhost:8080'
+    'http://192.168.100.106:8095',
+    'http://localhost:8080',
+    'http://localhost:8095'
   ];
 
   const isWebOrigin = !!(
@@ -1125,8 +1125,17 @@
     try {
       let inData, outData;
       if (hasNativeBridge()) {
-        inData = await callBridge('getUserDetail', [dateStr, 'inward', workerName, curShift]);
-        outData = await callBridge('getUserDetail', [dateStr, 'outward', workerName, curShift]);
+        try {
+          inData = await callBridge('getUserDetail', [dateStr, 'inward', workerName, curShift]);
+          outData = await callBridge('getUserDetail', [dateStr, 'outward', workerName, curShift]);
+        } catch (bridgeErr) {
+          console.warn('Native bridge worker items failed, falling back to HTTP:', bridgeErr);
+          await resolveBestServer();
+          const rIn = await fetch(`${currentApiBase}/api/godaun/user-detail?date=${dateStr}&report_type=inward&user=${encodeURIComponent(workerName)}&shift=${curShift}`);
+          inData = await rIn.json();
+          const rOut = await fetch(`${currentApiBase}/api/godaun/user-detail?date=${dateStr}&report_type=outward&user=${encodeURIComponent(workerName)}&shift=${curShift}`);
+          outData = await rOut.json();
+        }
       } else {
         await resolveBestServer();
         const rIn = await fetch(`${currentApiBase}/api/godaun/user-detail?date=${dateStr}&report_type=inward&user=${encodeURIComponent(workerName)}&shift=${curShift}`);
@@ -1938,10 +1947,14 @@
 
     try {
       if (hasNativeBridge()) {
-        const data = await callBridge('getSalaryReport', [salaryFromDate, salaryToDate, inRate, outRate, '', selectedSalaryShift]);
-        rawSalaryRows = data.rows || [];
-        renderSalaryReport();
-        return;
+        try {
+          const data = await callBridge('getSalaryReport', [salaryFromDate, salaryToDate, inRate, outRate, '', selectedSalaryShift]);
+          rawSalaryRows = data.rows || [];
+          renderSalaryReport();
+          return;
+        } catch (bridgeErr) {
+          console.warn('Native bridge getSalaryReport failed, falling back to HTTP:', bridgeErr);
+        }
       }
 
       await resolveBestServer();
@@ -3002,9 +3015,13 @@
 
     try {
       if (hasNativeBridge()) {
-        const data = await callBridge('getUserSummary', [liveDate, liveReportType, selectedLiveShift]);
-        renderUserReport(data);
-        return;
+        try {
+          const data = await callBridge('getUserSummary', [liveDate, liveReportType, selectedLiveShift]);
+          renderUserReport(data);
+          return;
+        } catch (bridgeErr) {
+          console.warn('Native bridge getUserSummary failed, falling back to HTTP:', bridgeErr);
+        }
       }
 
       await resolveBestServer();
@@ -3097,10 +3114,14 @@
 
     try {
       if (hasNativeBridge()) {
-        const data = await callBridge('getUserDetail', [liveDate, liveReportType, userName, selectedLiveShift]);
-        modalDetailItems = data.items || [];
-        renderDrillTable(modalDetailItems);
-        return;
+        try {
+          const data = await callBridge('getUserDetail', [liveDate, liveReportType, userName, selectedLiveShift]);
+          modalDetailItems = data.items || [];
+          renderDrillTable(modalDetailItems);
+          return;
+        } catch (bridgeErr) {
+          console.warn('Native bridge getUserDetail failed, falling back to HTTP:', bridgeErr);
+        }
       }
 
       const url = `${currentApiBase}/api/godaun/user-detail?date=${liveDate}&report_type=${liveReportType}&user=${encodeURIComponent(userName)}&shift=${selectedLiveShift}`;
@@ -3454,14 +3475,23 @@
     try {
       let data;
       if (hasNativeBridge()) {
-        data = await callBridge('getChoriReport', [
-          choriFromDate,
-          choriToDate,
-          choriShift,
-          choriProcess,
-          choriWorker,
-          1000
-        ]);
+        try {
+          data = await callBridge('getChoriReport', [
+            choriFromDate,
+            choriToDate,
+            choriShift,
+            choriProcess,
+            choriWorker,
+            1000
+          ]);
+        } catch (bridgeErr) {
+          console.warn('Native bridge getChoriReport failed, falling back to HTTP:', bridgeErr);
+          await resolveBestServer();
+          const url = `${currentApiBase}/api/godaun/chori-report?from_date=${choriFromDate}&to_date=${choriToDate}&shift=${choriShift}&process=${choriProcess}&user=${encodeURIComponent(choriWorker)}&limit=1000`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          data = await res.json();
+        }
       } else {
         await resolveBestServer();
         const url = `${currentApiBase}/api/godaun/chori-report?from_date=${choriFromDate}&to_date=${choriToDate}&shift=${choriShift}&process=${choriProcess}&user=${encodeURIComponent(choriWorker)}&limit=1000`;
