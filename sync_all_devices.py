@@ -64,13 +64,21 @@ def update_surge_cloud(live_url: str):
     print(f"[SURGE] Updating Surge endpoints with: {live_url}")
     if SURGE_SCRIPT.exists():
         try:
+            cf = 0x08000000 if sys.platform == "win32" else 0
+            si = None
+            if sys.platform == "win32":
+                si = subprocess.STARTUPINFO()
+                si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                si.wShowWindow = 0
             p = subprocess.run(
                 [sys.executable, str(SURGE_SCRIPT), live_url],
                 capture_output=True,
                 text=True,
                 encoding="utf-8",
                 errors="replace",
-                timeout=40
+                timeout=40,
+                creationflags=cf,
+                startupinfo=si
             )
             print(f"[SURGE] Exit: {p.returncode}, Stdout: {p.stdout.strip()}")
             return p.returncode == 0
@@ -82,11 +90,17 @@ def update_surge_cloud(live_url: str):
 def open_firewall_ports():
     """Ensures ports 8080, 8000, 8096 are open in Windows Firewall for office LAN."""
     ports = [8080, 8000, 8096]
+    cf = 0x08000000 if sys.platform == "win32" else 0
+    si = None
+    if sys.platform == "win32":
+        si = subprocess.STARTUPINFO()
+        si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        si.wShowWindow = 0
     for p in ports:
         rule_name = f"OSLC_PORT_{p}_ALLOW"
         cmd = f'netsh advfirewall firewall add rule name="{rule_name}" dir=in action=allow protocol=TCP localport={p}'
         try:
-            subprocess.run(cmd, shell=True, capture_output=True)
+            subprocess.run(cmd, shell=True, capture_output=True, creationflags=cf, startupinfo=si)
         except Exception:
             pass
     print("[FIREWALL] Local Wi-Fi ports 8080, 8000, 8096 are permanently allowed.")
