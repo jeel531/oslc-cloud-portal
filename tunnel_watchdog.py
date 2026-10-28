@@ -128,7 +128,8 @@ def run_tunnel():
             "--no-autoupdate"
         ]
 
-        print(f"[{time.strftime('%H:%M:%S')}] Launching Cloudflare Tunnel on port 8080...")
+        print(f"[{time.strftime('%H:%M:%S')}] Launching Cloudflare Tunnel on port 8080 (Silent Background)...")
+        creation_flags = 0x08000000 if sys.platform == "win32" else 0
         proc = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
@@ -136,7 +137,8 @@ def run_tunnel():
             text=True,
             encoding="utf-8",
             errors="ignore",
-            bufsize=1
+            bufsize=1,
+            creationflags=creation_flags
         )
 
         detected_url = None
