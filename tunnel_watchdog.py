@@ -112,7 +112,13 @@ def write_share_links(url: str):
         try:
             sync_script = ROOT / "sync_all_devices.py"
             if sync_script.exists():
-                subprocess.Popen([sys.executable, str(sync_script)])
+                cf = 0x08000000 if sys.platform == "win32" else 0
+                si = None
+                if sys.platform == "win32":
+                    si = subprocess.STARTUPINFO()
+                    si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                    si.wShowWindow = 0
+                subprocess.Popen([sys.executable, str(sync_script)], creationflags=cf, startupinfo=si)
         except Exception as se:
             print(f"[WATCHDOG] sync_all_devices trigger error: {se}")
 
