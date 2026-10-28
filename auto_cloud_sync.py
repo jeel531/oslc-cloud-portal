@@ -18,6 +18,19 @@ from datetime import datetime
 ROOT_DIR = Path(__file__).resolve().parent
 GIT_EXE = r"C:\Users\PC-106\PortableGit-oslc-20260922094043\bin\git.exe"
 STATUS_FILE = ROOT_DIR / "portal_ui" / "sync_status.json"
+LOG_FILE = ROOT_DIR / "auto_cloud_sync.log"
+
+if sys.stdout is None or not hasattr(sys.stdout, "write"):
+    try:
+        sys.stdout = open(LOG_FILE, "a", encoding="utf-8", buffering=1)
+    except Exception:
+        sys.stdout = open(os.devnull, "w")
+
+if sys.stderr is None or not hasattr(sys.stderr, "write"):
+    try:
+        sys.stderr = open(LOG_FILE, "a", encoding="utf-8", buffering=1)
+    except Exception:
+        sys.stderr = open(os.devnull, "w")
 
 def update_status(status, message, details=None):
     try:
@@ -34,6 +47,12 @@ def update_status(status, message, details=None):
 
 def run_git(args, cwd=ROOT_DIR):
     cmd = [GIT_EXE] + args
+    creation_flags = 0x08000000 if sys.platform == "win32" else 0
+    startupinfo = None
+    if sys.platform == "win32":
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        startupinfo.wShowWindow = 0
     res = subprocess.run(
         cmd,
         cwd=cwd,
@@ -41,7 +60,9 @@ def run_git(args, cwd=ROOT_DIR):
         stderr=subprocess.PIPE,
         text=True,
         encoding="utf-8",
-        errors="ignore"
+        errors="ignore",
+        creationflags=creation_flags,
+        startupinfo=startupinfo
     )
     return res.returncode, res.stdout.strip(), res.stderr.strip()
 
