@@ -47,7 +47,7 @@ def update_status(status, message, details=None):
 
 def run_git(args, cwd=ROOT_DIR):
     cmd = [GIT_EXE] + args
-    creation_flags = 0x08000000 if sys.platform == "win32" else 0
+    creation_flags = 0x08000000 | 0x00000200 if sys.platform == "win32" else 0
     startupinfo = None
     if sys.platform == "win32":
         startupinfo = subprocess.STARTUPINFO()
@@ -56,6 +56,7 @@ def run_git(args, cwd=ROOT_DIR):
     res = subprocess.run(
         cmd,
         cwd=cwd,
+        stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
