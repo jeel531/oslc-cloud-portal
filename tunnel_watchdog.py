@@ -108,6 +108,22 @@ def write_share_links(url: str):
             STATUS_FILE.write_text(json.dumps({"url": url, "updated_at": time.strftime("%Y-%m-%d %H:%M:%S")}, indent=2), encoding="utf-8")
         except Exception as je:
             print(f"[WATCHDOG] Failed to save live_url.json: {je}")
+
+        # Direct instant update of Surge domains (oslcerp-live.surge.sh & cerp-live.surge.sh)
+        try:
+            surge_script = Path(r"D:\JEEL VAGHANI\OSLC ERP\OSLC-PENDING-LIVE-ERP-V17-CATEGORY-LIVE\scratch\update_fixed_link.py")
+            if surge_script.exists():
+                cf = 0x08000000 if sys.platform == "win32" else 0
+                si = None
+                if sys.platform == "win32":
+                    si = subprocess.STARTUPINFO()
+                    si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                    si.wShowWindow = 0
+                subprocess.Popen([sys.executable, str(surge_script), url], creationflags=cf, startupinfo=si)
+                print(f"[WATCHDOG] Triggered instant Surge update to: {url}")
+        except Exception as sge:
+            print(f"[WATCHDOG] Surge trigger error: {sge}")
+
         # 5. Run sync_all_devices to update Surge and all 15 REPRR project launchers
         try:
             sync_script = ROOT / "sync_all_devices.py"
