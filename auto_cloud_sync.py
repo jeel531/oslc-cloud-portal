@@ -138,7 +138,7 @@ def main():
                 sync_now(changed)
         except Exception as e:
             print(f"[LOOP ERROR] {e}")
-        time.sleep(15)
+        time.sleep(180)
 
 if __name__ == "__main__":
     main()
