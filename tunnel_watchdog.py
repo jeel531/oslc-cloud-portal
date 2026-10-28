@@ -128,6 +128,16 @@ def run_tunnel():
 
     url_regex = re.compile(r"https://[a-zA-Z0-9-]+\.trycloudflare\.com")
 
+    # Clean up any existing instances on 8080
+    if sys.platform == "win32":
+        try:
+            subprocess.run(
+                ["powershell", "-NoProfile", "-Command", "Get-CimInstance Win32_Process -Filter \"Name = 'cloudflared.exe'\" | Where-Object { $_.CommandLine -like '*8080*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"],
+                creationflags=0x08000000
+            )
+        except Exception:
+            pass
+
     while True:
         cmd = [
             str(CLOUDFLARED),
