@@ -2496,12 +2496,12 @@ def export_excel_report(
                     ind_buf = io.BytesIO()
                     wb_ind.save(ind_buf)
                     clean_name = re.sub(r'[\\/*?:\[\]]', '_', w_name).strip()
-                    zf.writestr(f"OSLC_{clean_name}_{from_date}_to_{to_date}.xlsx", ind_buf.getvalue())
+                    zf.writestr(f"OSLC_Salary_{clean_name}_{from_date}_to_{to_date}_{shift}.xlsx", ind_buf.getvalue())
 
             return Response(
                 content=zip_buffer.getvalue(),
                 media_type="application/zip",
-                headers={"Content-Disposition": f"attachment; filename=OSLC_Workers_Individual_Excels_{from_date}_to_{to_date}.zip"}
+                headers={"Content-Disposition": f"attachment; filename=OSLC_Salary_All_Workers_Separate_Files_{from_date}_to_{to_date}_{shift}.zip"}
             )
 
         # -------------------------------------------------------------------------

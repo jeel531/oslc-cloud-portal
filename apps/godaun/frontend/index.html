@@ -337,6 +337,10 @@
 
             <!-- Action Buttons Row: Daily Hours Entry + Worker Settings + Download Excel -->
             <div class="excel-action-wrap dual-actions-wrap tri-actions-wrap">
+              <button type="button" id="btnDownloadAllSeparateExcel" class="btn-all-separate-excel" onclick="window.downloadSeparateExcelFiles()" title="બધા જ કારીગરોની અલગ અલગ Excel ફાઇલ ડાઉનલોડ કરો (OSLC_Salary_કારીગર.xls)">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>📥 તમામની અલગ અલગ Excel (ALL SEPARATE .xls)</span>
+              </button>
               <button type="button" id="btnOpenAllMonthDatewise" class="btn-all-month-primary" onclick="window.openDatewiseBreakdown('ALL')" aria-label="Open All Month Datewise Report">
                 <span class="btn-hours-icon">📊</span>
                 <span>આખા મહિનાનો તમામ રિપોર્ટ (ALL MONTH REPORT)</span>
@@ -453,12 +457,12 @@
             <button type="button" id="btnViewCombinedMonthReport" class="btn-sel-action btn-sel-primary" title="પસંદ કરેલા કારીગરોનો આખા મહિનાનો તારીખ વાઈઝ રિપોર્ટ">
               <span>📅 આખા મહિનાનો રિપોર્ટ જુઓ</span>
             </button>
-            <button type="button" id="btnDownloadCombinedMonthExcel" class="btn-sel-action btn-sel-excel" title="પસંદ કરેલા કારીગરોનું એક સાથે આખા મહિનાનું Excel (દરેક કારીગર અલગ શીટ)">
+            <button type="button" id="btnDownloadSelectedSeparateExcel" class="btn-sel-action btn-sel-excel" onclick="window.downloadSeparateExcelFiles()" title="પસંદ કરેલા દરેક કારીગરની અલગ અલગ Excel ફાઇલ (.xls) ડાઉનલોડ કરો">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              <span>📥 મલ્ટી-શીટ Excel (બધાની અલગ ટેબ)</span>
+              <span>📥 દરેકની અલગ અલગ Excel (.xls)</span>
             </button>
-            <button type="button" id="btnDownloadCombinedZip" class="btn-sel-action btn-sel-zip" title="પસંદ કરેલા તમામ કારીગરોની અલગ અલગ Excel ફાઇલ એક ઝિપમાં ડાઉનલોડ કરો">
-              <span>📦 અલગ અલગ Excel (ZIP)</span>
+            <button type="button" id="btnDownloadCombinedZip" class="btn-sel-action btn-sel-zip" onclick="window.downloadCombinedZip()" title="પસંદ કરેલા તમામ કારીગરોની અલગ અલગ Excel ફાઇલ એક ઝિપમાં ડાઉનલોડ કરો">
+              <span>📦 તમામ અલગ Excel (ZIP)</span>
             </button>
             <button type="button" id="btnClearSelectedWorkers" class="btn-sel-action btn-sel-clear">
               <span>✕ ક્લિયર</span>
@@ -1349,7 +1353,7 @@
               <button type="button" class="comb-tab-pill" id="btnDwTabWorkers" onclick="window.setDwTabMode('workers')">👤 કારીગર સમરી (Worker Total)</button>
             </div>
           </div>
-          <div style="display:flex; align-items:center; gap:8px;">
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             <button id="btnDownloadUserExcel" class="btn-excel-small" aria-label="Download User Excel">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -1357,6 +1361,9 @@
                 <line x1="12" y1="15" x2="12" y2="3"></line>
               </svg>
               <span id="btnDownloadUserExcelText">આ વ્યક્તિનું Excel ડાઉનલોડ કરો</span>
+            </button>
+            <button id="btnDownloadAllSepInModal" type="button" class="btn-excel-small btn-sep-small hidden" onclick="window.downloadSeparateExcelFiles()" title="બધા કારીગરોની અલગ અલગ Excel ફાઇલ (.xls) ડાઉનલોડ કરો">
+              <span>📥 તમામની અલગ અલગ Excel (.xls)</span>
             </button>
             <button id="btnDownloadUserZip" type="button" class="btn-excel-small btn-zip-small hidden" onclick="window.downloadCombinedZip()" title="બધા કારીગરોની અલગ અલગ Excel ફાઇલ એક ZIP માં ડાઉનલોડ કરો">
               <span>📦 અલગ અલગ Excel (ZIP)</span>

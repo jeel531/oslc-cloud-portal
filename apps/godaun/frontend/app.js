@@ -3018,6 +3018,8 @@
   function handleExcelClick() {
     if (currentUser && currentUser.role === 'worker') {
       triggerExcelDownload(currentUser.worker_name);
+    } else if (selectedWorkerNames && selectedWorkerNames.size > 0) {
+      window.downloadSeparateExcelFiles(Array.from(selectedWorkerNames));
     } else {
       triggerExcelDownload('');
     }
@@ -3043,6 +3045,7 @@
   const btnDwTabWorkers = document.getElementById('btnDwTabWorkers');
   const btnDownloadUserExcelText = document.getElementById('btnDownloadUserExcelText');
   const btnDownloadUserZip = document.getElementById('btnDownloadUserZip');
+  const btnDownloadAllSepInModal = document.getElementById('btnDownloadAllSepInModal');
 
   const thDwDate = document.getElementById('thDwDate');
   const thDwWorkerName = document.getElementById('thDwWorkerName');
@@ -3454,6 +3457,7 @@
 
       if (datewiseViewPills) datewiseViewPills.classList.remove('hidden');
       if (btnDatewiseViewToggleAll) btnDatewiseViewToggleAll.innerHTML = '<span>👤 સિંગલ કર્મચારી પર જાઓ</span>';
+      if (btnDownloadAllSepInModal) btnDownloadAllSepInModal.classList.remove('hidden');
       if (btnDownloadUserZip) btnDownloadUserZip.classList.remove('hidden');
       if (btnDownloadUserExcelText) btnDownloadUserExcelText.textContent = '📥 મલ્ટી-ટેબ Excel (બધાની અલગ શીટ)';
 
@@ -3495,6 +3499,7 @@
 
     if (datewiseViewPills) datewiseViewPills.classList.add('hidden');
     if (btnDatewiseViewToggleAll) btnDatewiseViewToggleAll.innerHTML = '<span>👥 બધા કારીગરો એક સાથે (ALL)</span>';
+    if (btnDownloadAllSepInModal) btnDownloadAllSepInModal.classList.add('hidden');
     if (btnDownloadUserZip) btnDownloadUserZip.classList.add('hidden');
     if (btnDownloadUserExcelText) btnDownloadUserExcelText.textContent = 'આ વ્યક્તિનું Excel ડાઉનલોડ કરો';
 
