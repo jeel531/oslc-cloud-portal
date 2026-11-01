@@ -2496,6 +2496,7 @@ def export_excel_report(
                     ind_buf = io.BytesIO()
                     wb_ind.save(ind_buf)
                     clean_name = re.sub(r'[\\/*?:\[\]]', '_', w_name).strip()
+                    zf.writestr(f"OSLC_Salary_{clean_name}_{from_date}_to_{to_date}_{shift}.xls", ind_buf.getvalue())
                     zf.writestr(f"OSLC_Salary_{clean_name}_{from_date}_to_{to_date}_{shift}.xlsx", ind_buf.getvalue())
 
             return Response(

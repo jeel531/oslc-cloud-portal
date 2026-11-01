@@ -3015,16 +3015,74 @@
     document.body.removeChild(link);
   }
 
+  window.downloadSeparateExcelFiles = async function(workersList = null) {
+    let targetWorkers = [];
+    if (workersList && Array.isArray(workersList) && workersList.length > 0) {
+      targetWorkers = workersList;
+    } else if (selectedWorkerNames && selectedWorkerNames.size > 0) {
+      targetWorkers = Array.from(selectedWorkerNames);
+    } else {
+      const known = getKnownWorkersList();
+      targetWorkers = (known && known.length > 0) ? known : (rawSalaryRows || []).map(r => r.name);
+    }
+
+    if (!targetWorkers || targetWorkers.length === 0) {
+      showToast('કૃપા કરીને ઓછામાં ઓછો ૧ કારીગર સિલેક્ટ કરો!', '⚠️');
+      return;
+    }
+
+    showToast(`⏳ ${targetWorkers.length} કારીગરોની અલગ-અલગ Excel ફાઇલ ડાઉનલોડ થઈ રહી છે...`, '📥');
+
+    // 1. Download each worker's individual .xls file
+    for (let i = 0; i < targetWorkers.length; i++) {
+      const w = targetWorkers[i];
+      try {
+        await triggerExcelDownload(w);
+      } catch (err) {
+        console.warn('Error downloading separate excel for:', w, err);
+      }
+      if (i < targetWorkers.length - 1) {
+        await new Promise(res => setTimeout(res, 450));
+      }
+    }
+
+    // 2. Also trigger the ZIP download so user has all of them in 1 guaranteed package
+    try {
+      const fromD = salaryFromDate || todayStr;
+      const toD = salaryToDate || todayStr;
+      const curInRate = parseFloat(inRateInput ? inRateInput.value : 0.20) || 0.20;
+      const curOutRate = parseFloat(outRateInput ? outRateInput.value : 0.35) || 0.35;
+      const workersParam = targetWorkers.join(',');
+      const zipUrl = `${currentApiBase}/api/godaun/export-excel?report_type=combined&format=zip&from_date=${fromD}&to_date=${toD}&workers=${encodeURIComponent(workersParam)}&in_rate=${curInRate}&out_rate=${curOutRate}&shift=${selectedSalaryShift}&mode=${adminDeductionMode}`;
+
+      setTimeout(() => {
+        const link = document.createElement('a');
+        link.href = zipUrl;
+        link.setAttribute('download', `OSLC_Salary_All_${targetWorkers.length}_Workers_Separate_${fromD}_to_${toD}_${selectedSalaryShift}.zip`);
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => document.body.removeChild(link), 1500);
+      }, 700);
+    } catch (zipErr) {
+      console.warn('ZIP bundle trigger error:', zipErr);
+    }
+
+    showToast(`✅ પસંદ કરેલા તમામ ${targetWorkers.length} કારીગરોની અલગ અલગ Excel ફાઇલો સફળતાપૂર્વક ડાઉનલોડ થઈ ગઈ!`, '🎉');
+  };
+
   function handleExcelClick() {
     if (currentUser && currentUser.role === 'worker') {
       triggerExcelDownload(currentUser.worker_name);
-    } else if (selectedWorkerNames && selectedWorkerNames.size > 0) {
-      window.downloadSeparateExcelFiles(Array.from(selectedWorkerNames));
-    } else {
-      triggerExcelDownload('');
+      return;
     }
+    if (selectedWorkerNames && selectedWorkerNames.size > 0) {
+      window.downloadSeparateExcelFiles(Array.from(selectedWorkerNames));
+      return;
+    }
+    window.downloadSeparateExcelFiles();
   }
-  if (btnDownloadExcel) btnDownloadExcel.addEventListener('click', () => triggerExcelDownload(''));
+
+  if (btnDownloadExcel) btnDownloadExcel.addEventListener('click', handleExcelClick);
   if (headerExcelBtn) headerExcelBtn.addEventListener('click', handleExcelClick);
   if (navBtnExcelBottom) navBtnExcelBottom.addEventListener('click', handleExcelClick);
 
