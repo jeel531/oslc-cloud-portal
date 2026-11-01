@@ -10,6 +10,8 @@ from pathlib import Path
 from typing import Any, Optional
 import pyodbc
 import io
+import zipfile
+import re
 import urllib.parse
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -2187,6 +2189,18 @@ def auto_send_chori_whatsapp_alias(
 ):
     return send_chori_erp_whatsapp(from_date, to_date, shift, process, user, phone)
 
+def make_valid_sheet_title(name: str, existing_titles: set) -> str:
+    cleaned = re.sub(r'[\\/*?:\[\]]', '_', str(name)).strip()[:28]
+    if not cleaned:
+        cleaned = "Worker"
+    title = cleaned
+    idx = 1
+    while title.lower() in existing_titles:
+        title = f"{cleaned[:25]}_{idx}"
+        idx += 1
+    existing_titles.add(title.lower())
+    return title
+
 @app.get("/api/godaun/export-excel")
 def export_excel_report(
     from_date: str = "",
@@ -2199,7 +2213,8 @@ def export_excel_report(
     shift: str = "all",
     report_type: str = "salary",
     process: str = "all",
-    mode: str = "gross"
+    mode: str = "gross",
+    format: str = "excel"
 ):
     if not from_date:
         from_date = datetime.now().strftime("%Y-%m-%d")
@@ -2323,70 +2338,293 @@ def export_excel_report(
         days = comb_data["days"]
         totals = comb_data["totals"]
         worker_sums = comb_data["workers"]
+        daily_sums = comb_data.get("daily_summaries", [])
 
-        ws.title = "તારીખ પ્રમાણે (Day-by-Day)"
-        in_title = "IN (GROSS)" if is_gross else "IN (NET)"
-        out_title = "OUT (GROSS)" if is_gross else "OUT (NET)"
-        tot_title = "TOTAL PC (GROSS)" if is_gross else "TOTAL PC (NET)"
-        headers = ["DATE (તારીખ)", "NAME (કર્મચારી)", "TYPE (પ્રકાર)", in_title, f"{in_rate:.2f}", out_title, f"{out_rate:.2f}", tot_title, "CHORI PC", "HOURS (કલાક)", "TOTAL AMT", "TIME RANGE (સમય)"]
-        ws.append(headers)
+        # Group daywise records by worker name
+        worker_days_map: Dict[str, list] = {}
+        for r in days:
+            w = r.get("worker_name", "").strip()
+            if not w:
+                continue
+            if w not in worker_days_map:
+                worker_days_map[w] = []
+            worker_days_map[w].append(r)
 
-        for col_idx in range(1, len(headers) + 1):
-            cell = ws.cell(row=1, column=col_idx)
-            cell.font = header_font
-            cell.fill = header_fill
-            cell.alignment = Alignment(horizontal="center" if col_idx > 2 else "left", vertical="center")
+        # -------------------------------------------------------------------------
+        # OPTION 1: ZIP ARCHIVE OF INDIVIDUAL EXCEL FILES (ONE FILE PER WORKER)
+        # -------------------------------------------------------------------------
+        if (format or "").lower().strip() == "zip":
+            zip_buffer = io.BytesIO()
+            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+                # 1. Summary File
+                wb_sum = openpyxl.Workbook()
+                ws_sum = wb_sum.active
+                ws_sum.title = "કર્મચારી સમરી"
+                headers_sum = ["#", "NAME (કર્મચારી)", "TYPE (પ્રકાર)", "કામના દિવસો (DAYS)", "ઇનવર્ડ પીસ", "ઇનવર્ડ રકમ", "આઉટવર્ડ પીસ", "આઉટવર્ડ રકમ", "કુલ પીસ (TOTAL PC)", "ચોરી પીસ", "કુલ કલાક", "કુલ રકમ (TOTAL AMT)"]
+                ws_sum.append(headers_sum)
+                for ci in range(1, len(headers_sum) + 1):
+                    c = ws_sum.cell(row=1, column=ci)
+                    c.font = header_font
+                    c.fill = header_fill
+                    c.alignment = Alignment(horizontal="center" if ci > 3 else "left", vertical="center")
 
-        for r_idx, r in enumerate(days, start=2):
-            cur_in = r.get("gross_in_pcs", r["in_pcs"]) if is_gross else r["in_pcs"]
-            cur_in_amt = r.get("gross_in_amt", r["in_amt"]) if is_gross else r["in_amt"]
-            cur_out = r.get("gross_out_pcs", r["out_pcs"]) if is_gross else r["out_pcs"]
-            cur_out_amt = r.get("gross_out_amt", r["out_amt"]) if is_gross else r["out_amt"]
-            cur_tot_pc = r.get("gross_total_pc", r["total_pc"]) if is_gross else r["total_pc"]
-            cur_tot_amt = r.get("gross_total_amt", r["total_amt"]) if is_gross else r["total_amt"]
+                for ri, w in enumerate(worker_sums, start=2):
+                    w_in = w.get("gross_in_pcs", w["in_pcs"]) if is_gross else w["in_pcs"]
+                    w_out = w.get("gross_out_pcs", w["out_pcs"]) if is_gross else w["out_pcs"]
+                    w_in_amt = round(w_in * in_rate, 2)
+                    w_out_amt = round(w_out * out_rate, 2)
+                    w_tot_pc = w_in + w_out
+                    w_tot_amt = round(w_in_amt + w_out_amt, 2)
+                    ws_sum.append([
+                        ri - 1,
+                        w["name"],
+                        "PIECE RATE (પીસ)" if w.get("is_piece") else "FIX (ફિક્સ)",
+                        w["days_count"],
+                        w_in,
+                        w_in_amt,
+                        w_out,
+                        w_out_amt,
+                        w_tot_pc,
+                        w.get("dupe_total_pc", 0),
+                        w["hours"],
+                        w_tot_amt
+                    ])
+                    for ci in range(1, len(headers_sum) + 1):
+                        c = ws_sum.cell(row=ri, column=ci)
+                        c.border = thin_border
+                        if ci in (6, 8, 12): c.fill = tot_amt_fill
+                        elif ci == 10: c.fill = dupe_fill
+                        elif ci == 11: c.fill = hours_fill
 
+                for col in ws_sum.columns:
+                    ml = max(len(str(cell.value or "")) for cell in col)
+                    ws_sum.column_dimensions[get_column_letter(col[0].column)].width = max(ml + 3, 12)
+
+                sum_buf = io.BytesIO()
+                wb_sum.save(sum_buf)
+                zf.writestr(f"00_OSLC_ALL_WORKERS_SUMMARY_{from_date}_to_{to_date}.xlsx", sum_buf.getvalue())
+
+                # 2. Individual Excel file per worker
+                for w_name, w_days in worker_days_map.items():
+                    wb_ind = openpyxl.Workbook()
+                    ws_ind = wb_ind.active
+                    ws_ind.title = "તારીખ પ્રમાણે હિસાબ"
+                    is_p = any(r.get("is_piece") for r in w_days)
+                    type_str = "🟢 PIECE RATE (પીસ રેટ)" if is_p else "🏢 FIX (ફિક્સ પગાર)"
+
+                    # Banner
+                    ws_ind.append([f"કર્મચારી: {w_name} | પ્રકાર: {type_str} | સમયગાળો: {from_date} થી {to_date}"])
+                    ws_ind.merge_cells("A1:J1")
+                    b_cell = ws_ind.cell(row=1, column=1)
+                    b_cell.font = Font(name="Calibri", size=13, bold=True, color="FFFFFF")
+                    b_cell.fill = header_fill
+                    b_cell.alignment = Alignment(horizontal="center", vertical="center")
+                    ws_ind.row_dimensions[1].height = 28
+
+                    headers_ind = ["DATE (તારીખ)", "IN", f"{in_rate:.2f}", "OUT", f"{out_rate:.2f}", "TOTAL PC", "CHORI PC", "HOURS (કલાક)", "TOTAL AMT", "TIME RANGE (સમય)"]
+                    ws_ind.append(headers_ind)
+                    for ci in range(1, len(headers_ind) + 1):
+                        c = ws_ind.cell(row=2, column=ci)
+                        c.font = header_font
+                        c.fill = PatternFill(start_color="1E3A8A", end_color="1E3A8A", fill_type="solid")
+                        c.alignment = Alignment(horizontal="center", vertical="center")
+
+                    w_tot_in = sum(r.get("gross_in_pcs", r["in_pcs"]) if is_gross else r["in_pcs"] for r in w_days)
+                    w_tot_out = sum(r.get("gross_out_pcs", r["out_pcs"]) if is_gross else r["out_pcs"] for r in w_days)
+                    w_tot_in_amt = round(w_tot_in * in_rate, 2)
+                    w_tot_out_amt = round(w_tot_out * out_rate, 2)
+                    w_tot_pc = w_tot_in + w_tot_out
+                    w_tot_amt = round(w_tot_in_amt + w_tot_out_amt, 2) if is_p else 0.0
+                    w_tot_hours = round(sum(r.get("hours", 0.0) for r in w_days), 1)
+                    w_tot_dupe = sum(r.get("dupe_total_pc", 0) for r in w_days)
+
+                    for ri, r in enumerate(w_days, start=3):
+                        c_in = r.get("gross_in_pcs", r["in_pcs"]) if is_gross else r["in_pcs"]
+                        c_in_amt = r.get("gross_in_amt", r["in_amt"]) if is_gross else r["in_amt"]
+                        c_out = r.get("gross_out_pcs", r["out_pcs"]) if is_gross else r["out_pcs"]
+                        c_out_amt = r.get("gross_out_amt", r["out_amt"]) if is_gross else r["out_amt"]
+                        c_tot_pc = r.get("gross_total_pc", r["total_pc"]) if is_gross else r["total_pc"]
+                        c_tot_amt = r.get("gross_total_amt", r["total_amt"]) if is_gross else r["total_amt"]
+
+                        ws_ind.append([
+                            r["formatted_date"],
+                            c_in,
+                            c_in_amt,
+                            c_out,
+                            c_out_amt,
+                            c_tot_pc,
+                            r.get("dupe_total_pc", 0),
+                            r.get("hours", 0.0),
+                            c_tot_amt if is_p else "FIX",
+                            r.get("time_range", "-")
+                        ])
+                        for ci in range(1, len(headers_ind) + 1):
+                            c = ws_ind.cell(row=ri, column=ci)
+                            c.border = thin_border
+                            if ci == 3: c.fill = amt_in_fill
+                            elif ci == 5: c.fill = amt_out_fill
+                            elif ci == 7: c.fill = dupe_fill
+                            elif ci == 8: c.fill = hours_fill
+                            elif ci == 9: c.fill = tot_amt_fill
+                            elif ci == 10: c.fill = time_fill
+
+                    tot_row = len(w_days) + 3
+                    ws_ind.append([
+                        f"TOTAL ({len(w_days)} દિવસ)",
+                        w_tot_in,
+                        w_tot_in_amt,
+                        w_tot_out,
+                        w_tot_out_amt,
+                        w_tot_pc,
+                        w_tot_dupe,
+                        w_tot_hours,
+                        w_tot_amt if is_p else "FIX",
+                        comb_data.get("shift_label", "")
+                    ])
+                    for ci in range(1, len(headers_ind) + 1):
+                        c = ws_ind.cell(row=tot_row, column=ci)
+                        c.font = Font(name="Calibri", size=11, bold=True)
+                        c.border = thin_border
+                        if ci == 7: c.fill = dupe_fill
+                        elif ci == 8: c.fill = hours_fill
+                        elif ci == 9: c.fill = PatternFill(start_color="F6B26B", end_color="F6B26B", fill_type="solid")
+
+                    for col in ws_ind.columns:
+                        ml = max(len(str(cell.value or "")) for cell in col)
+                        ws_ind.column_dimensions[get_column_letter(col[0].column)].width = max(ml + 3, 12)
+
+                    ind_buf = io.BytesIO()
+                    wb_ind.save(ind_buf)
+                    clean_name = re.sub(r'[\\/*?:\[\]]', '_', w_name).strip()
+                    zf.writestr(f"OSLC_{clean_name}_{from_date}_to_{to_date}.xlsx", ind_buf.getvalue())
+
+            return Response(
+                content=zip_buffer.getvalue(),
+                media_type="application/zip",
+                headers={"Content-Disposition": f"attachment; filename=OSLC_Workers_Individual_Excels_{from_date}_to_{to_date}.zip"}
+            )
+
+        # -------------------------------------------------------------------------
+        # OPTION 2: MULTI-SHEET WORKBOOK (INDIVIDUAL TAB SHEET PER WORKER)
+        # -------------------------------------------------------------------------
+        existing_titles = set()
+
+        # Sheet 1: Worker Summary (કર્મચારી સમરી)
+        ws.title = make_valid_sheet_title("કર્મચારી સમરી (Summary)", existing_titles)
+        headers_sum = ["#", "NAME (કર્મચારી)", "TYPE (પ્રકાર)", "કામના દિવસો (DAYS)", "ઇનવર્ડ પીસ", "ઇનવર્ડ રકમ", "આઉટવર્ડ પીસ", "આઉટવર્ડ રકમ", "કુલ પીસ (TOTAL PC)", "ચોરી પીસ", "HOURS (કુલ કલાક)", "TOTAL AMT (કુલ રકમ)"]
+        ws.append(headers_sum)
+        for ci in range(1, len(headers_sum) + 1):
+            c = ws.cell(row=1, column=ci)
+            c.font = header_font
+            c.fill = header_fill
+            c.alignment = Alignment(horizontal="center" if ci > 3 else "left", vertical="center")
+
+        for ri, w in enumerate(worker_sums, start=2):
+            w_in_pcs = w.get("gross_in_pcs", w["in_pcs"]) if is_gross else w["in_pcs"]
+            w_out_pcs = w.get("gross_out_pcs", w["out_pcs"]) if is_gross else w["out_pcs"]
+            w_in_amt = round(w_in_pcs * in_rate, 2)
+            w_out_amt = round(w_out_pcs * out_rate, 2)
+            w_tot_pc = w_in_pcs + w_out_pcs
+            w_tot_amt = round(w_in_amt + w_out_amt, 2)
             ws.append([
-                r["formatted_date"],
-                r["worker_name"],
-                "PIECE RATE (પીસ)" if r.get("is_piece") else "FIX (ફિક્સ)",
-                cur_in,
-                cur_in_amt,
-                cur_out,
-                cur_out_amt,
-                cur_tot_pc,
-                r.get("dupe_total_pc", 0),
-                r.get("hours", 0.0),
-                cur_tot_amt,
-                r.get("time_range", "-")
+                ri - 1,
+                w["name"],
+                "PIECE RATE (પીસ)" if w.get("is_piece") else "FIX (ફિક્સ)",
+                w["days_count"],
+                w_in_pcs,
+                w_in_amt,
+                w_out_pcs,
+                w_out_amt,
+                w_tot_pc,
+                w.get("dupe_total_pc", 0),
+                w["hours"],
+                w_tot_amt
             ])
-            for col_idx in range(1, len(headers) + 1):
-                c = ws.cell(row=r_idx, column=col_idx)
+            for ci in range(1, len(headers_sum) + 1):
+                c = ws.cell(row=ri, column=ci)
                 c.border = thin_border
-                if col_idx == 5:
-                    c.fill = amt_in_fill
-                elif col_idx == 7:
-                    c.fill = amt_out_fill
-                elif col_idx == 9:
-                    c.fill = dupe_fill
-                elif col_idx == 10:
-                    c.fill = hours_fill
-                elif col_idx == 11:
-                    c.fill = tot_amt_fill
-                elif col_idx == 12:
-                    c.fill = time_fill
+                if ci in (6, 8, 12): c.fill = tot_amt_fill
+                elif ci == 10: c.fill = dupe_fill
+                elif ci == 11: c.fill = hours_fill
 
-        tot_row_idx = len(days) + 2
+        # Summary Total Row
+        tot_sum_row = len(worker_sums) + 2
         f_in = totals.get("gross_in_pcs", totals["in_pcs"]) if is_gross else totals["in_pcs"]
         f_in_amt = round(f_in * in_rate, 2)
         f_out = totals.get("gross_out_pcs", totals["out_pcs"]) if is_gross else totals["out_pcs"]
         f_out_amt = round(f_out * out_rate, 2)
         f_tot_pc = f_in + f_out
         f_tot_amt = round(f_in_amt + f_out_amt, 2)
-
         ws.append([
             "TOTAL",
-            f"{totals.get('workers_count', 0)} વ્યક્તિ",
+            f"{totals.get('workers_count', 0)} કારીગરો",
             f"{totals.get('days_count', 0)} દિવસ",
+            "-",
+            f_in,
+            f_in_amt,
+            f_out,
+            f_out_amt,
+            f_tot_pc,
+            totals.get("dupe_total_pc", 0),
+            totals.get("hours", 0.0),
+            f_tot_amt
+        ])
+        for ci in range(1, len(headers_sum) + 1):
+            c = ws.cell(row=tot_sum_row, column=ci)
+            c.font = Font(name="Calibri", size=11, bold=True)
+            c.border = thin_border
+            if ci in (6, 8, 12): c.fill = PatternFill(start_color="F6B26B", end_color="F6B26B", fill_type="solid")
+            elif ci == 10: c.fill = dupe_fill
+            elif ci == 11: c.fill = hours_fill
+
+        for col in ws.columns:
+            ml = max(len(str(cell.value or "")) for cell in col)
+            ws.column_dimensions[get_column_letter(col[0].column)].width = max(ml + 3, 12)
+
+        # Sheet 2: Daily Combined Totals (રોજનો સંયુક્ત સરવાળો)
+        ws_daily = wb.create_sheet(title=make_valid_sheet_title("રોજનો સરવાળો (Daily Total)", existing_titles))
+        headers_daily = ["DATE (તારીખ)", "કારીગરો", "IN (પીસ)", f"{in_rate:.2f}", "OUT (પીસ)", f"{out_rate:.2f}", "TOTAL PC", "CHORI PC", "HOURS (કલાક)", "TOTAL AMT", "TIME RANGE"]
+        ws_daily.append(headers_daily)
+        for ci in range(1, len(headers_daily) + 1):
+            c = ws_daily.cell(row=1, column=ci)
+            c.font = header_font
+            c.fill = PatternFill(start_color="1E3A8A", end_color="1E3A8A", fill_type="solid")
+            c.alignment = Alignment(horizontal="center", vertical="center")
+
+        for ri, d in enumerate(daily_sums, start=2):
+            d_in = d.get("gross_in_pcs", d["in_pcs"]) if is_gross else d["in_pcs"]
+            d_out = d.get("gross_out_pcs", d["out_pcs"]) if is_gross else d["out_pcs"]
+            d_in_amt = round(d_in * in_rate, 2)
+            d_out_amt = round(d_out * out_rate, 2)
+            d_tot_pc = d_in + d_out
+            d_tot_amt = round(d_in_amt + d_out_amt, 2)
+            ws_daily.append([
+                d.get("formatted_date", d["date"]),
+                f"{d['workers_count']} જણા",
+                d_in,
+                d_in_amt,
+                d_out,
+                d_out_amt,
+                d_tot_pc,
+                d.get("dupe_total_pc", 0),
+                d.get("hours", 0.0),
+                d_tot_amt,
+                "આખો દિવસ"
+            ])
+            for ci in range(1, len(headers_daily) + 1):
+                c = ws_daily.cell(row=ri, column=ci)
+                c.border = thin_border
+                if ci == 4: c.fill = amt_in_fill
+                elif ci == 6: c.fill = amt_out_fill
+                elif ci == 8: c.fill = dupe_fill
+                elif ci == 9: c.fill = hours_fill
+                elif ci == 10: c.fill = tot_amt_fill
+                elif ci == 11: c.fill = time_fill
+
+        tot_daily_row = len(daily_sums) + 2
+        ws_daily.append([
+            f"TOTAL ({len(daily_sums)} દિવસ)",
+            f"{totals.get('workers_count', 0)} કારીગરો",
             f_in,
             f_in_amt,
             f_out,
@@ -2397,61 +2635,151 @@ def export_excel_report(
             f_tot_amt,
             comb_data.get("shift_label", "")
         ])
-        for col_idx in range(1, len(headers) + 1):
-            c = ws.cell(row=tot_row_idx, column=col_idx)
+        for ci in range(1, len(headers_daily) + 1):
+            c = ws_daily.cell(row=tot_daily_row, column=ci)
             c.font = Font(name="Calibri", size=11, bold=True)
             c.border = thin_border
-            if col_idx == 9:
-                c.fill = dupe_fill
-            elif col_idx == 10:
-                c.fill = hours_fill
-            elif col_idx == 11:
-                c.fill = PatternFill(start_color="F6B26B", end_color="F6B26B", fill_type="solid")
+            if ci in (4, 6, 10): c.fill = PatternFill(start_color="F6B26B", end_color="F6B26B", fill_type="solid")
+            elif ci == 8: c.fill = dupe_fill
+            elif ci == 9: c.fill = hours_fill
 
-        # Sheet 2: Worker Summary
-        ws2 = wb.create_sheet(title="કર્મચારી સમરી (Summary)")
-        headers2 = ["NAME (કર્મચારી)", "TYPE (પ્રકાર)", "કામના દિવસો (DAYS)", "કુલ પીસ (TOTAL PC)", "ઇનવર્ડ પીસ", "ઇનવર્ડ રકમ", "આઉટવર્ડ પીસ", "આઉટવર્ડ રકમ", "HOURS (કુલ કલાક)", "TOTAL AMT (કુલ રકમ)"]
-        ws2.append(headers2)
-        for col_idx in range(1, len(headers2) + 1):
-            cell = ws2.cell(row=1, column=col_idx)
-            cell.font = header_font
-            cell.fill = header_fill
-            cell.alignment = Alignment(horizontal="center" if col_idx > 2 else "left", vertical="center")
+        for col in ws_daily.columns:
+            ml = max(len(str(cell.value or "")) for cell in col)
+            ws_daily.column_dimensions[get_column_letter(col[0].column)].width = max(ml + 3, 12)
 
-        for r_idx, w in enumerate(worker_sums, start=2):
-            w_in_pcs = w.get("gross_in_pcs", w["in_pcs"]) if is_gross else w["in_pcs"]
-            w_out_pcs = w.get("gross_out_pcs", w["out_pcs"]) if is_gross else w["out_pcs"]
-            w_in_amt = round(w_in_pcs * in_rate, 2)
-            w_out_amt = round(w_out_pcs * out_rate, 2)
-            w_tot_pc = w_in_pcs + w_out_pcs
-            w_tot_amt = round(w_in_amt + w_out_amt, 2)
+        # ---------------------------------------------------------------------
+        # INDIVIDUAL WORKER TAB SHEETS (EACH WORKER GETS DEDICATED SHEET)
+        # ---------------------------------------------------------------------
+        for w_name, w_days in worker_days_map.items():
+            sheet_title = make_valid_sheet_title(w_name, existing_titles)
+            ws_w = wb.create_sheet(title=sheet_title)
+            is_p = any(r.get("is_piece") for r in w_days)
+            type_str = "🟢 PIECE RATE (પીસ રેટ)" if is_p else "🏢 FIX (ફિક્સ પગાર)"
 
-            ws2.append([
-                w["name"],
-                "PIECE RATE (પીસ)" if w.get("is_piece") else "FIX (ફિક્સ)",
-                w["days_count"],
+            # Worker banner header
+            ws_w.append([f"કર્મચારી: {w_name} | પ્રકાર: {type_str} | સમયગાળો: {from_date} થી {to_date}"])
+            ws_w.merge_cells("A1:J1")
+            b_cell = ws_w.cell(row=1, column=1)
+            b_cell.font = Font(name="Calibri", size=12, bold=True, color="FFFFFF")
+            b_cell.fill = header_fill
+            b_cell.alignment = Alignment(horizontal="center", vertical="center")
+            ws_w.row_dimensions[1].height = 26
+
+            headers_w = ["DATE (તારીખ)", "IN", f"{in_rate:.2f}", "OUT", f"{out_rate:.2f}", "TOTAL PC", "CHORI PC", "HOURS (કલાક)", "TOTAL AMT", "TIME RANGE (સમય)"]
+            ws_w.append(headers_w)
+            for ci in range(1, len(headers_w) + 1):
+                c = ws_w.cell(row=2, column=ci)
+                c.font = header_font
+                c.fill = PatternFill(start_color="1E3A8A", end_color="1E3A8A", fill_type="solid")
+                c.alignment = Alignment(horizontal="center", vertical="center")
+
+            w_tot_in = sum(r.get("gross_in_pcs", r["in_pcs"]) if is_gross else r["in_pcs"] for r in w_days)
+            w_tot_out = sum(r.get("gross_out_pcs", r["out_pcs"]) if is_gross else r["out_pcs"] for r in w_days)
+            w_tot_in_amt = round(w_tot_in * in_rate, 2)
+            w_tot_out_amt = round(w_tot_out * out_rate, 2)
+            w_tot_pc = w_tot_in + w_tot_out
+            w_tot_amt = round(w_tot_in_amt + w_tot_out_amt, 2) if is_p else 0.0
+            w_tot_hours = round(sum(r.get("hours", 0.0) for r in w_days), 1)
+            w_tot_dupe = sum(r.get("dupe_total_pc", 0) for r in w_days)
+
+            for ri, r in enumerate(w_days, start=3):
+                c_in = r.get("gross_in_pcs", r["in_pcs"]) if is_gross else r["in_pcs"]
+                c_in_amt = r.get("gross_in_amt", r["in_amt"]) if is_gross else r["in_amt"]
+                c_out = r.get("gross_out_pcs", r["out_pcs"]) if is_gross else r["out_pcs"]
+                c_out_amt = r.get("gross_out_amt", r["out_amt"]) if is_gross else r["out_amt"]
+                c_tot_pc = r.get("gross_total_pc", r["total_pc"]) if is_gross else r["total_pc"]
+                c_tot_amt = r.get("gross_total_amt", r["total_amt"]) if is_gross else r["total_amt"]
+
+                ws_w.append([
+                    r["formatted_date"],
+                    c_in,
+                    c_in_amt,
+                    c_out,
+                    c_out_amt,
+                    c_tot_pc,
+                    r.get("dupe_total_pc", 0),
+                    r.get("hours", 0.0),
+                    c_tot_amt if is_p else "FIX",
+                    r.get("time_range", "-")
+                ])
+                for ci in range(1, len(headers_w) + 1):
+                    c = ws_w.cell(row=ri, column=ci)
+                    c.border = thin_border
+                    if ci == 3: c.fill = amt_in_fill
+                    elif ci == 5: c.fill = amt_out_fill
+                    elif ci == 7: c.fill = dupe_fill
+                    elif ci == 8: c.fill = hours_fill
+                    elif ci == 9: c.fill = tot_amt_fill
+                    elif ci == 10: c.fill = time_fill
+
+            tot_row = len(w_days) + 3
+            ws_w.append([
+                f"TOTAL ({len(w_days)} દિવસ)",
+                w_tot_in,
+                w_tot_in_amt,
+                w_tot_out,
+                w_tot_out_amt,
                 w_tot_pc,
-                w_in_pcs,
-                w_in_amt,
-                w_out_pcs,
-                w_out_amt,
-                w["hours"],
-                w_tot_amt
+                w_tot_dupe,
+                w_tot_hours,
+                w_tot_amt if is_p else "FIX",
+                comb_data.get("shift_label", "")
             ])
-            for col_idx in range(1, len(headers2) + 1):
-                c = ws2.cell(row=r_idx, column=col_idx)
+            for ci in range(1, len(headers_w) + 1):
+                c = ws_w.cell(row=tot_row, column=ci)
+                c.font = Font(name="Calibri", size=11, bold=True)
                 c.border = thin_border
-                if col_idx == 9:
-                    c.fill = hours_fill
-                elif col_idx == 10:
-                    c.fill = tot_amt_fill
+                if ci in (3, 5, 9): c.fill = PatternFill(start_color="F6B26B", end_color="F6B26B", fill_type="solid")
+                elif ci == 7: c.fill = dupe_fill
+                elif ci == 8: c.fill = hours_fill
 
-        for col in ws2.columns:
-            max_len = max(len(str(cell.value or "")) for cell in col)
-            col_letter = get_column_letter(col[0].column)
-            ws2.column_dimensions[col_letter].width = max(max_len + 3, 12)
+            for col in ws_w.columns:
+                ml = max(len(str(cell.value or "")) for cell in col)
+                ws_w.column_dimensions[get_column_letter(col[0].column)].width = max(ml + 3, 12)
 
-        filename = f"OSLC_Combined_Monthly_Report_{shift}_{from_date}_to_{to_date}.xlsx"
+        # Sheet Last: Master Daywise List (તમામ તારીખવાર લિસ્ટ)
+        ws_all = wb.create_sheet(title=make_valid_sheet_title("તમામ તારીખવાર લિસ્ટ", existing_titles))
+        headers_all = ["DATE (તારીખ)", "NAME (કર્મચારી)", "TYPE (પ્રકાર)", "IN", f"{in_rate:.2f}", "OUT", f"{out_rate:.2f}", "TOTAL PC", "CHORI PC", "HOURS", "TOTAL AMT", "TIME RANGE"]
+        ws_all.append(headers_all)
+        for ci in range(1, len(headers_all) + 1):
+            c = ws_all.cell(row=1, column=ci)
+            c.font = header_font
+            c.fill = header_fill
+            c.alignment = Alignment(horizontal="center" if ci > 2 else "left", vertical="center")
+
+        for ri, r in enumerate(days, start=2):
+            c_in = r.get("gross_in_pcs", r["in_pcs"]) if is_gross else r["in_pcs"]
+            c_in_amt = r.get("gross_in_amt", r["in_amt"]) if is_gross else r["in_amt"]
+            c_out = r.get("gross_out_pcs", r["out_pcs"]) if is_gross else r["out_pcs"]
+            c_out_amt = r.get("gross_out_amt", r["out_amt"]) if is_gross else r["out_amt"]
+            c_tot_pc = r.get("gross_total_pc", r["total_pc"]) if is_gross else r["total_pc"]
+            c_tot_amt = r.get("gross_total_amt", r["total_amt"]) if is_gross else r["total_amt"]
+            ws_all.append([
+                r["formatted_date"],
+                r["worker_name"],
+                "PIECE RATE" if r.get("is_piece") else "FIX",
+                c_in,
+                c_in_amt,
+                c_out,
+                c_out_amt,
+                c_tot_pc,
+                r.get("dupe_total_pc", 0),
+                r.get("hours", 0.0),
+                c_tot_amt,
+                r.get("time_range", "-")
+            ])
+            for ci in range(1, len(headers_all) + 1):
+                c = ws_all.cell(row=ri, column=ci)
+                c.border = thin_border
+                if ci in (5, 7, 11): c.fill = tot_amt_fill
+                elif ci == 9: c.fill = dupe_fill
+                elif ci == 10: c.fill = hours_fill
+
+        for col in ws_all.columns:
+            ml = max(len(str(cell.value or "")) for cell in col)
+            ws_all.column_dimensions[get_column_letter(col[0].column)].width = max(ml + 3, 12)
+
+        filename = f"OSLC_MultiSheet_Report_{shift}_{from_date}_to_{to_date}.xlsx"
 
     elif user:
         ws.title = f"{user[:20]} Daily"

@@ -453,9 +453,12 @@
             <button type="button" id="btnViewCombinedMonthReport" class="btn-sel-action btn-sel-primary" title="પસંદ કરેલા કારીગરોનો આખા મહિનાનો તારીખ વાઈઝ રિપોર્ટ">
               <span>📅 આખા મહિનાનો રિપોર્ટ જુઓ</span>
             </button>
-            <button type="button" id="btnDownloadCombinedMonthExcel" class="btn-sel-action btn-sel-excel" title="પસંદ કરેલા કારીગરોનું એક સાથે આખા મહિનાનું Excel">
+            <button type="button" id="btnDownloadCombinedMonthExcel" class="btn-sel-action btn-sel-excel" title="પસંદ કરેલા કારીગરોનું એક સાથે આખા મહિનાનું Excel (દરેક કારીગર અલગ શીટ)">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              <span>📥 આખા મહિનાનું Excel ડાઉનલોડ</span>
+              <span>📥 મલ્ટી-શીટ Excel (બધાની અલગ ટેબ)</span>
+            </button>
+            <button type="button" id="btnDownloadCombinedZip" class="btn-sel-action btn-sel-zip" title="પસંદ કરેલા તમામ કારીગરોની અલગ અલગ Excel ફાઇલ એક ઝિપમાં ડાઉનલોડ કરો">
+              <span>📦 અલગ અલગ Excel (ZIP)</span>
             </button>
             <button type="button" id="btnClearSelectedWorkers" class="btn-sel-action btn-sel-clear">
               <span>✕ ક્લિયર</span>
@@ -1341,18 +1344,24 @@
             </button>
             <div class="datewise-view-pills hidden" id="datewiseViewPills">
               <button type="button" class="comb-tab-pill active" id="btnDwTabDailySum" onclick="window.setDwTabMode('daily_sum')">📆 રોજનો કમ્બાઈન્ડ સરવાળો (Daily Total)</button>
-              <button type="button" class="comb-tab-pill" id="btnDwTabDays" onclick="window.setDwTabMode('days')">📅 તારીખવાર (Day-by-Day)</button>
+              <button type="button" class="comb-tab-pill" id="btnDwTabNameWise" onclick="window.setDwTabMode('namewise')">👥 કારીગરવાર અલગ અલગ (Name Wise)</button>
+              <button type="button" class="comb-tab-pill" id="btnDwTabDays" onclick="window.setDwTabMode('days')">📅 તારીખવાર તમામ (Day-by-Day)</button>
               <button type="button" class="comb-tab-pill" id="btnDwTabWorkers" onclick="window.setDwTabMode('workers')">👤 કારીગર સમરી (Worker Total)</button>
             </div>
           </div>
-          <button id="btnDownloadUserExcel" class="btn-excel-small" aria-label="Download User Excel">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            <span id="btnDownloadUserExcelText">આ વ્યક્તિનું Excel ડાઉનલોડ કરો</span>
-          </button>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button id="btnDownloadUserExcel" class="btn-excel-small" aria-label="Download User Excel">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span id="btnDownloadUserExcelText">આ વ્યક્તિનું Excel ડાઉનલોડ કરો</span>
+            </button>
+            <button id="btnDownloadUserZip" type="button" class="btn-excel-small btn-zip-small hidden" onclick="window.downloadCombinedZip()" title="બધા કારીગરોની અલગ અલગ Excel ફાઇલ એક ZIP માં ડાઉનલોડ કરો">
+              <span>📦 અલગ અલગ Excel (ZIP)</span>
+            </button>
+          </div>
         </div>
 
         <div class="modal-body">
