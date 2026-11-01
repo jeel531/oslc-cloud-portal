@@ -193,6 +193,93 @@
   localStorage.setItem('oslc_users_db', JSON.stringify(cachedUsers));
 
   // ========================================================
+  // WORKER TYPES & MULTI-SELECTION STATE (પીસ રેટ vs FIX & સંયુક્ત રિપોર્ટ)
+  // ========================================================
+  let workerTypesSettings = {
+    piece_rate_workers: [],
+    fix_workers: [],
+    default_daily_hours: 12.0
+  };
+  let selectedWorkerTypeFilter = 'all'; // 'all', 'piece', 'fix'
+  let selectedWorkerNames = new Set();  // Set of worker names selected for combined report
+  let combinedMonthReportData = null;
+  let combinedMonthViewMode = 'days'; // 'days' or 'workers'
+
+  function loadWorkerTypesLocal() {
+    try {
+      const saved = localStorage.getItem('oslc_worker_types');
+      if (saved) {
+        workerTypesSettings = JSON.parse(saved);
+      }
+    } catch (e) {
+      console.warn('Error loading worker types locally:', e);
+    }
+  }
+  loadWorkerTypesLocal();
+
+  function isWorkerPieceRate(workerName) {
+    if (!workerName) return true;
+    const nameUpper = String(workerName).trim().toUpperCase();
+    const fixList = (workerTypesSettings.fix_workers || []).map(x => String(x).trim().toUpperCase());
+    if (fixList.includes(nameUpper)) {
+      return false;
+    }
+    const pieceList = (workerTypesSettings.piece_rate_workers || []).map(x => String(x).trim().toUpperCase());
+    if (pieceList.length > 0) {
+      return pieceList.includes(nameUpper);
+    }
+    return true; // Default piece rate
+  }
+
+  async function syncWorkerTypesWithServer() {
+    try {
+      await resolveBestServer();
+      const res = await fetch(`${currentApiBase}/api/godaun/worker-types`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success) {
+          workerTypesSettings = {
+            piece_rate_workers: data.piece_rate_workers || [],
+            fix_workers: data.fix_workers || [],
+            default_daily_hours: data.default_daily_hours != null ? Number(data.default_daily_hours) : 12.0
+          };
+          localStorage.setItem('oslc_worker_types', JSON.stringify(workerTypesSettings));
+          return workerTypesSettings;
+        }
+      }
+    } catch (e) {
+      console.warn('Sync worker types from server failed:', e);
+    }
+    loadWorkerTypesLocal();
+    return workerTypesSettings;
+  }
+
+  async function saveWorkerTypesToServer(pieceList, fixList, defaultHours = 12.0) {
+    workerTypesSettings = {
+      piece_rate_workers: pieceList,
+      fix_workers: fixList,
+      default_daily_hours: Number(defaultHours) || 12.0
+    };
+    localStorage.setItem('oslc_worker_types', JSON.stringify(workerTypesSettings));
+
+    try {
+      await resolveBestServer();
+      const res = await fetch(`${currentApiBase}/api/godaun/worker-types`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(workerTypesSettings)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return data && data.success;
+      }
+    } catch (e) {
+      console.warn('Save worker types to server failed:', e);
+    }
+    return true;
+  }
+
+  // ========================================================
   // DAILY WORKING HOURS MANAGEMENT (કલાક એન્ટ્રી STATE)
   // ========================================================
   let dailyHoursMap = {};
@@ -551,6 +638,68 @@
   const salaryShiftPills = document.getElementById('salaryShiftPills');
   const currentShiftBannerTag = document.getElementById('currentShiftBannerTag');
 
+  // Worker Types Modal Elements
+  const btnOpenWorkerTypesModal = document.getElementById('btnOpenWorkerTypesModal');
+  const workerTypesModal = document.getElementById('workerTypesModal');
+  const btnCloseWorkerTypesModal = document.getElementById('btnCloseWorkerTypesModal');
+  const btnCancelWorkerTypes = document.getElementById('btnCancelWorkerTypes');
+  const btnSaveWorkerTypes = document.getElementById('btnSaveWorkerTypes');
+  const btnSelectAllPiece = document.getElementById('btnSelectAllPiece');
+  const btnSelectAllFix = document.getElementById('btnSelectAllFix');
+  const btnResetToDefaults = document.getElementById('btnResetToDefaults');
+  const wtWorkerSearchInput = document.getElementById('wtWorkerSearchInput');
+  const wtPieceCount = document.getElementById('wtPieceCount');
+  const wtFixCount = document.getElementById('wtFixCount');
+  const wtWorkersListContainer = document.getElementById('wtWorkersListContainer');
+  const wtStatusMsg = document.getElementById('wtStatusMsg');
+  const wtGlobalHoursInput = document.getElementById('wtGlobalHoursInput');
+
+  // Worker Type Filter Pills in Info Bar
+  const filterTypeAll = document.getElementById('filterTypeAll');
+  const filterTypePiece = document.getElementById('filterTypePiece');
+  const filterTypeFix = document.getElementById('filterTypeFix');
+  const countTypeAll = document.getElementById('countTypeAll');
+  const countTypePiece = document.getElementById('countTypePiece');
+  const countTypeFix = document.getElementById('countTypeFix');
+
+  // Worker Selection & Action Bar Elements
+  const chkSelectAllWorkers = document.getElementById('chkSelectAllWorkers');
+  const workerSelectionActionBar = document.getElementById('workerSelectionActionBar');
+  const selectedWorkersCountText = document.getElementById('selectedWorkersCountText');
+  const btnOpenCombinedMonthModal = document.getElementById('btnOpenCombinedMonthModal');
+  const btnDownloadCombinedMonthExcel = document.getElementById('btnDownloadCombinedMonthExcel');
+  const btnClearWorkerSelection = document.getElementById('btnClearWorkerSelection');
+
+  // Combined Month Report Modal Elements
+  const combinedMonthModal = document.getElementById('combinedMonthModal');
+  const btnCloseCombinedMonthModal = document.getElementById('btnCloseCombinedMonthModal');
+  const combModalSubtitle = document.getElementById('combModalSubtitle');
+  const btnCombViewDays = document.getElementById('btnCombViewDays');
+  const btnCombViewWorkers = document.getElementById('btnCombViewWorkers');
+  const combSearchInput = document.getElementById('combSearchInput');
+  const btnDownloadCombMonthExcelModal = document.getElementById('btnDownloadCombMonthExcelModal');
+  const combModalLoading = document.getElementById('combModalLoading');
+  const combKpiWorkersCount = document.getElementById('combKpiWorkersCount');
+  const combKpiDaysCount = document.getElementById('combKpiDaysCount');
+  const combKpiTotalPcs = document.getElementById('combKpiTotalPcs');
+  const combKpiInOutSplit = document.getElementById('combKpiInOutSplit');
+  const combKpiTotalHours = document.getElementById('combKpiTotalHours');
+  const combKpiAvgRate = document.getElementById('combKpiAvgRate');
+  const combKpiTotalAmt = document.getElementById('combKpiTotalAmt');
+  const combDaysTableWrap = document.getElementById('combDaysTableWrap');
+  const combDaysTable = document.getElementById('combDaysTable');
+  const combDaysTableBody = document.getElementById('combDaysTableBody');
+  const combDaysTableFoot = document.getElementById('combDaysTableFoot');
+  const combWorkersTableWrap = document.getElementById('combWorkersTableWrap');
+  const combWorkersTable = document.getElementById('combWorkersTable');
+  const combWorkersTableBody = document.getElementById('combWorkersTableBody');
+  const combWorkersTableFoot = document.getElementById('combWorkersTableFoot');
+  const thCombInRate = document.getElementById('thCombInRate');
+  const thCombOutRate = document.getElementById('thCombOutRate');
+
+  // Bulk Month Hours Auto-fill Elements
+  const inputBulkMonthHours = document.getElementById('inputBulkMonthHours');
+  const btnApplyAllMonthDays = document.getElementById('btnApplyAllMonthDays');
 
   // Datewise Modal Elements
   const userDatewiseModal = document.getElementById('userDatewiseModal');
@@ -762,6 +911,7 @@
 
     syncUsersWithServer();
     syncDailyHoursWithServer();
+    syncWorkerTypesWithServer();
   }
 
   // Logout / Switch User on badge click
@@ -1989,9 +2139,28 @@
     thInRateLabel.textContent = inRate.toFixed(2);
     thOutRateLabel.textContent = outRate.toFixed(2);
 
-    // Filter by search term
+    // Count piece vs fix across all raw rows
+    let totalPieceInAll = 0;
+    let totalFixInAll = 0;
+    rawSalaryRows.forEach(r => {
+      const isP = (r.is_piece != null) ? r.is_piece : isWorkerPieceRate(r.name);
+      if (isP) totalPieceInAll++;
+      else totalFixInAll++;
+    });
+
+    if (countTypeAll) countTypeAll.textContent = rawSalaryRows.length;
+    if (countTypePiece) countTypePiece.textContent = totalPieceInAll;
+    if (countTypeFix) countTypeFix.textContent = totalFixInAll;
+
+    // Filter by search term AND selectedWorkerTypeFilter
     const filter = nameSearchTerm.toLowerCase().trim();
-    const filteredRows = rawSalaryRows.filter(r => !filter || r.name.toLowerCase().includes(filter));
+    const filteredRows = rawSalaryRows.filter(r => {
+      if (filter && !r.name.toLowerCase().includes(filter)) return false;
+      const isP = (r.is_piece != null) ? r.is_piece : isWorkerPieceRate(r.name);
+      if (selectedWorkerTypeFilter === 'piece' && !isP) return false;
+      if (selectedWorkerTypeFilter === 'fix' && isP) return false;
+      return true;
+    });
 
     salaryUserCount.textContent = `${filteredRows.length} વ્યક્તિ`;
 
@@ -2003,7 +2172,7 @@
       }
       salaryTableBody.innerHTML = `
         <tr>
-          <td colspan="9" class="loading-cell">
+          <td colspan="11" class="loading-cell">
             કોઈ રેકોર્ડ મળ્યો નથી.
           </td>
         </tr>
@@ -2017,10 +2186,11 @@
       kpiTotalAmt.textContent = '₹0.00';
       if (kpiTotalHours) kpiTotalHours.textContent = '0 hrs';
       if (kpiAvgHours) kpiAvgHours.textContent = '0.0 Pcs/Hr';
+      updateWorkerSelectionUI(filteredRows);
       return;
     }
 
-    // 1. CALCULATE WORK & TOTAL AMOUNTS ACCORDING TO ACTIVE RATES & DEDUCTION MODE
+    // 1. CALCULATE WORK & TOTAL AMOUNTS ACCORDING TO ACTIVE RATES, TYPE & DEDUCTION MODE
     filteredRows.forEach(row => {
       let inPcs = row.in_pcs || 0;
       let outPcs = row.out_pcs || 0;
@@ -2030,11 +2200,13 @@
         outPcs = row.gross_out_pcs != null ? row.gross_out_pcs : (row.out_pcs || 0);
       }
 
+      const isPiece = (row.is_piece != null) ? row.is_piece : isWorkerPieceRate(row.name);
       const rowInAmt = Math.round((inPcs * inRate) * 100) / 100;
       const rowOutAmt = Math.round((outPcs * outRate) * 100) / 100;
       const rowTotalPc = inPcs + outPcs;
-      const rowTotalAmt = Math.round((rowInAmt + rowOutAmt) * 100) / 100;
+      const rowTotalAmt = isPiece ? Math.round((rowInAmt + rowOutAmt) * 100) / 100 : 0.0;
 
+      row._isPiece = isPiece;
       row._calcInPcs = inPcs;
       row._calcOutPcs = outPcs;
       row._calcInAmt = rowInAmt;
@@ -2045,10 +2217,10 @@
 
     // 2. STRICT SORT: HIGHEST WORK/EARNING ON TOP (#1), LOWEST AT LAST!
     filteredRows.sort((a, b) => {
-      if (b._calcTotalAmt !== a._calcTotalAmt) {
-        return b._calcTotalAmt - a._calcTotalAmt;
+      if (b._calcTotalPc !== a._calcTotalPc) {
+        return b._calcTotalPc - a._calcTotalPc;
       }
-      return b._calcTotalPc - a._calcTotalPc;
+      return b._calcTotalAmt - a._calcTotalAmt;
     });
 
     // 3. RENDER TOP 1 TO TOP 5 LEADERBOARD DASHBOARD CARDS
@@ -2066,10 +2238,16 @@
       top5List.forEach((row, idx) => {
         const conf = rankConfig[idx] || { rank: idx + 1, icon: '🎖️', rankBadge: `#${idx + 1} TOP ${idx + 1}`, glowText: `RANK ${idx + 1}`, cardClass: 'card-star' };
         const timeBadgeText = row.time_range || (row.first_time && row.last_time ? row.first_time + ' - ' + row.last_time : (row.first_time || '-'));
+        const typeBadge = row._isPiece 
+          ? `<span class="worker-type-badge badge-piece">🟢 પીસ રેટ</span>` 
+          : `<span class="worker-type-badge badge-fix">🏢 FIX પગાર</span>`;
+        const earningsText = row._isPiece 
+          ? formatCurrency(row._calcTotalAmt) 
+          : `<span style="font-size:18px; color:#38bdf8; font-weight:700;">🏢 FIX પગારદાર</span>`;
+
         top5CardsHtml += `
           <div class="top5-item-card ${conf.cardClass}" onclick="window.openDatewiseBreakdown('${row.name}')" title="${row.name} નો વિગતવાર હિસાબ જુઓ">
             
-            <!-- Top Rank Header Ribbon -->
             <div class="top5-rank-ribbon-bar">
               <div class="top5-rank-badge">
                 <span class="rank-icon">${conf.icon}</span>
@@ -2078,46 +2256,41 @@
               <span class="rank-status-glow">${conf.glowText}</span>
             </div>
 
-            <!-- Employee Name (Full, Never Truncated) -->
             <div class="top5-emp-name" title="${row.name}">
               <span class="emp-avatar-icon">${conf.icon}</span>
               <span class="emp-name-title">${row.name}</span>
+              ${typeBadge}
             </div>
 
-            <!-- Big Hero Earnings Box -->
             <div class="top5-earnings-hero">
               <span class="earnings-label">કુલ કમાણી (TOTAL WORK)</span>
-              <span class="earnings-value">${formatCurrency(row._calcTotalAmt)}</span>
+              <span class="earnings-value">${earningsText}</span>
             </div>
 
-            <!-- Total Pieces Banner -->
             <div class="top5-total-pcs-badge">
               <span>📦 કુલ કામ:</span>
               <strong>${formatNumber(row._calcTotalPc)} Pcs</strong>
             </div>
 
-            <!-- Scan Time Range Banner -->
             <div class="top5-total-pcs-badge" style="background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.35);">
               <span>⏱️ સમય:</span>
               <strong style="color: #38bdf8;">${timeBadgeText}</strong>
             </div>
 
-            <!-- IN & OUT Two-Column Breakdown Box -->
             <div class="top5-mini-breakdown-box">
               <div class="mini-col inward-col">
                 <span class="m-lbl">IN (${inRate.toFixed(2)})</span>
                 <span class="m-val">${formatNumber(row._calcInPcs)} pc</span>
-                <span class="m-amt">${formatCurrency(row._calcInAmt)}</span>
+                <span class="m-amt">${row._isPiece ? formatCurrency(row._calcInAmt) : '-'}</span>
               </div>
               <div class="mini-divider"></div>
               <div class="mini-col outward-col">
                 <span class="m-lbl">OUT (${outRate.toFixed(2)})</span>
                 <span class="m-val">${formatNumber(row._calcOutPcs)} pc</span>
-                <span class="m-amt">${formatCurrency(row._calcOutAmt)}</span>
+                <span class="m-amt">${row._isPiece ? formatCurrency(row._calcOutAmt) : '-'}</span>
               </div>
             </div>
 
-            <!-- Bottom Interactive Prompt -->
             <div class="top5-tap-footer">
               <span>👉 તારીખ પ્રમાણે વિગતો જુઓ</span>
             </div>
@@ -2127,12 +2300,15 @@
       top5CardsContainer.innerHTML = top5CardsHtml;
     }
 
-    // 4. RENDER TABLE ROWS (STRICTLY FROM HIGHEST TO LOWEST WORK)
+    // 4. RENDER TABLE ROWS (STRICTLY FROM HIGHEST TO LOWEST WORK - 11 COLUMNS)
     let totInPcs = 0;
     let totOutPcs = 0;
     let totInAmt = 0.0;
     let totOutAmt = 0.0;
     let totHours = 0.0;
+    let totPieceAmt = 0.0;
+    let countPiece = 0;
+    let countFix = 0;
 
     let sumGrossIn = 0;
     let sumGrossOut = 0;
@@ -2147,6 +2323,10 @@
     let bodyHtml = '';
     filteredRows.forEach((row, index) => {
       const rank = index + 1;
+      const isPiece = row._isPiece;
+      if (isPiece) countPiece++;
+      else countFix++;
+
       const inPcs = row._calcInPcs;
       const outPcs = row._calcOutPcs;
       const rowInAmt = row._calcInAmt;
@@ -2175,8 +2355,11 @@
 
       totInPcs += inPcs;
       totOutPcs += outPcs;
-      totInAmt += rowInAmt;
-      totOutAmt += rowOutAmt;
+      if (isPiece) {
+        totInAmt += rowInAmt;
+        totOutAmt += rowOutAmt;
+        totPieceAmt += rowTotalAmt;
+      }
       totHours += rowHours;
 
       let rankTag = '';
@@ -2212,8 +2395,21 @@
         }
       }
 
+      const isChecked = selectedWorkerNames.has(row.name);
+      const escapedName = row.name.replace(/'/g, "\\'");
+      const typeBadge = isPiece
+        ? `<span class="worker-type-badge badge-piece">🟢 પીસ</span>`
+        : `<span class="worker-type-badge badge-fix">🏢 FIX</span>`;
+
+      const amtDisplay = isPiece
+        ? rowTotalAmt.toFixed(2)
+        : `<span class="fix-salary-tag" title="ફિક્સ પગારદાર (પીસ રેટ નથી)">🏢 FIX</span>`;
+
       bodyHtml += `
-        <tr onclick="window.openDatewiseBreakdown('${row.name}')" title="આ કર્મચારીનો તારીખ પ્રમાણે હિસાબ જુઓ">
+        <tr onclick="window.openDatewiseBreakdown('${escapedName}')" title="આ કર્મચારીનો તારીખ પ્રમાણે હિસાબ જુઓ" class="${isChecked ? 'row-selected' : ''}">
+          <td class="cell-chk" style="text-align: center;" onclick="event.stopPropagation();">
+            <input type="checkbox" class="chk-worker-item" data-worker="${encodeURIComponent(row.name)}" ${isChecked ? 'checked' : ''} onchange="window.toggleWorkerSelect('${escapedName}', this.checked)">
+          </td>
           <td class="cell-name">
             <div class="cell-name-content">
               ${rankTag}
@@ -2222,16 +2418,17 @@
             </div>
             ${dupeBadgeHtml}
           </td>
+          <td class="cell-type" style="text-align: center;">${typeBadge}</td>
           <td class="cell-in">${formatNumber(inPcs)}</td>
-          <td class="cell-in-amt">${rowInAmt.toFixed(2)}</td>
+          <td class="cell-in-amt">${isPiece ? rowInAmt.toFixed(2) : '-'}</td>
           <td class="cell-out">${formatNumber(outPcs)}</td>
-          <td class="cell-out-amt">${rowOutAmt.toFixed(2)}</td>
+          <td class="cell-out-amt">${isPiece ? rowOutAmt.toFixed(2) : '-'}</td>
           <td class="cell-total-pc">${formatNumber(rowTotalPc)}</td>
           <td class="cell-hours">
             <span class="hours-val">${rowHours > 0 ? rowHours.toFixed(1) + ' hrs' : '-'}</span>
             ${rowHours > 0 && rowTotalPc > 0 ? `<span class="hours-sub">${(rowTotalPc / rowHours).toFixed(0)} pc/hr</span>` : ''}
           </td>
-          <td class="cell-total-amt">${rowTotalAmt.toFixed(2)}</td>
+          <td class="cell-total-amt">${amtDisplay}</td>
           <td class="cell-time">
             <span class="time-badge">⏱️ ${rowTimeRange}</span>
           </td>
@@ -2240,33 +2437,36 @@
     });
 
     const grandTotalPc = totInPcs + totOutPcs;
-    const grandTotalAmt = Math.round((totInAmt + totOutAmt) * 100) / 100;
+    const grandTotalAmt = Math.round(totPieceAmt * 100) / 100;
     totHours = Math.round(totHours * 100) / 100;
 
     salaryTableBody.innerHTML = bodyHtml;
 
     const matchTag = adminDeductionMode === 'gross' 
-      ? '✅ DigiBizz ૧૦૦% મેચ' 
+      ? '✅ DigiBizz ૧૦૦% મેળ' 
       : (adminDeductionMode === 'net' ? '💰 કપાત બાદ ચોખ્ખો' : '🔍 Gross vs Net તુલના');
 
-    // Render footer total row matching the photo exactly + secondary verification row
+    // Render footer total row matching 11 columns with total hours and piece amount
     salaryTableFoot.innerHTML = `
       <tr class="total-row">
+        <td class="tf-chk" style="text-align:center;"><span style="font-size:11px; color:#94a3b8;">${selectedWorkerNames.size}/${filteredRows.length}</span></td>
         <td class="tf-name">TOTAL (${filteredRows.length})</td>
+        <td class="tf-type" style="text-align:center; font-size:11px; font-weight:700; color:#38bdf8;">${countPiece}P / ${countFix}F</td>
         <td class="tf-in">${formatNumber(totInPcs)}</td>
         <td class="tf-in-amt">${totInAmt.toFixed(2)}</td>
         <td class="tf-out">${formatNumber(totOutPcs)}</td>
         <td class="tf-out-amt">${totOutAmt.toFixed(2)}</td>
         <td class="tf-total-pc">${formatNumber(grandTotalPc)}</td>
         <td class="tf-hours">${totHours > 0 ? totHours.toFixed(1) + ' hrs' : '-'}</td>
-        <td class="tf-total-amt">${grandTotalAmt.toFixed(2)}</td>
+        <td class="tf-total-amt">₹${grandTotalAmt.toFixed(2)}</td>
         <td class="tf-time">${matchTag}</td>
       </tr>
       <tr class="total-sub-row" style="background: rgba(15, 23, 42, 0.95); font-size: 11px; color: #94a3b8;">
-        <td colspan="9" style="padding: 7px 12px; text-align: right; border-top: 1px solid rgba(255,255,255,0.1);">
+        <td colspan="11" style="padding: 7px 12px; text-align: right; border-top: 1px solid rgba(255,255,255,0.1);">
           <span style="color:#38bdf8; font-weight:700;">📦 DigiBizz ERP કુલ મેળ: ${formatNumber(sumGrossTotal)} Pcs</span> (IN: ${formatNumber(sumGrossIn)} | OUT: ${formatNumber(sumGrossOut)}) &bull; 
           <span style="color:#fbbf24; font-weight:700;">🚨 ડુપ્લિકેટ ચોરી: -${formatNumber(sumDupeTotal)} Pcs</span> &bull; 
-          <span style="color:#34d399; font-weight:700;">💰 ચૂકવવાપાત્ર ચોખ્ખો હિસાબ: ${formatNumber(sumNetTotal)} Pcs</span>
+          <span style="color:#34d399; font-weight:700;">💰 ચૂકવવાપાત્ર ચોખ્ખો હિસાબ: ${formatNumber(sumNetTotal)} Pcs</span> &bull; 
+          <span style="color:#a7f3d0; font-weight:700;">🟢 પીસ રેટ: ₹${grandTotalAmt.toFixed(2)} (${countPiece} જણા) | 🏢 FIX: ${countFix} જણા</span>
         </td>
       </tr>
     `;
@@ -2285,7 +2485,6 @@
 
     const kpiInSubLine = document.getElementById('kpiInSubLine');
     const kpiOutSubLine = document.getElementById('kpiOutSubLine');
-    const kpiTotalSubLine = document.getElementById('kpiTotalSubLine');
     const dispKpiInRate = document.getElementById('dispKpiInRate');
     const dispKpiOutRate = document.getElementById('dispKpiOutRate');
 
@@ -2298,10 +2497,8 @@
     if (kpiOutSubLine) {
       kpiOutSubLine.innerHTML = `<span class="sub-gross">ERP મેળ: ${formatNumber(sumGrossOut)}</span> &bull; <span class="sub-net">ચોખ્ખા: ${formatNumber(sumNetOut)}</span>${sumDupeOut > 0 ? ` &bull; <span class="sub-dupe">ચોરી: -${formatNumber(sumDupeOut)}</span>` : ''}`;
     }
-    if (kpiTotalSubLine) {
-      kpiTotalSubLine.innerHTML = `<span class="sub-gross">DigiBizz ERP: ${formatNumber(sumGrossTotal)} Pcs</span> &bull; <span class="sub-net">ચોખ્ખો: ${formatNumber(sumNetTotal)} Pcs</span>${sumDupeTotal > 0 ? ` &bull; <span class="sub-dupe">ચોરી: -${formatNumber(sumDupeTotal)}</span>` : ''}`;
-    }
 
+    updateWorkerSelectionUI(filteredRows);
   }
 
   // Name Search Handlers
@@ -2833,7 +3030,8 @@
   window.openDatewiseBreakdown = async function(userName) {
     currentModalUser = userName;
     userDatewiseModal.classList.remove('hidden');
-    datewiseModalUserName.textContent = `${userName} - તારીખ પ્રમાણે હિસાબ`;
+    const initIsPiece = isWorkerPieceRate(userName);
+    datewiseModalUserName.innerHTML = `${userName} - તારીખ પ્રમાણે હિસાબ ${initIsPiece ? '<span class="worker-type-badge badge-piece" style="font-size:12px; vertical-align:middle; margin-left:6px;">🟢 પીસ રેટ</span>' : '<span class="worker-type-badge badge-fix" style="font-size:12px; vertical-align:middle; margin-left:6px;">🏢 FIX પગાર</span>'}`;
     const shiftSub = selectedSalaryShift === 'day' ? ' [☀️ સવાર શિફ્ટ]' : selectedSalaryShift === 'night' ? ' [🌙 રાત શિફ્ટ]' : ' [🔄 24 કલાક]';
     const isGross = (adminDeductionMode === 'gross');
     const isCompare = (adminDeductionMode === 'compare');
@@ -2879,7 +3077,9 @@
           const dayInAmt = Math.round((dayInPcs * curInRate) * 100) / 100;
           const dayOutAmt = Math.round((dayOutPcs * curOutRate) * 100) / 100;
           const dayTotalPc = dayInPcs + dayOutPcs;
-          const dayTotalAmt = Math.round((dayInAmt + dayOutAmt) * 100) / 100;
+          const isCurPiece = (data.is_piece != null) ? data.is_piece : isWorkerPieceRate(userName);
+          const dayTotalAmt = isCurPiece ? Math.round((dayInAmt + dayOutAmt) * 100) / 100 : 0.0;
+          const dayAmtDisplay = isCurPiece ? dayTotalAmt.toFixed(2) : `<span class="fix-salary-tag">🏢 FIX</span>`;
 
           let dupeBadge = '';
           const dupePcs = d.dupe_total_pc || 0;
@@ -2901,7 +3101,7 @@
               <td class="cell-out-amt">${dayOutAmt.toFixed(2)}</td>
               <td class="cell-total-pc">${formatNumber(dayTotalPc)}</td>
               <td class="cell-hours"><span class="hours-val">${dHours > 0 ? dHours.toFixed(1) + ' hrs' : '-'}</span></td>
-              <td class="cell-total-amt">${dayTotalAmt.toFixed(2)}</td>
+              <td class="cell-total-amt">${dayAmtDisplay}</td>
               <td class="cell-time"><span class="time-badge">⏱️ ${d.time_range || '-'}</span></td>
             </tr>
           `;
@@ -2932,7 +3132,7 @@
             <td class="tf-out-amt">${fOutAmt.toFixed(2)}</td>
             <td class="tf-total-pc">${formatNumber(fTotalPc)}</td>
             <td class="tf-hours">${totDayHours > 0 ? totDayHours.toFixed(1) + ' hrs' : (totals.hours > 0 ? totals.hours.toFixed(1) + ' hrs' : '-')}</td>
-            <td class="tf-total-amt">${fTotalAmt.toFixed(2)}</td>
+            <td class="tf-total-amt">${((data.is_piece != null) ? data.is_piece : isWorkerPieceRate(userName)) ? fTotalAmt.toFixed(2) : '[🏢 FIX]'}</td>
             <td class="tf-time">${selectedSalaryShift === 'day' ? '☀️ સવાર' : selectedSalaryShift === 'night' ? '🌙 રાત' : '24 કલાક'}</td>
           </tr>
           <tr class="total-sub-row" style="background: rgba(15, 23, 42, 0.95); font-size: 11px; color: #94a3b8;">
@@ -3440,6 +3640,550 @@
   if (btnSaveHoursSubmit) {
     btnSaveHoursSubmit.addEventListener('click', saveHoursFromModal);
   }
+
+  // ========================================================
+  // 1-CLICK AUTO-FILL HOURS FOR ALL MONTH DAYS (૧ વાર ટાઈમ નાખો)
+  // ========================================================
+  window.setBulkMonthHoursInput = function(hours) {
+    if (inputBulkMonthHours) inputBulkMonthHours.value = hours;
+    document.querySelectorAll('.af-quick-pills .af-pill').forEach(btn => {
+      btn.classList.toggle('active', btn.textContent.trim() === `${hours}h`);
+    });
+  };
+
+  if (btnApplyAllMonthDays) {
+    btnApplyAllMonthDays.addEventListener('click', async () => {
+      const hVal = parseFloat(inputBulkMonthHours ? inputBulkMonthHours.value : 12) || 12.0;
+      let mFrom = salaryFromDate || todayStr;
+      let mTo = salaryToDate || todayStr;
+      if (mFrom.length >= 7) {
+        mFrom = mFrom.slice(0, 8) + '01';
+      }
+
+      const confirmMsg = `શું તમે આખા મહિના (${formatDisplayDate(mFrom)} થી ${formatDisplayDate(mTo)}) ના તમામ દિવસોમાં રોજના ${hVal} કલાક લાગુ કરવા માંગો છો?`;
+      if (!confirm(confirmMsg)) return;
+
+      btnApplyAllMonthDays.disabled = true;
+      btnApplyAllMonthDays.innerHTML = '<span>⏳ લાગુ થઈ રહ્યું છે...</span>';
+      try {
+        await resolveBestServer();
+        const res = await fetch(`${currentApiBase}/api/godaun/hours/bulk-range`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from_date: mFrom,
+            to_date: mTo,
+            hours: hVal
+          })
+        });
+        const resJson = await res.json();
+        if (resJson && resJson.success) {
+          showToast(`✅ ${formatDisplayDate(mFrom)} થી ${formatDisplayDate(mTo)} સુધી રોજના ${hVal} કલાક લાગુ થઈ ગયા!`, '⏱️');
+          closeHoursModal();
+          fetchSalaryReport();
+        } else {
+          showToast(`⚠️ કલાક લાગુ કરવામાં ક્ષતિ: ${resJson.error || 'Server error'}`, '⚠️');
+        }
+      } catch (err) {
+        showToast(`❌ Error: ${err.message}`, '⚠️');
+      } finally {
+        btnApplyAllMonthDays.disabled = false;
+        btnApplyAllMonthDays.innerHTML = '<span>⚡ આખા મહિનાના બધા દિવસો માટે સેટ કરો</span>';
+      }
+    });
+  }
+
+  // ========================================================
+  // WORKER SELECTION & ACTION BAR LOGIC (મલ્ટી સિલેક્શન)
+  // ========================================================
+  function updateWorkerSelectionUI(currentRows) {
+    const rows = currentRows || rawSalaryRows || [];
+    const count = selectedWorkerNames.size;
+    if (selectedWorkersCountText) {
+      selectedWorkersCountText.textContent = `${count} કારીગરો પસંદ કરેલા`;
+    }
+    if (workerSelectionActionBar) {
+      if (count > 0) {
+        workerSelectionActionBar.classList.remove('hidden');
+      } else {
+        workerSelectionActionBar.classList.add('hidden');
+      }
+    }
+    if (chkSelectAllWorkers) {
+      if (rows.length > 0 && rows.every(r => selectedWorkerNames.has(r.name))) {
+        chkSelectAllWorkers.checked = true;
+        chkSelectAllWorkers.indeterminate = false;
+      } else if (count > 0) {
+        chkSelectAllWorkers.checked = false;
+        chkSelectAllWorkers.indeterminate = true;
+      } else {
+        chkSelectAllWorkers.checked = false;
+        chkSelectAllWorkers.indeterminate = false;
+      }
+    }
+  }
+
+  window.toggleWorkerSelect = function(workerName, isChecked) {
+    if (isChecked) {
+      selectedWorkerNames.add(workerName);
+    } else {
+      selectedWorkerNames.delete(workerName);
+    }
+    // Update row highlighting
+    document.querySelectorAll('.chk-worker-item').forEach(chk => {
+      const w = decodeURIComponent(chk.getAttribute('data-worker') || '');
+      const tr = chk.closest('tr');
+      if (tr) {
+        tr.classList.toggle('row-selected', selectedWorkerNames.has(w));
+      }
+    });
+    updateWorkerSelectionUI();
+  };
+
+  function selectAllWorkers(checked) {
+    const filter = nameSearchTerm.toLowerCase().trim();
+    const visibleRows = rawSalaryRows.filter(r => {
+      if (filter && !r.name.toLowerCase().includes(filter)) return false;
+      const isP = (r.is_piece != null) ? r.is_piece : isWorkerPieceRate(r.name);
+      if (selectedWorkerTypeFilter === 'piece' && !isP) return false;
+      if (selectedWorkerTypeFilter === 'fix' && isP) return false;
+      return true;
+    });
+
+    if (checked) {
+      visibleRows.forEach(r => selectedWorkerNames.add(r.name));
+    } else {
+      visibleRows.forEach(r => selectedWorkerNames.delete(r.name));
+    }
+
+    renderSalaryReport();
+  }
+
+  function clearWorkerSelection() {
+    selectedWorkerNames.clear();
+    renderSalaryReport();
+  }
+
+  function setWorkerTypeFilter(type) {
+    selectedWorkerTypeFilter = type;
+    [filterTypeAll, filterTypePiece, filterTypeFix].forEach(btn => {
+      if (!btn) return;
+      btn.classList.toggle('active', btn.getAttribute('data-type') === type);
+    });
+    renderSalaryReport();
+  }
+
+  // ========================================================
+  // WORKER TYPES MODAL (પીસ રેટ vs FIX સેટિંગ્સ)
+  // ========================================================
+  function getKnownWorkersList() {
+    const set = new Set();
+    if (rawSalaryRows) rawSalaryRows.forEach(r => { if (r.name) set.add(r.name.trim().toUpperCase()); });
+    if (cachedUsers) cachedUsers.forEach(u => { if (u.worker_name) set.add(u.worker_name.trim().toUpperCase()); });
+    if (DEFAULT_USERS) DEFAULT_USERS.forEach(u => { if (u.worker_name) set.add(u.worker_name.trim().toUpperCase()); });
+    (workerTypesSettings.piece_rate_workers || []).forEach(w => set.add(String(w).trim().toUpperCase()));
+    (workerTypesSettings.fix_workers || []).forEach(w => set.add(String(w).trim().toUpperCase()));
+    set.delete('ADMIN');
+    return Array.from(set).sort();
+  }
+
+  async function openWorkerTypesModal() {
+    await syncWorkerTypesWithServer();
+    if (workerTypesModal) workerTypesModal.classList.remove('hidden');
+    if (wtGlobalHoursInput) wtGlobalHoursInput.value = workerTypesSettings.default_daily_hours || 12.0;
+    renderWorkerTypesList();
+  }
+
+  function closeWorkerTypesModal() {
+    if (workerTypesModal) workerTypesModal.classList.add('hidden');
+  }
+
+  function renderWorkerTypesList() {
+    if (!wtWorkersListContainer) return;
+    const filter = wtWorkerSearchInput ? wtWorkerSearchInput.value.trim().toUpperCase() : '';
+    const allWorkers = getKnownWorkersList();
+
+    const pieceSet = new Set((workerTypesSettings.piece_rate_workers || []).map(x => String(x).trim().toUpperCase()));
+    const fixSet = new Set((workerTypesSettings.fix_workers || []).map(x => String(x).trim().toUpperCase()));
+
+    let pieceCnt = 0;
+    let fixCnt = 0;
+    allWorkers.forEach(w => {
+      let isPiece = true;
+      if (fixSet.has(w)) isPiece = false;
+      else if (pieceSet.size > 0) isPiece = pieceSet.has(w);
+      if (isPiece) pieceCnt++;
+      else fixCnt++;
+    });
+
+    if (wtPieceCount) wtPieceCount.textContent = pieceCnt;
+    if (wtFixCount) wtFixCount.textContent = fixCnt;
+
+    const filtered = allWorkers.filter(w => !filter || w.includes(filter));
+    if (filtered.length === 0) {
+      wtWorkersListContainer.innerHTML = `<div class="worker-type-empty">કોઈ કારીગર મળ્યો નથી.</div>`;
+      return;
+    }
+
+    let html = '';
+    filtered.forEach(w => {
+      let isPiece = true;
+      if (fixSet.has(w)) isPiece = false;
+      else if (pieceSet.size > 0) isPiece = pieceSet.has(w);
+
+      const escapedW = w.replace(/'/g, "\\'");
+      html += `
+        <div class="worker-type-row ${isPiece ? 'row-piece' : 'row-fix'}" onclick="window.toggleWorkerTypeChoice('${escapedW}')">
+          <div class="wt-info">
+            <span class="wt-avatar">${isPiece ? '🟢' : '🏢'}</span>
+            <div class="wt-details">
+              <span class="wt-name">${w}</span>
+              <span class="wt-subtitle">${isPiece ? 'રોજિંદા પીસ પ્રમાણે હિસાબ ગણાશે' : 'ફિક્સ પગારદાર (પીસ રકમ નહીં ગણાય)'}</span>
+            </div>
+          </div>
+          <div class="wt-toggle-wrap" onclick="event.stopPropagation();">
+            <button type="button" class="btn-wt-toggle ${isPiece ? 'is-piece' : 'is-fix'}" onclick="window.toggleWorkerTypeChoice('${escapedW}')">
+              ${isPiece ? '🟢 પીસ રેટ' : '🏢 FIX'}
+            </button>
+          </div>
+        </div>
+      `;
+    });
+    wtWorkersListContainer.innerHTML = html;
+  }
+
+  window.toggleWorkerTypeChoice = function(workerName) {
+    const wUpper = String(workerName).trim().toUpperCase();
+    const allWorkers = getKnownWorkersList();
+    const pieceSet = new Set((workerTypesSettings.piece_rate_workers || []).map(x => String(x).trim().toUpperCase()));
+    const fixSet = new Set((workerTypesSettings.fix_workers || []).map(x => String(x).trim().toUpperCase()));
+
+    let currentIsPiece = true;
+    if (fixSet.has(wUpper)) currentIsPiece = false;
+    else if (pieceSet.size > 0) currentIsPiece = pieceSet.has(wUpper);
+
+    if (pieceSet.size === 0 && fixSet.size === 0) {
+      allWorkers.forEach(w => pieceSet.add(w));
+    }
+
+    if (currentIsPiece) {
+      pieceSet.delete(wUpper);
+      fixSet.add(wUpper);
+    } else {
+      fixSet.delete(wUpper);
+      pieceSet.add(wUpper);
+    }
+
+    workerTypesSettings.piece_rate_workers = Array.from(pieceSet);
+    workerTypesSettings.fix_workers = Array.from(fixSet);
+    renderWorkerTypesList();
+  };
+
+  function selectAllWorkerTypes(isPiece) {
+    const allWorkers = getKnownWorkersList();
+    if (isPiece) {
+      workerTypesSettings.piece_rate_workers = allWorkers;
+      workerTypesSettings.fix_workers = [];
+    } else {
+      workerTypesSettings.piece_rate_workers = [];
+      workerTypesSettings.fix_workers = allWorkers;
+    }
+    renderWorkerTypesList();
+  }
+
+  function resetWorkerTypesDefaults() {
+    const allWorkers = getKnownWorkersList();
+    workerTypesSettings.piece_rate_workers = allWorkers;
+    workerTypesSettings.fix_workers = [];
+    renderWorkerTypesList();
+  }
+
+  async function saveWorkerTypesModal() {
+    if (wtStatusMsg) {
+      wtStatusMsg.textContent = 'સેવ થઈ રહ્યું છે...';
+      wtStatusMsg.className = 'mgmt-status-msg info';
+      wtStatusMsg.classList.remove('hidden');
+    }
+    const defHours = wtGlobalHoursInput ? parseFloat(wtGlobalHoursInput.value) || 12.0 : 12.0;
+    const ok = await saveWorkerTypesToServer(workerTypesSettings.piece_rate_workers, workerTypesSettings.fix_workers, defHours);
+    if (wtStatusMsg) {
+      wtStatusMsg.textContent = '✅ કારીગર પ્રકાર સેટિંગ્સ સેવ થઈ ગયા!';
+      wtStatusMsg.className = 'mgmt-status-msg success';
+      setTimeout(() => wtStatusMsg.classList.add('hidden'), 2000);
+    }
+    showToast('✅ કારીગર પ્રકાર સેટિંગ્સ સાચવવામાં આવ્યા!', '⚙️');
+    closeWorkerTypesModal();
+    fetchSalaryReport();
+  }
+
+  // ========================================================
+  // COMBINED FULL MONTH REPORT MODAL & EXCEL (સંયુક્ત રિપોર્ટ)
+  // ========================================================
+  window.openCombinedMonthModal = async function() {
+    if (selectedWorkerNames.size === 0) {
+      showToast('કૃપા કરીને પહેલા કારીગરો સિલેક્ટ કરો (Checkbox)', '⚠️');
+      return;
+    }
+    if (combinedMonthModal) combinedMonthModal.classList.remove('hidden');
+
+    let mFrom = salaryFromDate || todayStr;
+    let mTo = salaryToDate || todayStr;
+    if (mFrom.length >= 7) {
+      mFrom = mFrom.slice(0, 8) + '01';
+    }
+
+    if (combModalSubtitle) {
+      combModalSubtitle.textContent = `${formatDisplayDate(mFrom)} થી ${formatDisplayDate(mTo)} નો સંયુક્ત હિસાબ (${selectedWorkerNames.size} કારીગરો)`;
+    }
+    if (combModalLoading) combModalLoading.classList.remove('hidden');
+    if (combDaysTableWrap) combDaysTableWrap.classList.add('hidden');
+    if (combWorkersTableWrap) combWorkersTableWrap.classList.add('hidden');
+
+    const curInRate = parseFloat(inRateInput ? inRateInput.value : 0.20) || 0.20;
+    const curOutRate = parseFloat(outRateInput ? outRateInput.value : 0.35) || 0.35;
+    if (thCombInRate) thCombInRate.textContent = curInRate.toFixed(2);
+    if (thCombOutRate) thCombOutRate.textContent = curOutRate.toFixed(2);
+
+    const workersParam = Array.from(selectedWorkerNames).join(',');
+
+    try {
+      await resolveBestServer();
+      const url = `${currentApiBase}/api/godaun/combined-month-report?from_date=${mFrom}&to_date=${mTo}&workers=${encodeURIComponent(workersParam)}&in_rate=${curInRate}&out_rate=${curOutRate}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      combinedMonthReportData = data;
+
+      // Update KPIs
+      const tot = data.totals || {};
+      const uniqueDays = new Set((data.daywise_records || []).map(r => r.v_date)).size;
+
+      if (combKpiWorkersCount) combKpiWorkersCount.textContent = `${data.selected_workers_count || selectedWorkerNames.size} કારીગરો`;
+      if (combKpiDaysCount) combKpiDaysCount.textContent = `${uniqueDays} દિવસ કામ`;
+      if (combKpiTotalPcs) combKpiTotalPcs.textContent = `${formatNumber(tot.total_pcs || 0)} Pcs`;
+      if (combKpiInOutSplit) combKpiInOutSplit.textContent = `IN: ${formatNumber(tot.total_in || 0)} | OUT: ${formatNumber(tot.total_out || 0)}`;
+      if (combKpiTotalHours) combKpiTotalHours.textContent = `${(tot.total_hours || 0).toFixed(1)} hrs`;
+      if (combKpiAvgRate) {
+        const avgEff = tot.total_hours > 0 ? (tot.total_pcs / tot.total_hours).toFixed(1) : '0.0';
+        combKpiAvgRate.textContent = `${avgEff} pc/hr`;
+      }
+      if (combKpiTotalAmt) combKpiTotalAmt.textContent = formatCurrency(tot.total_amt || 0);
+
+      renderCombDaysTable();
+      renderCombWorkersTable();
+      switchCombView(combinedMonthViewMode || 'days');
+    } catch (e) {
+      console.error('Failed to load combined month report:', e);
+      showToast('❌ સંયુક્ત રિપોર્ટ લોડ કરવામાં ક્ષતિ: ' + e.message, '⚠️');
+      if (combDaysTableBody) {
+        combDaysTableBody.innerHTML = `<tr><td colspan="11" class="loading-cell" style="color:#ef4444;">ક્ષતિ આવી: ${e.message}</td></tr>`;
+      }
+    } finally {
+      if (combModalLoading) combModalLoading.classList.add('hidden');
+    }
+  };
+
+  function closeCombinedMonthModal() {
+    if (combinedMonthModal) combinedMonthModal.classList.add('hidden');
+  }
+
+  function renderCombDaysTable() {
+    if (!combinedMonthReportData || !combDaysTableBody) return;
+    const records = combinedMonthReportData.daywise_records || [];
+    const tot = combinedMonthReportData.totals || {};
+
+    if (records.length === 0) {
+      combDaysTableBody.innerHTML = `<tr><td colspan="11" class="loading-cell">આ સમયગાળામાં કોઈ એન્ટ્રી નથી</td></tr>`;
+      if (combDaysTableFoot) combDaysTableFoot.innerHTML = '';
+      return;
+    }
+
+    let bHtml = '';
+    records.forEach(r => {
+      const isPiece = (r.is_piece != null) ? r.is_piece : (r.worker_type === 'PIECE_RATE');
+      const badge = isPiece
+        ? `<span class="worker-type-badge badge-piece">🟢 પીસ</span>`
+        : `<span class="worker-type-badge badge-fix">🏢 FIX</span>`;
+      const amtStr = isPiece ? `₹${(r.total_amt || 0).toFixed(2)}` : `<span class="fix-salary-tag">🏢 FIX</span>`;
+      const hStr = r.hours > 0 ? `${Number(r.hours).toFixed(1)} hrs` : '-';
+
+      bHtml += `
+        <tr>
+          <td class="cell-name" style="font-weight:700;">${r.formatted_date || r.v_date}</td>
+          <td class="cell-name"><span class="emp-name-text">${r.user_name}</span></td>
+          <td class="cell-type" style="text-align:center;">${badge}</td>
+          <td class="cell-in">${formatNumber(r.in_pcs || 0)}</td>
+          <td class="cell-in-amt">${isPiece ? (r.in_amt || 0).toFixed(2) : '-'}</td>
+          <td class="cell-out">${formatNumber(r.out_pcs || 0)}</td>
+          <td class="cell-out-amt">${isPiece ? (r.out_amt || 0).toFixed(2) : '-'}</td>
+          <td class="cell-total-pc" style="font-weight:700;">${formatNumber(r.total_pcs || 0)}</td>
+          <td class="cell-hours"><span class="hours-val">${hStr}</span></td>
+          <td class="cell-total-amt" style="font-weight:700;">${amtStr}</td>
+          <td class="cell-time"><span class="time-badge">⏱️ ${r.time_range || '-'}</span></td>
+        </tr>
+      `;
+    });
+    combDaysTableBody.innerHTML = bHtml;
+
+    if (combDaysTableFoot) {
+      combDaysTableFoot.innerHTML = `
+        <tr class="total-row">
+          <td class="tf-name">TOTAL (${records.length} દિવસ એન્ટ્રી)</td>
+          <td class="tf-name">-</td>
+          <td class="tf-type">-</td>
+          <td class="tf-in">${formatNumber(tot.total_in || 0)}</td>
+          <td class="tf-in-amt">-</td>
+          <td class="tf-out">${formatNumber(tot.total_out || 0)}</td>
+          <td class="tf-out-amt">-</td>
+          <td class="tf-total-pc">${formatNumber(tot.total_pcs || 0)}</td>
+          <td class="tf-hours">${(tot.total_hours || 0).toFixed(1)} hrs</td>
+          <td class="tf-total-amt">₹${(tot.total_amt || 0).toFixed(2)}</td>
+          <td class="tf-time">કુલ દિવસો</td>
+        </tr>
+      `;
+    }
+  }
+
+  function renderCombWorkersTable() {
+    if (!combinedMonthReportData || !combWorkersTableBody) return;
+    const summaries = combinedMonthReportData.worker_summaries || [];
+    const tot = combinedMonthReportData.totals || {};
+
+    if (summaries.length === 0) {
+      combWorkersTableBody.innerHTML = `<tr><td colspan="10" class="loading-cell">કોઈ સમરી ડેટા નથી</td></tr>`;
+      if (combWorkersTableFoot) combWorkersTableFoot.innerHTML = '';
+      return;
+    }
+
+    let bHtml = '';
+    summaries.forEach((w, idx) => {
+      const isPiece = (w.is_piece != null) ? w.is_piece : (w.worker_type === 'PIECE_RATE');
+      const badge = isPiece
+        ? `<span class="worker-type-badge badge-piece">🟢 પીસ</span>`
+        : `<span class="worker-type-badge badge-fix">🏢 FIX</span>`;
+      const amtStr = isPiece ? `₹${(w.total_amt || 0).toFixed(2)}` : `<span class="fix-salary-tag">🏢 FIX</span>`;
+
+      bHtml += `
+        <tr>
+          <td class="cell-name"><span class="emp-name-text" style="font-size:14px; font-weight:700;">${w.user_name}</span></td>
+          <td class="cell-type" style="text-align:center;">${badge}</td>
+          <td class="cell-name" style="text-align:center; font-weight:700; color:#38bdf8;">${w.days_worked || 0} દિવસ</td>
+          <td class="cell-in">${formatNumber(w.total_in || 0)}</td>
+          <td class="cell-in-amt">${isPiece ? (w.in_amt || 0).toFixed(2) : '-'}</td>
+          <td class="cell-out">${formatNumber(w.total_out || 0)}</td>
+          <td class="cell-out-amt">${isPiece ? (w.out_amt || 0).toFixed(2) : '-'}</td>
+          <td class="cell-total-pc" style="font-weight:700;">${formatNumber(w.total_pcs || 0)}</td>
+          <td class="cell-hours"><span class="hours-val">${(w.total_hours || 0).toFixed(1)} hrs</span></td>
+          <td class="cell-total-amt" style="font-weight:700; font-size:14px;">${amtStr}</td>
+        </tr>
+      `;
+    });
+    combWorkersTableBody.innerHTML = bHtml;
+
+    if (combWorkersTableFoot) {
+      combWorkersTableFoot.innerHTML = `
+        <tr class="total-row">
+          <td class="tf-name">TOTAL (${summaries.length} કારીગરો)</td>
+          <td class="tf-type">-</td>
+          <td class="tf-name">-</td>
+          <td class="tf-in">${formatNumber(tot.total_in || 0)}</td>
+          <td class="tf-in-amt">-</td>
+          <td class="tf-out">${formatNumber(tot.total_out || 0)}</td>
+          <td class="tf-out-amt">-</td>
+          <td class="tf-total-pc">${formatNumber(tot.total_pcs || 0)}</td>
+          <td class="tf-hours">${(tot.total_hours || 0).toFixed(1)} hrs</td>
+          <td class="tf-total-amt">₹${(tot.total_amt || 0).toFixed(2)}</td>
+        </tr>
+      `;
+    }
+  }
+
+  function switchCombView(mode) {
+    combinedMonthViewMode = mode;
+    if (btnCombViewDays) btnCombViewDays.classList.toggle('active', mode === 'days');
+    if (btnCombViewWorkers) btnCombViewWorkers.classList.toggle('active', mode === 'workers');
+    if (combDaysTableWrap) combDaysTableWrap.classList.toggle('hidden', mode !== 'days');
+    if (combWorkersTableWrap) combWorkersTableWrap.classList.toggle('hidden', mode !== 'workers');
+  }
+
+  window.downloadCombinedMonthExcel = async function() {
+    if (selectedWorkerNames.size === 0) {
+      showToast('કૃપા કરીને ઓછામાં ઓછો ૧ કારીગર સિલેક્ટ કરો!', '⚠️');
+      return;
+    }
+    const workersParam = Array.from(selectedWorkerNames).join(',');
+    let mFrom = salaryFromDate || todayStr;
+    let mTo = salaryToDate || todayStr;
+    if (mFrom.length >= 7) {
+      mFrom = mFrom.slice(0, 8) + '01';
+    }
+    const curInRate = parseFloat(inRateInput ? inRateInput.value : 0.20) || 0.20;
+    const curOutRate = parseFloat(outRateInput ? outRateInput.value : 0.35) || 0.35;
+    const fName = `OSLC_Combined_Month_Report_${mFrom}_to_${mTo}.xls`;
+
+    showToast('📥 આખા મહિનાનો Excel રિપોર્ટ તૈયાર થઈ રહ્યો છે...', '📊');
+    try {
+      await resolveBestServer();
+      const exportUrl = `${currentApiBase}/api/godaun/export-excel?report_type=combined&from_date=${mFrom}&to_date=${mTo}&workers=${encodeURIComponent(workersParam)}&in_rate=${curInRate}&out_rate=${curOutRate}`;
+
+      if (hasNativeBridge() && window.DigiBizzBridge.saveExcelFile) {
+        const res = await fetch(exportUrl);
+        const html = await res.text();
+        window.DigiBizzBridge.saveExcelFile(html, fName);
+        showToast('✅ આખા મહિનાનું Excel ડાઉનલોડ થઈ ગયું!', '🎉');
+        return;
+      }
+
+      // Browser download
+      const link = document.createElement('a');
+      link.href = exportUrl;
+      link.setAttribute('download', fName);
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => document.body.removeChild(link), 1500);
+      showToast('✅ Excel ડાઉનલોડ શરૂ થઈ ગઈ!', '🎉');
+    } catch (e) {
+      console.warn('Combined excel download error:', e);
+      showToast('❌ Excel ડાઉનલોડમાં ક્ષતિ આવી', '⚠️');
+    }
+  };
+
+  // Wire Event Listeners for Worker Types & Combined Month Modals
+  if (btnOpenWorkerTypesModal) btnOpenWorkerTypesModal.addEventListener('click', openWorkerTypesModal);
+  if (btnCloseWorkerTypesModal) btnCloseWorkerTypesModal.addEventListener('click', closeWorkerTypesModal);
+  if (btnCancelWorkerTypes) btnCancelWorkerTypes.addEventListener('click', closeWorkerTypesModal);
+  if (btnSaveWorkerTypes) btnSaveWorkerTypes.addEventListener('click', saveWorkerTypesModal);
+  if (btnSelectAllPiece) btnSelectAllPiece.addEventListener('click', () => selectAllWorkerTypes(true));
+  if (btnSelectAllFix) btnSelectAllFix.addEventListener('click', () => selectAllWorkerTypes(false));
+  if (btnResetToDefaults) btnResetToDefaults.addEventListener('click', resetWorkerTypesDefaults);
+  if (wtWorkerSearchInput) wtWorkerSearchInput.addEventListener('input', renderWorkerTypesList);
+
+  if (filterTypeAll) filterTypeAll.addEventListener('click', () => setWorkerTypeFilter('all'));
+  if (filterTypePiece) filterTypePiece.addEventListener('click', () => setWorkerTypeFilter('piece'));
+  if (filterTypeFix) filterTypeFix.addEventListener('click', () => setWorkerTypeFilter('fix'));
+
+  if (chkSelectAllWorkers) chkSelectAllWorkers.addEventListener('change', (e) => selectAllWorkers(e.target.checked));
+  if (btnOpenCombinedMonthModal) btnOpenCombinedMonthModal.addEventListener('click', openCombinedMonthModal);
+  if (btnDownloadCombinedMonthExcel) btnDownloadCombinedMonthExcel.addEventListener('click', downloadCombinedMonthExcel);
+  if (btnDownloadCombMonthExcelModal) btnDownloadCombMonthExcelModal.addEventListener('click', downloadCombinedMonthExcel);
+  if (btnClearWorkerSelection) btnClearWorkerSelection.addEventListener('click', clearWorkerSelection);
+
+  if (btnCloseCombinedMonthModal) btnCloseCombinedMonthModal.addEventListener('click', closeCombinedMonthModal);
+  if (btnCombViewDays) btnCombViewDays.addEventListener('click', () => switchCombView('days'));
+  if (btnCombViewWorkers) btnCombViewWorkers.addEventListener('click', () => switchCombView('workers'));
+  if (combSearchInput) {
+    combSearchInput.addEventListener('input', () => {
+      const term = combSearchInput.value.toLowerCase().trim();
+      document.querySelectorAll('#combDaysTableBody tr').forEach(tr => {
+        tr.style.display = (!term || tr.textContent.toLowerCase().includes(term)) ? '' : 'none';
+      });
+      document.querySelectorAll('#combWorkersTableBody tr').forEach(tr => {
+        tr.style.display = (!term || tr.textContent.toLowerCase().includes(term)) ? '' : 'none';
+      });
+    });
+  }
+
 
   // ========================================================
   // CHORI KARI (ચોરી કરી - DUPLICATE SCANS) REPORT (ADMIN ONLY)
