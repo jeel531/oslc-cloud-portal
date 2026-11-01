@@ -26,6 +26,11 @@ try:
         set_hours_for_date,
         get_worker_hours_in_range,
         get_worker_daily_hours,
+        load_worker_settings,
+        save_worker_settings,
+        get_worker_type,
+        is_worker_piece_rate,
+        apply_bulk_hours_range,
     )
 except (ImportError, ValueError):
     try:
@@ -36,6 +41,11 @@ except (ImportError, ValueError):
             set_hours_for_date,
             get_worker_hours_in_range,
             get_worker_daily_hours,
+            load_worker_settings,
+            save_worker_settings,
+            get_worker_type,
+            is_worker_piece_rate,
+            apply_bulk_hours_range,
         )
     except ImportError:
         try:
@@ -46,6 +56,11 @@ except (ImportError, ValueError):
                 set_hours_for_date,
                 get_worker_hours_in_range,
                 get_worker_daily_hours,
+                load_worker_settings,
+                save_worker_settings,
+                get_worker_type,
+                is_worker_piece_rate,
+                apply_bulk_hours_range,
             )
         except ImportError:
             from hours_service import (
@@ -55,6 +70,11 @@ except (ImportError, ValueError):
                 set_hours_for_date,
                 get_worker_hours_in_range,
                 get_worker_daily_hours,
+                load_worker_settings,
+                save_worker_settings,
+                get_worker_type,
+                is_worker_piece_rate,
+                apply_bulk_hours_range,
             )
 
 HERE = Path(__file__).resolve().parent
@@ -417,6 +437,36 @@ async def save_hours_api(request: Request):
         ok = set_hours_for_date(date_str, worker_hours)
         _cache.clear()
         return {"success": ok, "date": date_str, "hours": get_hours_for_date(date_str)}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+@app.get("/api/godaun/worker-types")
+def get_worker_types_endpoint():
+    settings = load_worker_settings()
+    return {"success": True, "settings": settings}
+
+@app.post("/api/godaun/worker-types")
+async def save_worker_types_endpoint(request: Request):
+    try:
+        body = await request.json()
+        ok = save_worker_settings(body)
+        _cache.clear()
+        return {"success": ok, "settings": load_worker_settings()}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/godaun/hours/bulk-range")
+async def apply_bulk_hours_range_endpoint(request: Request):
+    try:
+        body = await request.json()
+        from_d = body.get("from_date")
+        to_d = body.get("to_date")
+        w_hours = body.get("worker_hours", {})
+        if not from_d or not to_d:
+            raise HTTPException(status_code=400, detail="from_date and to_date are required")
+        ok = apply_bulk_hours_range(from_d, to_d, w_hours)
+        _cache.clear()
+        return {"success": ok, "from_date": from_d, "to_date": to_d}
     except Exception as e:
         return {"success": False, "error": str(e)}
 
@@ -882,6 +932,10 @@ def fetch_salary_report_data(from_date: str, to_date: str, in_rate: float, out_r
 
     name_filter_lower = name_filter.strip().lower()
 
+    w_settings = load_worker_settings()
+    global_def_h = float(w_settings.get("global_default_hours", 12.0))
+    w_hours_map = w_settings.get("worker_default_hours", {})
+
     for idx, r in enumerate(rows):
         name = str(r[0]).strip()
         if name_filter_lower and name_filter_lower not in name.lower():
@@ -897,6 +951,11 @@ def fetch_salary_report_data(from_date: str, to_date: str, in_rate: float, out_r
         dupe_pc = dupe_in + dupe_out
         net_pc = net_in + net_out
 
+        w_type = get_worker_type(name)
+        is_piece = (w_type == "piece")
+        is_fix = (not is_piece)
+        w_def_h = float(w_hours_map.get(name.upper(), global_def_h))
+
         net_in_amt = round(net_in * in_rate, 2)
         net_out_amt = round(net_out * out_rate, 2)
         net_total_amt = round(net_in_amt + net_out_amt, 2)
@@ -910,6 +969,9 @@ def fetch_salary_report_data(from_date: str, to_date: str, in_rate: float, out_r
         dupe_total_amt = round(dupe_in_amt + dupe_out_amt, 2)
 
         worker_hrs = hours_map.get(name.upper(), 0.0)
+        # 1 var teim nakhu to te roj ma avu pade - auto fallback to default hours
+        if worker_hrs <= 0 and (net_pc > 0 or gross_pc > 0):
+            worker_hrs = w_def_h
         pcs_per_hr = round(net_pc / worker_hrs, 1) if worker_hrs > 0 else 0.0
 
         f_time = format_scan_time(r[7], idx + 1)
@@ -929,6 +991,10 @@ def fetch_salary_report_data(from_date: str, to_date: str, in_rate: float, out_r
 
         result_rows.append({
             "name": name,
+            "worker_type": w_type,
+            "is_piece": is_piece,
+            "is_fix": is_fix,
+            "status_label": "PIECE RATE (પીસ રેટ)" if is_piece else "FIX (ફિક્સ)",
             # Net values (Deducted / After Minus) - Primary for piece rate
             "in_pcs": net_in,
             "in_amt": net_in_amt,
@@ -969,8 +1035,10 @@ def fetch_salary_report_data(from_date: str, to_date: str, in_rate: float, out_r
         "out_amt": round(tot_out_amt, 2),
         "total_pc": tot_in_pcs + tot_out_pcs,
         "total_amt": round(tot_in_amt + tot_out_amt, 2),
-        "hours": tot_hours,
+        "hours": round(tot_hours, 2),
         "pcs_per_hr": round((tot_in_pcs + tot_out_pcs) / tot_hours, 1) if tot_hours > 0 else 0.0,
+        "piece_count": sum(1 for r in result_rows if r.get("is_piece")),
+        "fix_count": sum(1 for r in result_rows if r.get("is_fix")),
         # Gross totals
         "gross_in_pcs": tot_gross_in,
         "gross_out_pcs": tot_gross_out,
