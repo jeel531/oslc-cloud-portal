@@ -3015,7 +3015,7 @@
     document.body.removeChild(link);
   }
 
-  window.downloadSeparateExcelFiles = async function(workersList = null) {
+    window.downloadSeparateExcelFiles = async function(workersList = null) {
     let targetWorkers = [];
     if (workersList && Array.isArray(workersList) && workersList.length > 0) {
       targetWorkers = workersList;
@@ -3031,43 +3031,129 @@
       return;
     }
 
-    showToast(`⏳ ${targetWorkers.length} કારીગરોની અલગ-અલગ Excel ફાઇલ ડાઉનલોડ થઈ રહી છે...`, '📥');
+    const fromD = salaryFromDate || todayStr;
+    const toD = salaryToDate || todayStr;
+    const rIn = inRate;
+    const rOut = outRate;
+    const sShift = selectedSalaryShift;
+    const isGross = (adminDeductionMode === 'gross');
 
-    // 1. Download each worker's individual .xls file
-    for (let i = 0; i < targetWorkers.length; i++) {
-      const w = targetWorkers[i];
-      try {
-        await triggerExcelDownload(w);
-      } catch (err) {
-        console.warn('Error downloading separate excel for:', w, err);
-      }
-      if (i < targetWorkers.length - 1) {
-        await new Promise(res => setTimeout(res, 450));
-      }
-    }
+    showToast(⏳  કારીગરોનો તારીખવાર હિસાબ તૈયાર થઈ રહ્યો છે..., '📥');
 
-    // 2. Also trigger the ZIP download so user has all of them in 1 guaranteed package
     try {
-      const fromD = salaryFromDate || todayStr;
-      const toD = salaryToDate || todayStr;
-      const curInRate = parseFloat(inRateInput ? inRateInput.value : 0.20) || 0.20;
-      const curOutRate = parseFloat(outRateInput ? outRateInput.value : 0.35) || 0.35;
-      const workersParam = targetWorkers.join(',');
-      const zipUrl = `${currentApiBase}/api/godaun/export-excel?report_type=combined&format=zip&from_date=${fromD}&to_date=${toD}&workers=${encodeURIComponent(workersParam)}&in_rate=${curInRate}&out_rate=${curOutRate}&shift=${selectedSalaryShift}&mode=${adminDeductionMode}`;
+      await resolveBestServer();
 
+      // 1. Fetch full month datewise data for all requested workers in ONE single fast batch query (~4s)
+      const workersParam = targetWorkers.join(',');
+      const combUrl = ${currentApiBase}/api/godaun/combined-month-report?workers=&from_date=&to_date=&in_rate=&out_rate=&shift=&mode=;
+      const r = await fetch(combUrl);
+      const combData = await r.json();
+
+      const allDays = combData.days || [];
+      const allWorkerSums = combData.workers || [];
+
+      const shiftTitleStr = sShift === 'day' ? ' (સવાર શિફ્ટ 07:30 - 19:30)' : sShift === 'night' ? ' (રાત શિફ્ટ 19:30 - 07:30)' : ' (24 કલાક)';
+      const modeStr = isGross ? ' [કુલ સ્કેન (Gross)]' : ' [કપાત બાદ ચોખ્ખો (Net)]';
+      const inHeader = isGross ? 'IN (GROSS)' : 'IN';
+      const outHeader = isGross ? 'OUT (GROSS)' : 'OUT';
+      const totHeader = isGross ? 'TOTAL PC (GROSS)' : 'TOTAL PC';
+      const headers = ['DATE', inHeader, rIn.toFixed(2), outHeader, rOut.toFixed(2), totHeader, 'HOURS (કલાક)', 'TOTAL AMT', 'TIME (સમય)'];
+
+      // 2. Generate and download each worker's individual .xls file
+      for (let i = 0; i < targetWorkers.length; i++) {
+        const w = targetWorkers[i];
+        const cleanName = w.replace(/\\s+/g, '_');
+        const fName = OSLC_Salary___to__.xls;
+
+        const wDays = allDays.filter(d => (d.worker_name || '').toUpperCase() === w.toUpperCase());
+        const wSum = allWorkerSums.find(wk => (wk.name || '').toUpperCase() === w.toUpperCase()) || {};
+
+        let totIn = 0, totOut = 0, totHrs = 0;
+        const rowsToExport = wDays.map(d => {
+          const inPcs = isGross ? (d.gross_in_pcs != null ? d.gross_in_pcs : d.in_pcs) : d.in_pcs;
+          const outPcs = isGross ? (d.gross_out_pcs != null ? d.gross_out_pcs : d.out_pcs) : d.out_pcs;
+          const inAmt = Math.round((inPcs * rIn) * 100) / 100;
+          const outAmt = Math.round((outPcs * rOut) * 100) / 100;
+          const h = d.hours != null && d.hours > 0 ? Number(d.hours) : getWorkerHoursForDay(w, d.date);
+          totIn += inPcs;
+          totOut += outPcs;
+          totHrs += h;
+          const timeVal = d.time_range || (d.first_time && d.last_time ? ${d.first_time} -  : (d.first_time || ''));
+          return {
+            name: d.formatted_date || d.date,
+            in_pcs: inPcs,
+            in_amt: inAmt,
+            out_pcs: outPcs,
+            out_amt: outAmt,
+            total_pc: inPcs + outPcs,
+            hours: h,
+            total_amt: (d.is_piece !== false) ? Math.round((inAmt + outAmt) * 100) / 100 : 0,
+            time_range: timeVal
+          };
+        });
+
+        const totInA = Math.round((totIn * rIn) * 100) / 100;
+        const totOutA = Math.round((totOut * rOut) * 100) / 100;
+        const totalsToExport = {
+          in_pcs: totIn,
+          in_amt: totInA,
+          out_pcs: totOut,
+          out_amt: totOutA,
+          total_pc: totIn + totOut,
+          hours: wSum.hours != null ? wSum.hours : totHrs,
+          total_amt: (wSum.is_piece !== false) ? Math.round((totInA + totOutA) * 100) / 100 : 0,
+          shift_label: combData.shift_label || shiftTitleStr
+        };
+
+        const reportTitle = OSLC GODAUN -  તારીખ પ્રમાણે હિસાબ;
+        const subtitle = સમયગાળો:  થી  [] |  | દર: Inward = ₹, Outward = ₹;
+
+        const excelHtml = generateExcelHtml(reportTitle, subtitle, headers, rowsToExport, totalsToExport);
+
+        if (hasNativeBridge() && window.DigiBizzBridge && window.DigiBizzBridge.saveExcelFile) {
+          window.DigiBizzBridge.saveExcelFile(excelHtml, fName);
+        } else {
+          const blob = new Blob(['\\ufeff' + excelHtml], { type: 'application/vnd.ms-excel;charset=utf-8' });
+          const dlUrl = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = dlUrl;
+          link.setAttribute('download', fName);
+          document.body.appendChild(link);
+          link.click();
+          setTimeout(() => {
+            try { document.body.removeChild(link); URL.revokeObjectURL(dlUrl); } catch(e){}
+          }, 2500);
+        }
+
+        if (i < targetWorkers.length - 1) {
+          await new Promise(res => setTimeout(res, 350));
+        }
+      }
+
+      // 3. Companion ZIP Download (always guaranteed, contains all .xls and .xlsx files)
+      const zipUrl = ${currentApiBase}/api/godaun/export-excel?report_type=combined&format=zip&from_date=&to_date=&workers=&in_rate=&out_rate=&shift=&mode=;
       setTimeout(() => {
         const link = document.createElement('a');
         link.href = zipUrl;
-        link.setAttribute('download', `OSLC_Salary_All_${targetWorkers.length}_Workers_Separate_${fromD}_to_${toD}_${selectedSalaryShift}.zip`);
+        link.setAttribute('download', OSLC_Salary_All_Workers_Separate_Files__to__.zip);
         document.body.appendChild(link);
         link.click();
-        setTimeout(() => document.body.removeChild(link), 1500);
-      }, 700);
-    } catch (zipErr) {
-      console.warn('ZIP bundle trigger error:', zipErr);
-    }
+        setTimeout(() => { try { document.body.removeChild(link); } catch(e){} }, 1500);
+      }, 500);
 
-    showToast(`✅ પસંદ કરેલા તમામ ${targetWorkers.length} કારીગરોની અલગ અલગ Excel ફાઇલો સફળતાપૂર્વક ડાઉનલોડ થઈ ગઈ!`, '🎉');
+      showToast(✅ તમામ  કારીગરોની અલગ-અલગ Excel (.xls) સફળતાપૂર્વક ડાઉનલોડ થઈ ગઈ!, '🎉');
+    } catch (err) {
+      console.error('Error downloading separate excel files:', err);
+      // Fallback: direct server ZIP
+      const zipUrl = ${currentApiBase}/api/godaun/export-excel?report_type=combined&format=zip&from_date=&to_date=&workers=&in_rate=&out_rate=&shift=&mode=;
+      const link = document.createElement('a');
+      link.href = zipUrl;
+      link.setAttribute('download', OSLC_Salary_All_Workers_Separate_Files__to__.zip);
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => { try { document.body.removeChild(link); } catch(e){} }, 1500);
+      showToast(📦 કારીગરોની અલગ અલગ ફાઇલો (ZIP) ડાઉનલોડ થઈ રહી છે!, '📥');
+    }
   };
 
   function handleExcelClick() {
