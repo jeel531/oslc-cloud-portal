@@ -2973,7 +2973,7 @@ def export_excel_report(
             elif col_idx == 11:
                 c.fill = PatternFill(start_color="F6B26B", end_color="F6B26B", fill_type="solid")
 
-        filename = f"OSLC_Stock_Report_{shift}_{from_date}_to_{to_date}.xlsx"
+        filename = f"OSLC_Salary_Summary_{shift}_{from_date}_to_{to_date}.xlsx"
 
     for col in ws.columns:
         max_len = max(len(str(cell.value or "")) for cell in col)

@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=11.1">
+  <link rel="stylesheet" href="style.css?v=20.0">
 </head>
 <body>
   <div class="app-container">
@@ -1959,6 +1959,12 @@
             </div>
             <input type="text" id="combSearchInput" placeholder="રિપોર્ટમાં શોધો..." class="styled-search-input comb-search-input">
           </div>
+                    <button type="button" id="btnDownloadCombSeparateExcelModal" class="btn-excel-small btn-sep-small" onclick="window.downloadSeparateExcelFiles()" title="પસંદ કરેલા દરેક કારીગરની અલગ અલગ Excel (.xls) ફાઇલ ડાઉનલોડ કરો" style="background: linear-gradient(135deg, #059669, #10b981); color: #fff;">
+            <span>📥 દરેકની અલગ અલગ Excel (.xls)</span>
+          </button>
+          <button type="button" id="btnDownloadCombZipModal" class="btn-excel-small btn-zip-small" onclick="window.downloadCombinedZip()" title="પસંદ કરેલા તમામ કારીગરોની અલગ અલગ Excel ફાઇલો એક ZIP માં ડાઉનલોડ કરો" style="background: linear-gradient(135deg, #7c3aed, #8b5cf6); color: #fff;">
+            <span>📦 તમામ અલગ Excel (ZIP)</span>
+          </button>
           <button type="button" id="btnDownloadCombMonthExcelModal" class="btn-excel-small" aria-label="Download Combined Month Excel">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -2109,7 +2115,7 @@
 
   </div>
 
-  <script src="app.js?v=11.1"></script>
+  <script src="app.js?v=20.0"></script>
   <script>
     function doGodaunHardRefresh() {
       try {
