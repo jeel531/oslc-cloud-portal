@@ -335,11 +335,15 @@
               </div>
             </div>
 
-            <!-- Action Buttons Row: Daily Hours Entry + Download Excel -->
-            <div class="excel-action-wrap dual-actions-wrap">
+            <!-- Action Buttons Row: Daily Hours Entry + Worker Settings + Download Excel -->
+            <div class="excel-action-wrap dual-actions-wrap tri-actions-wrap">
+              <button type="button" id="btnOpenWorkerTypesModal" class="btn-worker-types-primary" aria-label="Worker Types Settings">
+                <span class="btn-hours-icon">👔</span>
+                <span>કારીગર સેટિંગ: પીસ રેટ vs FIX</span>
+              </button>
               <button type="button" id="btnOpenHoursModal" class="btn-hours-primary" aria-label="Daily Hours Entry">
                 <span class="btn-hours-icon">⏱️</span>
-                <span>દૈનિક કલાક એન્ટ્રી (DAILY HOURS ENTRY)</span>
+                <span>દૈનિક કલાક એન્ટ્રી (DAILY HOURS)</span>
               </button>
               <button type="button" id="btnDownloadExcel" class="btn-download-excel" aria-label="Download Excel Sheet">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -425,8 +429,34 @@
           <div class="table-info-left">
             <span class="table-heading-title">કર્મચારી હિસાબ લિસ્ટ</span>
             <span class="user-counter-pill" id="salaryUserCount">0 વ્યક્તિ</span>
+            <!-- Worker Type Filter Pills -->
+            <div class="worker-type-filter-group" id="workerTypeFilterBar">
+              <button type="button" class="wt-filter-pill active" data-type="all" id="filterTypeAll">બધા (<span id="countTypeAll">0</span>)</button>
+              <button type="button" class="wt-filter-pill pill-piece-type" data-type="piece" id="filterTypePiece">🟢 પીસ રેટ (<span id="countTypePiece">0</span>)</button>
+              <button type="button" class="wt-filter-pill pill-fix-type" data-type="fix" id="filterTypeFix">🏢 FIX (<span id="countTypeFix">0</span>)</button>
+            </div>
           </div>
           <span class="click-hint-text">👉 તારીખ વાઈઝ રિપોર્ટ જોવા નામ પર ક્લિક કરો</span>
+        </div>
+
+        <!-- Sticky Worker Selection Action Bar for Combined Month Report -->
+        <div id="workerSelectionActionBar" class="selection-action-bar hidden">
+          <div class="sel-bar-info">
+            <span class="sel-check-icon">☑️</span>
+            <span id="selectedWorkersCountText"><strong>0</strong> કારીગરો પસંદ કર્યા છે</span>
+          </div>
+          <div class="sel-bar-actions">
+            <button type="button" id="btnViewCombinedMonthReport" class="btn-sel-action btn-sel-primary" title="પસંદ કરેલા કારીગરોનો આખા મહિનાનો તારીખ વાઈઝ રિપોર્ટ">
+              <span>📅 આખા મહિનાનો રિપોર્ટ જુઓ</span>
+            </button>
+            <button type="button" id="btnDownloadCombinedMonthExcel" class="btn-sel-action btn-sel-excel" title="પસંદ કરેલા કારીગરોનું એક સાથે આખા મહિનાનું Excel">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>📥 આખા મહિનાનું Excel ડાઉનલોડ</span>
+            </button>
+            <button type="button" id="btnClearSelectedWorkers" class="btn-sel-action btn-sel-clear">
+              <span>✕ ક્લિયર</span>
+            </button>
+          </div>
         </div>
 
         <!-- Main Photo-Styled Table -->
@@ -434,7 +464,9 @@
           <table class="photo-styled-table" id="salaryTable">
             <thead>
               <tr>
+                <th class="th-chk" style="width: 38px; text-align: center;"><input type="checkbox" id="chkSelectAllWorkers" title="બધા સિલેક્ટ કરો" style="cursor:pointer; width:16px; height:16px;"></th>
                 <th class="th-name">NAME</th>
+                <th class="th-type" style="width: 85px;">TYPE</th>
                 <th class="th-in">IN</th>
                 <th class="th-in-rate" id="thInRateLabel">0.20</th>
                 <th class="th-out">OUT</th>
@@ -1723,6 +1755,32 @@
             </div>
           </div>
 
+          <!-- 1 Var Time Nakho - Roj Ma Avu Pade Auto-Fill Bar -->
+          <div class="hours-month-autofill-strip">
+            <div class="autofill-title-wrap">
+              <span class="af-icon">📌</span>
+              <div>
+                <span class="af-title">૧ વાર ટાઈમ નાખો - દરરોજ આપોઆપ આવી જશે (Set Once For All Days)</span>
+                <span class="af-sub">આખા મહિનાના તમામ દિવસો માટે એક સાથે કલાક સેટ કરો</span>
+              </div>
+            </div>
+            <div class="autofill-action-row">
+              <div class="af-input-box">
+                <label for="inputBulkMonthHours">કલાક:</label>
+                <input type="number" id="inputBulkMonthHours" step="0.5" min="1" max="24" value="12" class="styled-form-input af-input">
+                <span>hrs</span>
+              </div>
+              <div class="af-quick-pills">
+                <button type="button" class="af-pill" onclick="window.setBulkMonthHoursInput(8)">8h</button>
+                <button type="button" class="af-pill" onclick="window.setBulkMonthHoursInput(10)">10h</button>
+                <button type="button" class="af-pill active" onclick="window.setBulkMonthHoursInput(12)">12h</button>
+              </div>
+              <button type="button" id="btnApplyAllMonthDays" class="btn-af-apply">
+                <span>⚡ આખા મહિનાના બધા દિવસો માટે સેટ કરો</span>
+              </button>
+            </div>
+          </div>
+
           <!-- Quick Bulk Presets Bar -->
           <div class="hours-bulk-presets-bar">
             <span class="bulk-label">⚡ બધા માટે એક ક્લિક:</span>
@@ -1771,7 +1829,202 @@
       </div>
     </div>
 
-    <!-- WhatsApp QR Code Scan Modal -->
+    <!-- ======================================================== -->
+    <!-- MODAL 8: WORKER TYPES SETTING (પીસ રેટ vs FIX કારીગરો)    -->
+    <!-- ======================================================== -->
+    <div id="workerTypesModal" class="modal-backdrop hidden">
+      <div class="modal-content modal-worker-types-content">
+        <div class="modal-header">
+          <div class="modal-header-info">
+            <h3 class="modal-title">👔 કારીગર પ્રકાર સેટિંગ (પીસ રેટ vs FIX)</h3>
+            <p class="modal-subtitle">admin id માં જે કારીગરને 'પીસ રેટ' પર સિલેક્ટ કરશો તેનો જ રોજ પીસ હિસાબ ગણાશે, બાકી બધા FIX રહેશે.</p>
+          </div>
+          <button id="btnCloseWorkerTypesModal" class="modal-close" aria-label="Close Worker Types Modal">&times;</button>
+        </div>
+
+        <div class="worker-types-modal-body">
+          <!-- Default Daily Hours Setting -->
+          <div class="types-global-hours-box">
+            <div class="global-hours-left">
+              <span class="gh-icon">⏱️</span>
+              <div>
+                <div class="gh-title">દરેક દિવસ માટે ડિફોલ્ટ કલાક (Default Daily Hours):</div>
+                <div class="gh-sub">૧ વાર ટાઈમ નાખવાથી દરરોજ આ કલાક આપોઆપ આવી જશે</div>
+              </div>
+            </div>
+            <div class="global-hours-right">
+              <input type="number" id="wtGlobalHoursInput" step="0.5" min="1" max="24" value="12" class="styled-form-input gh-input">
+              <span class="gh-unit">કલાક</span>
+            </div>
+          </div>
+
+          <!-- Quick Action Buttons -->
+          <div class="types-quick-bar">
+            <span class="tq-label">⚡ ઝડપી સિલેક્શન:</span>
+            <div class="tq-btns">
+              <button type="button" id="btnSelectAllPiece" class="btn-tq-pill pill-green">🟢 બધાને પીસ રેટ કરો</button>
+              <button type="button" id="btnSelectAllFix" class="btn-tq-pill pill-blue">🏢 બધાને FIX કરો</button>
+              <button type="button" id="btnResetToDefaults" class="btn-tq-pill pill-orange">🔄 રીસેટ</button>
+            </div>
+          </div>
+
+          <!-- Search & Counter -->
+          <div class="types-search-row">
+            <input type="text" id="wtWorkerSearchInput" placeholder="કારીગરનું નામ શોધો..." class="styled-search-input">
+            <div class="types-count-summary">
+              <span class="badge-piece-count">🟢 પીસ રેટ: <strong id="wtPieceCount">0</strong></span>
+              <span class="badge-fix-count">🏢 FIX: <strong id="wtFixCount">0</strong></span>
+            </div>
+          </div>
+
+          <!-- Workers List -->
+          <div class="types-workers-list" id="wtWorkersListContainer">
+            <!-- Dynamically rendered worker rows with toggle switch -->
+          </div>
+
+          <!-- Status Message -->
+          <div id="wtStatusMsg" class="mgmt-status-msg hidden"></div>
+        </div>
+
+        <div class="modal-footer types-modal-footer">
+          <button type="button" id="btnCancelWorkerTypes" class="btn-cancel-edit">રદ કરો</button>
+          <button type="button" id="btnSaveWorkerTypes" class="btn-save-hours">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+            <span>💾 કારીગર સેટિંગ સેવ કરો (SAVE SETTINGS)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 9: COMBINED FULL MONTH REPORT FOR SELECTED WORKERS -->
+    <!-- ======================================================== -->
+    <div id="combinedMonthModal" class="modal-backdrop hidden">
+      <div class="modal-content modal-comb-month-content">
+        <div class="modal-header">
+          <div>
+            <h3 class="modal-title">📊 પસંદ કરેલા કારીગરોનો આખા મહિનાનો રિપોર્ટ</h3>
+            <p class="modal-subtitle" id="combModalSubtitle">તારીખ પ્રમાણે તમામ પસંદ કરેલા કારીગરોનો સંયુક્ત હિસાબ</p>
+          </div>
+          <button id="btnCloseCombinedMonthModal" class="modal-close" aria-label="Close Combined Month Modal">&times;</button>
+        </div>
+
+        <!-- Modal Action Strip -->
+        <div class="modal-actions-strip comb-actions-strip">
+          <div class="comb-strip-left">
+            <div class="comb-view-pills">
+              <button type="button" class="comb-tab-pill active" id="btnCombViewDays" data-comb-view="days">📅 તારીખ પ્રમાણે (Day-by-Day)</button>
+              <button type="button" class="comb-tab-pill" id="btnCombViewWorkers" data-comb-view="workers">👤 કારીગર સમરી (Worker Summary)</button>
+            </div>
+            <input type="text" id="combSearchInput" placeholder="રિપોર્ટમાં શોધો..." class="styled-search-input comb-search-input">
+          </div>
+          <button type="button" id="btnDownloadCombMonthExcelModal" class="btn-excel-small" aria-label="Download Combined Month Excel">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>📥 આખા મહિનાનું Excel ડાઉનલોડ કરો</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div id="combModalLoading" class="modal-loader hidden">
+            <div class="spinner"></div>
+            <span>પસંદ કરેલા તમામ કારીગરોનો આખા મહિનાનો ડેટા મેળવી રહ્યા છીએ...</span>
+          </div>
+
+          <!-- KPI Summary Cards Grid inside Modal -->
+          <div class="kpi-cards-grid kpi-4cards-grid comb-kpi-grid">
+            <div class="kpi-card kpi-inward">
+              <span class="kpi-title">પસંદ કરેલા કારીગરો</span>
+              <div class="kpi-numbers">
+                <span class="kpi-pcs" id="combKpiWorkersCount">0 કારીગરો</span>
+                <span class="kpi-amt" id="combKpiDaysCount">0 દિવસ</span>
+              </div>
+            </div>
+            <div class="kpi-card kpi-outward">
+              <span class="kpi-title">કુલ સ્કેનિંગ પીસ</span>
+              <div class="kpi-numbers">
+                <span class="kpi-pcs" id="combKpiTotalPcs">0 Pcs</span>
+                <span class="kpi-amt" id="combKpiInOutSplit">IN: 0 | OUT: 0</span>
+              </div>
+            </div>
+            <div class="kpi-card kpi-hours">
+              <span class="kpi-title">કુલ કામ કરેલી કલાક (TOTAL HOURS)</span>
+              <div class="kpi-numbers">
+                <span class="kpi-pcs" id="combKpiTotalHours">0.0 hrs</span>
+                <span class="kpi-amt highlight-blue" id="combKpiAvgRate">0.0 pc/hr</span>
+              </div>
+            </div>
+            <div class="kpi-card kpi-total">
+              <span class="kpi-title">કુલ હિસાબ રકમ (TOTAL AMT)</span>
+              <div class="kpi-numbers">
+                <span class="kpi-amt highlight" id="combKpiTotalAmt">₹0.00</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- VIEW 1: Combined Day-by-Day Table -->
+          <div class="photo-table-container comb-table-wrap" id="combDaysTableWrap">
+            <table class="photo-styled-table" id="combDaysTable">
+              <thead>
+                <tr>
+                  <th class="th-name">DATE</th>
+                  <th class="th-name">NAME</th>
+                  <th class="th-type" style="width: 85px;">TYPE</th>
+                  <th class="th-in">IN</th>
+                  <th class="th-in-rate" id="thCombInRate">0.20</th>
+                  <th class="th-out">OUT</th>
+                  <th class="th-out-rate" id="thCombOutRate">0.35</th>
+                  <th class="th-total-pc">TOTAL PC</th>
+                  <th class="th-hours">HOURS (કલાક)</th>
+                  <th class="th-total-amt">TOTAL AMT</th>
+                  <th class="th-time">TIME RANGE (સમય)</th>
+                </tr>
+              </thead>
+              <tbody id="combDaysTableBody">
+                <!-- Dynamically populated day rows for all selected workers -->
+              </tbody>
+              <tfoot id="combDaysTableFoot">
+                <!-- Combined Grand Total row with TOTAL HOURS sum! -->
+              </tfoot>
+            </table>
+          </div>
+
+          <!-- VIEW 2: Worker Summary Table -->
+          <div class="photo-table-container comb-table-wrap hidden" id="combWorkersTableWrap">
+            <table class="photo-styled-table" id="combWorkersTable">
+              <thead>
+                <tr>
+                  <th class="th-name">NAME (કારીગર)</th>
+                  <th class="th-type" style="width: 85px;">TYPE</th>
+                  <th class="th-in">કામના દિવસો</th>
+                  <th class="th-in">IN PCS</th>
+                  <th class="th-in-amt">IN AMT</th>
+                  <th class="th-out">OUT PCS</th>
+                  <th class="th-out-rate">OUT AMT</th>
+                  <th class="th-total-pc">TOTAL PC</th>
+                  <th class="th-hours">HOURS (કુલ કલાક)</th>
+                  <th class="th-total-amt">TOTAL AMT</th>
+                </tr>
+              </thead>
+              <tbody id="combWorkersTableBody">
+                <!-- Dynamically populated worker summary rows -->
+              </tbody>
+              <tfoot id="combWorkersTableFoot">
+                <!-- Worker Grand Total row -->
+              </tfoot>
+            </table>
+          </div>
+
+        </div>
+      </div>
+    </div>
     <div id="waQrModal" class="modal-overlay hidden">
       <div class="modal-box wa-qr-modal-box">
         <div class="modal-header">
