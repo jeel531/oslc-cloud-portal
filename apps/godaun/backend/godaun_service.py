@@ -1304,11 +1304,12 @@ def get_combined_month_report(
     to_date: str = "",
     in_rate: float = 0.20,
     out_rate: float = 0.35,
-    shift: str = "all"
+    shift: str = "all",
+    mode: str = "net"
 ):
     """
     Combined full month datewise report for all selected workers.
-    Fulfills user requirement: 'ne hu j j silct karu to te batha ni ak sathe akha month no report avo pade dowonlod thavo pade'.
+    Fulfills user requirement: 'mare akha month no a rite all no 1 sathe joto hoy to male tevu kar je hu select karu te batha no'.
     """
     if not from_date:
         from_date = datetime.now().strftime("%Y-%m-01")
@@ -1316,7 +1317,8 @@ def get_combined_month_report(
         to_date = datetime.now().strftime("%Y-%m-%d")
 
     shift = (shift or "all").lower().strip()
-    cache_key = f"comb_month_{workers}_{from_date}_{to_date}_{in_rate}_{out_rate}_{shift}"
+    mode = (mode or "net").lower().strip()
+    cache_key = f"comb_month_{workers}_{from_date}_{to_date}_{in_rate}_{out_rate}_{shift}_{mode}"
     cached = get_cache(cache_key)
     if cached is not None:
         return cached
@@ -1324,7 +1326,7 @@ def get_combined_month_report(
     sc = get_shift_context(from_date, to_date, shift)
     shift_label = sc.label
 
-    selected_workers = [w.strip().upper() for w in workers.split(",") if w.strip()] if workers else []
+    selected_workers = [w.strip().upper() for w in workers.split(",") if w.strip() and w.strip().upper() not in ("ALL", "COMBINED")] if workers else []
 
     worker_where = ""
     extra_params = []
@@ -1382,11 +1384,12 @@ def get_combined_month_report(
     conn.close()
 
     w_settings = load_worker_settings()
-    global_def_h = float(w_settings.get("global_default_hours", 12.0))
+    global_def_h = float(w_settings.get("default_daily_hours", 12.0))
     all_hours = load_all_hours()
 
     daily_rows = []
     worker_summaries: Dict[str, Dict[str, Any]] = {}
+    daily_summaries: Dict[str, Dict[str, Any]] = {}
     tot_in = 0
     tot_out = 0
     tot_in_amt = 0.0
@@ -1416,10 +1419,6 @@ def get_combined_month_report(
         dupe_pc = dupe_in + dupe_out
         net_pc = net_in + net_out
 
-        in_amt = round(net_in * in_rate, 2)
-        out_amt = round(net_out * out_rate, 2)
-        total_amt = round(in_amt + out_amt, 2)
-
         w_type = get_worker_type(w_name)
         is_piece = (w_type == "piece")
         is_fix = (not is_piece)
@@ -1432,8 +1431,21 @@ def get_combined_month_report(
         f_time = format_scan_time(r[8], idx + 1)
         l_time = format_scan_time(r[9], idx + 2)
 
-        tot_in += net_in
-        tot_out += net_out
+        if mode == "gross":
+            cur_in = gross_in
+            cur_out = gross_out
+            cur_tot = gross_pc
+        else: # net
+            cur_in = net_in
+            cur_out = net_out
+            cur_tot = net_pc
+
+        in_amt = round(cur_in * in_rate, 2) if is_piece else 0.0
+        out_amt = round(cur_out * out_rate, 2) if is_piece else 0.0
+        total_amt = round(in_amt + out_amt, 2)
+
+        tot_in += cur_in
+        tot_out += cur_out
         tot_in_amt += in_amt
         tot_out_amt += out_amt
         tot_hours = round(tot_hours + d_hrs, 2)
@@ -1444,17 +1456,20 @@ def get_combined_month_report(
 
         row_item = {
             "date": d_str,
+            "v_date": d_str,
             "formatted_date": formatted,
             "worker_name": w_name,
-            "worker_type": w_type,
+            "user_name": w_name,
+            "worker_type": "PIECE_RATE" if is_piece else "FIX",
             "is_piece": is_piece,
             "is_fix": is_fix,
             "status_label": "PIECE RATE (પીસ રેટ)" if is_piece else "FIX (ફિક્સ)",
-            "in_pcs": net_in,
+            "in_pcs": cur_in,
             "in_amt": in_amt,
-            "out_pcs": net_out,
+            "out_pcs": cur_out,
             "out_amt": out_amt,
-            "total_pc": net_pc,
+            "total_pc": cur_tot,
+            "total_pcs": cur_tot,
             "total_amt": total_amt,
             "gross_in_pcs": gross_in,
             "gross_out_pcs": gross_out,
@@ -1463,17 +1478,19 @@ def get_combined_month_report(
             "dupe_out_pcs": dupe_out,
             "dupe_total_pc": dupe_pc,
             "hours": d_hrs,
-            "pcs_per_hr": round(net_pc / d_hrs, 1) if d_hrs > 0 else 0.0,
+            "pcs_per_hr": round(cur_tot / d_hrs, 1) if d_hrs > 0 else 0.0,
             "first_time": f_time,
             "last_time": l_time,
-            "time_range": f"{f_time} - {l_time}"
+            "time_range": f"{f_time} - {l_time}" if (f_time and l_time) else "-"
         }
         daily_rows.append(row_item)
 
+        # Worker-wise summary
         if w_name not in worker_summaries:
             worker_summaries[w_name] = {
                 "name": w_name,
-                "worker_type": w_type,
+                "user_name": w_name,
+                "worker_type": "PIECE_RATE" if is_piece else "FIX",
                 "is_piece": is_piece,
                 "is_fix": is_fix,
                 "status_label": "PIECE RATE (પીસ રેટ)" if is_piece else "FIX (ફિક્સ)",
@@ -1481,6 +1498,7 @@ def get_combined_month_report(
                 "in_pcs": 0,
                 "out_pcs": 0,
                 "total_pc": 0,
+                "total_pcs": 0,
                 "in_amt": 0.0,
                 "out_amt": 0.0,
                 "total_amt": 0.0,
@@ -1490,9 +1508,10 @@ def get_combined_month_report(
             }
         ws_sum = worker_summaries[w_name]
         ws_sum["days_count"] += 1
-        ws_sum["in_pcs"] += net_in
-        ws_sum["out_pcs"] += net_out
-        ws_sum["total_pc"] += net_pc
+        ws_sum["in_pcs"] += cur_in
+        ws_sum["out_pcs"] += cur_out
+        ws_sum["total_pc"] += cur_tot
+        ws_sum["total_pcs"] += cur_tot
         ws_sum["in_amt"] = round(ws_sum["in_amt"] + in_amt, 2)
         ws_sum["out_amt"] = round(ws_sum["out_amt"] + out_amt, 2)
         ws_sum["total_amt"] = round(ws_sum["total_amt"] + total_amt, 2)
@@ -1500,12 +1519,59 @@ def get_combined_month_report(
         ws_sum["gross_total_pc"] += gross_pc
         ws_sum["dupe_total_pc"] += dupe_pc
 
+        # Day-by-Day summary (sums across all workers on date d_str)
+        if d_str not in daily_summaries:
+            daily_summaries[d_str] = {
+                "date": d_str,
+                "v_date": d_str,
+                "formatted_date": formatted,
+                "workers_count": 0,
+                "in_pcs": 0,
+                "in_amt": 0.0,
+                "out_pcs": 0,
+                "out_amt": 0.0,
+                "total_pc": 0,
+                "total_pcs": 0,
+                "total_amt": 0.0,
+                "hours": 0.0,
+                "gross_in_pcs": 0,
+                "gross_out_pcs": 0,
+                "gross_total_pc": 0,
+                "dupe_in_pcs": 0,
+                "dupe_out_pcs": 0,
+                "dupe_total_pc": 0
+            }
+        ds_sum = daily_summaries[d_str]
+        ds_sum["workers_count"] += 1
+        ds_sum["in_pcs"] += cur_in
+        ds_sum["out_pcs"] += cur_out
+        ds_sum["total_pc"] += cur_tot
+        ds_sum["total_pcs"] += cur_tot
+        ds_sum["in_amt"] = round(ds_sum["in_amt"] + in_amt, 2)
+        ds_sum["out_amt"] = round(ds_sum["out_amt"] + out_amt, 2)
+        ds_sum["total_amt"] = round(ds_sum["total_amt"] + total_amt, 2)
+        ds_sum["hours"] = round(ds_sum["hours"] + d_hrs, 2)
+        ds_sum["gross_in_pcs"] += gross_in
+        ds_sum["gross_out_pcs"] += gross_out
+        ds_sum["gross_total_pc"] += gross_pc
+        ds_sum["dupe_in_pcs"] += dupe_in
+        ds_sum["dupe_out_pcs"] += dupe_out
+        ds_sum["dupe_total_pc"] += dupe_pc
+
+    # Calculate average efficiency for worker summaries
+    for ws_sum in worker_summaries.values():
+        h = ws_sum["hours"]
+        ws_sum["pcs_per_hour"] = round(ws_sum["total_pc"] / h, 1) if h > 0 else 0.0
+
+    daily_summaries_list = sorted(daily_summaries.values(), key=lambda x: x["date"])
+
     grand_totals = {
         "in_pcs": tot_in,
         "in_amt": round(tot_in_amt, 2),
         "out_pcs": tot_out,
         "out_amt": round(tot_out_amt, 2),
         "total_pc": tot_in + tot_out,
+        "total_pcs": tot_in + tot_out,
         "total_amt": round(tot_in_amt + tot_out_amt, 2),
         "hours": round(tot_hours, 2),
         "gross_in_pcs": tot_gross_in,
@@ -1513,7 +1579,7 @@ def get_combined_month_report(
         "gross_total_pc": tot_gross_in + tot_gross_out,
         "dupe_total_pc": tot_dupe_in + tot_dupe_out,
         "workers_count": len(worker_summaries),
-        "days_count": len(set(r["date"] for r in daily_rows))
+        "days_count": len(daily_summaries)
     }
 
     res = {
@@ -1522,10 +1588,15 @@ def get_combined_month_report(
         "to_date": to_date,
         "shift": shift,
         "shift_label": shift_label,
+        "mode": mode,
         "in_rate": in_rate,
         "out_rate": out_rate,
         "days": daily_rows,
+        "daywise_records": daily_rows,
+        "daily_summaries": daily_summaries_list,
         "workers": list(worker_summaries.values()),
+        "worker_summaries": list(worker_summaries.values()),
+        "selected_workers_count": len(selected_workers) if selected_workers else len(worker_summaries),
         "totals": grand_totals
     }
     set_cache(cache_key, res)
@@ -2248,7 +2319,7 @@ def export_excel_report(
         filename = f"OSLC_CHORI_KARI_REPORT_{shift}_{from_date}_to_{to_date}.xlsx"
 
     elif workers or report_type == "combined":
-        comb_data = get_combined_month_report(workers, from_date, to_date, in_rate, out_rate, shift)
+        comb_data = get_combined_month_report(workers, from_date, to_date, in_rate, out_rate, shift, mode)
         days = comb_data["days"]
         totals = comb_data["totals"]
         worker_sums = comb_data["workers"]

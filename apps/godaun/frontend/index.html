@@ -337,6 +337,10 @@
 
             <!-- Action Buttons Row: Daily Hours Entry + Worker Settings + Download Excel -->
             <div class="excel-action-wrap dual-actions-wrap tri-actions-wrap">
+              <button type="button" id="btnOpenAllMonthDatewise" class="btn-all-month-primary" onclick="window.openDatewiseBreakdown('ALL')" aria-label="Open All Month Datewise Report">
+                <span class="btn-hours-icon">📊</span>
+                <span>આખા મહિનાનો તમામ રિપોર્ટ (ALL MONTH REPORT)</span>
+              </button>
               <button type="button" id="btnOpenWorkerTypesModal" class="btn-worker-types-primary" aria-label="Worker Types Settings">
                 <span class="btn-hours-icon">👔</span>
                 <span>કારીગર સેટિંગ: પીસ રેટ vs FIX</span>
@@ -1318,21 +1322,36 @@
     <div id="userDatewiseModal" class="modal-backdrop hidden">
       <div class="modal-content modal-datewise-content">
         <div class="modal-header">
-          <div>
-            <h3 id="datewiseModalUserName" class="modal-title">Employee Name</h3>
+          <div style="flex:1;">
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+              <h3 id="datewiseModalUserName" class="modal-title">Employee Name</h3>
+              <select id="datewiseWorkerSelectDropdown" class="datewise-switch-select" onchange="window.switchDatewiseModalWorker(this.value)" title="કર્મચારી બદલો અથવા બધા જુઓ">
+                <!-- Dynamically populated -->
+              </select>
+            </div>
             <p id="datewiseModalSub" class="modal-subtitle">તારીખ વાઈઝ હિસાબ</p>
           </div>
           <button id="datewiseModalCloseBtn" class="modal-close" aria-label="Close Datewise Modal">&times;</button>
         </div>
 
-        <div class="modal-actions-strip">
+        <div class="modal-actions-strip" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <button type="button" id="btnDatewiseViewToggleAll" class="btn-all-combined-head" onclick="window.toggleDatewiseAllSelected()">
+              <span>👥 બધા કારીગરો એક સાથે (ALL)</span>
+            </button>
+            <div class="datewise-view-pills hidden" id="datewiseViewPills">
+              <button type="button" class="comb-tab-pill active" id="btnDwTabDailySum" onclick="window.setDwTabMode('daily_sum')">📆 રોજનો કમ્બાઈન્ડ સરવાળો (Daily Total)</button>
+              <button type="button" class="comb-tab-pill" id="btnDwTabDays" onclick="window.setDwTabMode('days')">📅 તારીખવાર (Day-by-Day)</button>
+              <button type="button" class="comb-tab-pill" id="btnDwTabWorkers" onclick="window.setDwTabMode('workers')">👤 કારીગર સમરી (Worker Total)</button>
+            </div>
+          </div>
           <button id="btnDownloadUserExcel" class="btn-excel-small" aria-label="Download User Excel">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="7 10 12 15 17 10"></polyline>
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
-            <span>આ વ્યક્તિનું Excel ડાઉનલોડ કરો</span>
+            <span id="btnDownloadUserExcelText">આ વ્યક્તિનું Excel ડાઉનલોડ કરો</span>
           </button>
         </div>
 
@@ -1346,16 +1365,18 @@
           <div class="photo-table-container">
             <table class="photo-styled-table" id="datewiseTable">
               <thead>
-                <tr>
-                  <th class="th-name">DATE</th>
-                  <th class="th-in">IN</th>
+                <tr id="datewiseTableHeadRow">
+                  <th class="th-name" id="thDwDate">DATE</th>
+                  <th class="th-name hidden" id="thDwWorkerName">NAME (કારીગર)</th>
+                  <th class="th-type hidden" id="thDwWorkerType" style="width: 85px;">TYPE</th>
+                  <th class="th-in" id="thDwIn">IN</th>
                   <th class="th-in-rate" id="thDatewiseInRate">0.20</th>
-                  <th class="th-out">OUT</th>
+                  <th class="th-out" id="thDwOut">OUT</th>
                   <th class="th-out-rate" id="thDatewiseOutRate">0.35</th>
-                  <th class="th-total-pc">TOTAL PC</th>
-                  <th class="th-hours">HOURS (કલાક)</th>
-                  <th class="th-total-amt">TOTAL AMT</th>
-                  <th class="th-time">TIME RANGE (સમય)</th>
+                  <th class="th-total-pc" id="thDwTotalPc">TOTAL PC</th>
+                  <th class="th-hours" id="thDwHours">HOURS (કલાક)</th>
+                  <th class="th-total-amt" id="thDwTotalAmt">TOTAL AMT</th>
+                  <th class="th-time" id="thDwTime">TIME RANGE (સમય)</th>
                 </tr>
               </thead>
               <tbody id="datewiseTableBody">
