@@ -1162,6 +1162,12 @@ def get_user_datewise(
     conn.close()
 
     worker_daily_hrs = get_worker_daily_hours(user, from_date, to_date)
+    w_type = get_worker_type(user)
+    is_piece = (w_type == "piece")
+    is_fix = (not is_piece)
+    w_settings = load_worker_settings()
+    global_def_h = float(w_settings.get("global_default_hours", 12.0))
+    w_def_h = float(w_settings.get("worker_default_hours", {}).get(user.upper(), global_def_h))
 
     daily_rows = []
     tot_in = 0
@@ -1201,6 +1207,9 @@ def get_user_datewise(
         gross_total_amt = round(gross_in_amt + gross_out_amt, 2)
 
         d_hrs = worker_daily_hrs.get(d_str, 0.0)
+        # 1 var teim nakhu to te roj ma avu pade - auto default hours
+        if d_hrs <= 0 and (net_pc > 0 or gross_pc > 0):
+            d_hrs = w_def_h
 
         f_time = format_scan_time(r[7], idx + 1)
         l_time = format_scan_time(r[8], idx + 2)
@@ -1219,6 +1228,11 @@ def get_user_datewise(
         daily_rows.append({
             "date": d_str,
             "formatted_date": formatted,
+            "worker_name": user,
+            "worker_type": w_type,
+            "is_piece": is_piece,
+            "is_fix": is_fix,
+            "status_label": "PIECE RATE (પીસ રેટ)" if is_piece else "FIX (ફિક્સ)",
             # Net values (Deducted / After Minus)
             "in_pcs": net_in,
             "in_amt": in_amt,
@@ -1251,7 +1265,7 @@ def get_user_datewise(
         "out_amt": round(tot_out_amt, 2),
         "total_pc": tot_in + tot_out,
         "total_amt": round(tot_in_amt + tot_out_amt, 2),
-        "hours": tot_hours,
+        "hours": round(tot_hours, 2),
         "gross_in_pcs": tot_gross_in,
         "gross_in_amt": round(tot_gross_in * in_rate, 2),
         "gross_out_pcs": tot_gross_out,
@@ -1267,6 +1281,10 @@ def get_user_datewise(
     res = {
         "success": True,
         "user_name": user,
+        "worker_type": w_type,
+        "is_piece": is_piece,
+        "is_fix": is_fix,
+        "status_label": "PIECE RATE (પીસ રેટ)" if is_piece else "FIX (ફિક્સ)",
         "from_date": from_date,
         "to_date": to_date,
         "shift": shift,
@@ -1275,6 +1293,240 @@ def get_user_datewise(
         "out_rate": out_rate,
         "days": daily_rows,
         "totals": totals
+    }
+    set_cache(cache_key, res)
+    return res
+
+@app.get("/api/godaun/combined-month-report")
+def get_combined_month_report(
+    workers: str = "",
+    from_date: str = "",
+    to_date: str = "",
+    in_rate: float = 0.20,
+    out_rate: float = 0.35,
+    shift: str = "all"
+):
+    """
+    Combined full month datewise report for all selected workers.
+    Fulfills user requirement: 'ne hu j j silct karu to te batha ni ak sathe akha month no report avo pade dowonlod thavo pade'.
+    """
+    if not from_date:
+        from_date = datetime.now().strftime("%Y-%m-01")
+    if not to_date:
+        to_date = datetime.now().strftime("%Y-%m-%d")
+
+    shift = (shift or "all").lower().strip()
+    cache_key = f"comb_month_{workers}_{from_date}_{to_date}_{in_rate}_{out_rate}_{shift}"
+    cached = get_cache(cache_key)
+    if cached is not None:
+        return cached
+
+    sc = get_shift_context(from_date, to_date, shift)
+    shift_label = sc.label
+
+    selected_workers = [w.strip().upper() for w in workers.split(",") if w.strip()] if workers else []
+
+    worker_where = ""
+    extra_params = []
+    if selected_workers:
+        placeholders = ", ".join(["?"] * len(selected_workers))
+        worker_where = f"AND CREATED_BY IN ({placeholders})"
+        extra_params = selected_workers
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    query = f"""
+        WITH ScansWithSeq AS (
+            SELECT 
+                TRANS_DATE,
+                VOUCHER_NO,
+                PROCESS_NAME,
+                CASE WHEN PROCESS_NAME = 'WMS Stock Inward' THEN 'INWARD' ELSE 'OUTWARD' END AS NORM_PROCESS,
+                CREATED_BY,
+                QTY_PIECES,
+                CREATED_DATE,
+                BARCODE,
+                ROW_NUMBER() OVER (
+                    PARTITION BY (CASE WHEN CAST(CREATED_DATE AS TIME) < '07:30:00' THEN CAST(DATEADD(day, -1, CREATED_DATE) AS DATE) ELSE CAST(CREATED_DATE AS DATE) END), PROCESS_NAME, BARCODE 
+                    ORDER BY CREATED_DATE ASC
+                ) AS SCAN_SEQ
+            FROM View_Dboard_Common_Dashboard
+            WHERE {sc.cte_clause}
+              AND PROCESS_NAME IN ('WMS Stock Inward', 'WMS Order Pickup', 'WMS Stock Outward')
+              AND (BARCODE IS NOT NULL AND BARCODE <> '')
+              {worker_where}
+        )
+        SELECT 
+            CASE WHEN CAST(CREATED_DATE AS TIME) < '07:30:00' THEN CONVERT(VARCHAR(10), DATEADD(day, -1, CREATED_DATE), 120) ELSE CONVERT(VARCHAR(10), CREATED_DATE, 120) END AS TRANS_DATE,
+            CREATED_BY,
+            -- Gross
+            SUM(CASE WHEN NORM_PROCESS = 'INWARD' THEN QTY_PIECES ELSE 0 END) AS GROSS_IN_PCS,
+            SUM(CASE WHEN NORM_PROCESS = 'OUTWARD' THEN QTY_PIECES ELSE 0 END) AS GROSS_OUT_PCS,
+            -- Dupe
+            SUM(CASE WHEN SCAN_SEQ > 1 AND NORM_PROCESS = 'INWARD' THEN QTY_PIECES ELSE 0 END) AS DUPE_IN_PCS,
+            SUM(CASE WHEN SCAN_SEQ > 1 AND NORM_PROCESS = 'OUTWARD' THEN QTY_PIECES ELSE 0 END) AS DUPE_OUT_PCS,
+            -- Net
+            SUM(CASE WHEN SCAN_SEQ = 1 AND NORM_PROCESS = 'INWARD' THEN QTY_PIECES ELSE 0 END) AS NET_IN_PCS,
+            SUM(CASE WHEN SCAN_SEQ = 1 AND NORM_PROCESS = 'OUTWARD' THEN QTY_PIECES ELSE 0 END) AS NET_OUT_PCS,
+            MIN(CREATED_DATE) AS FIRST_SCAN,
+            MAX(CREATED_DATE) AS LAST_SCAN
+        FROM ScansWithSeq
+        WHERE {sc.outer_cond}
+        GROUP BY CASE WHEN CAST(CREATED_DATE AS TIME) < '07:30:00' THEN CONVERT(VARCHAR(10), DATEADD(day, -1, CREATED_DATE), 120) ELSE CONVERT(VARCHAR(10), CREATED_DATE, 120) END, CREATED_BY
+        ORDER BY TRANS_DATE ASC, CREATED_BY ASC
+    """
+    all_params = sc.cte_params + extra_params + sc.outer_params
+    cur.execute(query, all_params)
+    rows = cur.fetchall()
+    conn.close()
+
+    w_settings = load_worker_settings()
+    global_def_h = float(w_settings.get("global_default_hours", 12.0))
+    all_hours = load_all_hours()
+
+    daily_rows = []
+    worker_summaries: Dict[str, Dict[str, Any]] = {}
+    tot_in = 0
+    tot_out = 0
+    tot_in_amt = 0.0
+    tot_out_amt = 0.0
+    tot_hours = 0.0
+    tot_gross_in = 0
+    tot_gross_out = 0
+    tot_dupe_in = 0
+    tot_dupe_out = 0
+
+    for idx, r in enumerate(rows):
+        d_str = str(r[0])
+        w_name = str(r[1]).strip()
+        try:
+            formatted = datetime.strptime(d_str, "%Y-%m-%d").strftime("%d/%m/%Y")
+        except Exception:
+            formatted = d_str
+
+        gross_in = int(safe_float(r[2]))
+        gross_out = int(safe_float(r[3]))
+        dupe_in = int(safe_float(r[4]))
+        dupe_out = int(safe_float(r[5]))
+        net_in = int(safe_float(r[6]))
+        net_out = int(safe_float(r[7]))
+
+        gross_pc = gross_in + gross_out
+        dupe_pc = dupe_in + dupe_out
+        net_pc = net_in + net_out
+
+        in_amt = round(net_in * in_rate, 2)
+        out_amt = round(net_out * out_rate, 2)
+        total_amt = round(in_amt + out_amt, 2)
+
+        w_type = get_worker_type(w_name)
+        is_piece = (w_type == "piece")
+        is_fix = (not is_piece)
+        w_def_h = float(w_settings.get("worker_default_hours", {}).get(w_name.upper(), global_def_h))
+
+        d_hrs = all_hours.get(d_str, {}).get(w_name.upper(), 0.0)
+        if d_hrs <= 0 and (net_pc > 0 or gross_pc > 0):
+            d_hrs = w_def_h
+
+        f_time = format_scan_time(r[8], idx + 1)
+        l_time = format_scan_time(r[9], idx + 2)
+
+        tot_in += net_in
+        tot_out += net_out
+        tot_in_amt += in_amt
+        tot_out_amt += out_amt
+        tot_hours = round(tot_hours + d_hrs, 2)
+        tot_gross_in += gross_in
+        tot_gross_out += gross_out
+        tot_dupe_in += dupe_in
+        tot_dupe_out += dupe_out
+
+        row_item = {
+            "date": d_str,
+            "formatted_date": formatted,
+            "worker_name": w_name,
+            "worker_type": w_type,
+            "is_piece": is_piece,
+            "is_fix": is_fix,
+            "status_label": "PIECE RATE (પીસ રેટ)" if is_piece else "FIX (ફિક્સ)",
+            "in_pcs": net_in,
+            "in_amt": in_amt,
+            "out_pcs": net_out,
+            "out_amt": out_amt,
+            "total_pc": net_pc,
+            "total_amt": total_amt,
+            "gross_in_pcs": gross_in,
+            "gross_out_pcs": gross_out,
+            "gross_total_pc": gross_pc,
+            "dupe_in_pcs": dupe_in,
+            "dupe_out_pcs": dupe_out,
+            "dupe_total_pc": dupe_pc,
+            "hours": d_hrs,
+            "pcs_per_hr": round(net_pc / d_hrs, 1) if d_hrs > 0 else 0.0,
+            "first_time": f_time,
+            "last_time": l_time,
+            "time_range": f"{f_time} - {l_time}"
+        }
+        daily_rows.append(row_item)
+
+        if w_name not in worker_summaries:
+            worker_summaries[w_name] = {
+                "name": w_name,
+                "worker_type": w_type,
+                "is_piece": is_piece,
+                "is_fix": is_fix,
+                "status_label": "PIECE RATE (પીસ રેટ)" if is_piece else "FIX (ફિક્સ)",
+                "days_count": 0,
+                "in_pcs": 0,
+                "out_pcs": 0,
+                "total_pc": 0,
+                "in_amt": 0.0,
+                "out_amt": 0.0,
+                "total_amt": 0.0,
+                "hours": 0.0,
+                "gross_total_pc": 0,
+                "dupe_total_pc": 0
+            }
+        ws_sum = worker_summaries[w_name]
+        ws_sum["days_count"] += 1
+        ws_sum["in_pcs"] += net_in
+        ws_sum["out_pcs"] += net_out
+        ws_sum["total_pc"] += net_pc
+        ws_sum["in_amt"] = round(ws_sum["in_amt"] + in_amt, 2)
+        ws_sum["out_amt"] = round(ws_sum["out_amt"] + out_amt, 2)
+        ws_sum["total_amt"] = round(ws_sum["total_amt"] + total_amt, 2)
+        ws_sum["hours"] = round(ws_sum["hours"] + d_hrs, 2)
+        ws_sum["gross_total_pc"] += gross_pc
+        ws_sum["dupe_total_pc"] += dupe_pc
+
+    grand_totals = {
+        "in_pcs": tot_in,
+        "in_amt": round(tot_in_amt, 2),
+        "out_pcs": tot_out,
+        "out_amt": round(tot_out_amt, 2),
+        "total_pc": tot_in + tot_out,
+        "total_amt": round(tot_in_amt + tot_out_amt, 2),
+        "hours": round(tot_hours, 2),
+        "gross_in_pcs": tot_gross_in,
+        "gross_out_pcs": tot_gross_out,
+        "gross_total_pc": tot_gross_in + tot_gross_out,
+        "dupe_total_pc": tot_dupe_in + tot_dupe_out,
+        "workers_count": len(worker_summaries),
+        "days_count": len(set(r["date"] for r in daily_rows))
+    }
+
+    res = {
+        "success": True,
+        "from_date": from_date,
+        "to_date": to_date,
+        "shift": shift,
+        "shift_label": shift_label,
+        "in_rate": in_rate,
+        "out_rate": out_rate,
+        "days": daily_rows,
+        "workers": list(worker_summaries.values()),
+        "totals": grand_totals
     }
     set_cache(cache_key, res)
     return res
@@ -1872,6 +2124,7 @@ def export_excel_report(
     out_rate: float = 0.35,
     name: str = "",
     user: str = "",
+    workers: str = "",
     shift: str = "all",
     report_type: str = "salary",
     process: str = "all",
@@ -1994,6 +2247,141 @@ def export_excel_report(
 
         filename = f"OSLC_CHORI_KARI_REPORT_{shift}_{from_date}_to_{to_date}.xlsx"
 
+    elif workers or report_type == "combined":
+        comb_data = get_combined_month_report(workers, from_date, to_date, in_rate, out_rate, shift)
+        days = comb_data["days"]
+        totals = comb_data["totals"]
+        worker_sums = comb_data["workers"]
+
+        ws.title = "તારીખ પ્રમાણે (Day-by-Day)"
+        in_title = "IN (GROSS)" if is_gross else "IN (NET)"
+        out_title = "OUT (GROSS)" if is_gross else "OUT (NET)"
+        tot_title = "TOTAL PC (GROSS)" if is_gross else "TOTAL PC (NET)"
+        headers = ["DATE (તારીખ)", "NAME (કર્મચારી)", "TYPE (પ્રકાર)", in_title, f"{in_rate:.2f}", out_title, f"{out_rate:.2f}", tot_title, "CHORI PC", "HOURS (કલાક)", "TOTAL AMT", "TIME RANGE (સમય)"]
+        ws.append(headers)
+
+        for col_idx in range(1, len(headers) + 1):
+            cell = ws.cell(row=1, column=col_idx)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = Alignment(horizontal="center" if col_idx > 2 else "left", vertical="center")
+
+        for r_idx, r in enumerate(days, start=2):
+            cur_in = r.get("gross_in_pcs", r["in_pcs"]) if is_gross else r["in_pcs"]
+            cur_in_amt = r.get("gross_in_amt", r["in_amt"]) if is_gross else r["in_amt"]
+            cur_out = r.get("gross_out_pcs", r["out_pcs"]) if is_gross else r["out_pcs"]
+            cur_out_amt = r.get("gross_out_amt", r["out_amt"]) if is_gross else r["out_amt"]
+            cur_tot_pc = r.get("gross_total_pc", r["total_pc"]) if is_gross else r["total_pc"]
+            cur_tot_amt = r.get("gross_total_amt", r["total_amt"]) if is_gross else r["total_amt"]
+
+            ws.append([
+                r["formatted_date"],
+                r["worker_name"],
+                "PIECE RATE (પીસ)" if r.get("is_piece") else "FIX (ફિક્સ)",
+                cur_in,
+                cur_in_amt,
+                cur_out,
+                cur_out_amt,
+                cur_tot_pc,
+                r.get("dupe_total_pc", 0),
+                r.get("hours", 0.0),
+                cur_tot_amt,
+                r.get("time_range", "-")
+            ])
+            for col_idx in range(1, len(headers) + 1):
+                c = ws.cell(row=r_idx, column=col_idx)
+                c.border = thin_border
+                if col_idx == 5:
+                    c.fill = amt_in_fill
+                elif col_idx == 7:
+                    c.fill = amt_out_fill
+                elif col_idx == 9:
+                    c.fill = dupe_fill
+                elif col_idx == 10:
+                    c.fill = hours_fill
+                elif col_idx == 11:
+                    c.fill = tot_amt_fill
+                elif col_idx == 12:
+                    c.fill = time_fill
+
+        tot_row_idx = len(days) + 2
+        f_in = totals.get("gross_in_pcs", totals["in_pcs"]) if is_gross else totals["in_pcs"]
+        f_in_amt = round(f_in * in_rate, 2)
+        f_out = totals.get("gross_out_pcs", totals["out_pcs"]) if is_gross else totals["out_pcs"]
+        f_out_amt = round(f_out * out_rate, 2)
+        f_tot_pc = f_in + f_out
+        f_tot_amt = round(f_in_amt + f_out_amt, 2)
+
+        ws.append([
+            "TOTAL",
+            f"{totals.get('workers_count', 0)} વ્યક્તિ",
+            f"{totals.get('days_count', 0)} દિવસ",
+            f_in,
+            f_in_amt,
+            f_out,
+            f_out_amt,
+            f_tot_pc,
+            totals.get("dupe_total_pc", 0),
+            totals.get("hours", 0.0),
+            f_tot_amt,
+            comb_data.get("shift_label", "")
+        ])
+        for col_idx in range(1, len(headers) + 1):
+            c = ws.cell(row=tot_row_idx, column=col_idx)
+            c.font = Font(name="Calibri", size=11, bold=True)
+            c.border = thin_border
+            if col_idx == 9:
+                c.fill = dupe_fill
+            elif col_idx == 10:
+                c.fill = hours_fill
+            elif col_idx == 11:
+                c.fill = PatternFill(start_color="F6B26B", end_color="F6B26B", fill_type="solid")
+
+        # Sheet 2: Worker Summary
+        ws2 = wb.create_sheet(title="કર્મચારી સમરી (Summary)")
+        headers2 = ["NAME (કર્મચારી)", "TYPE (પ્રકાર)", "કામના દિવસો (DAYS)", "કુલ પીસ (TOTAL PC)", "ઇનવર્ડ પીસ", "ઇનવર્ડ રકમ", "આઉટવર્ડ પીસ", "આઉટવર્ડ રકમ", "HOURS (કુલ કલાક)", "TOTAL AMT (કુલ રકમ)"]
+        ws2.append(headers2)
+        for col_idx in range(1, len(headers2) + 1):
+            cell = ws2.cell(row=1, column=col_idx)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = Alignment(horizontal="center" if col_idx > 2 else "left", vertical="center")
+
+        for r_idx, w in enumerate(worker_sums, start=2):
+            w_in_pcs = w.get("gross_in_pcs", w["in_pcs"]) if is_gross else w["in_pcs"]
+            w_out_pcs = w.get("gross_out_pcs", w["out_pcs"]) if is_gross else w["out_pcs"]
+            w_in_amt = round(w_in_pcs * in_rate, 2)
+            w_out_amt = round(w_out_pcs * out_rate, 2)
+            w_tot_pc = w_in_pcs + w_out_pcs
+            w_tot_amt = round(w_in_amt + w_out_amt, 2)
+
+            ws2.append([
+                w["name"],
+                "PIECE RATE (પીસ)" if w.get("is_piece") else "FIX (ફિક્સ)",
+                w["days_count"],
+                w_tot_pc,
+                w_in_pcs,
+                w_in_amt,
+                w_out_pcs,
+                w_out_amt,
+                w["hours"],
+                w_tot_amt
+            ])
+            for col_idx in range(1, len(headers2) + 1):
+                c = ws2.cell(row=r_idx, column=col_idx)
+                c.border = thin_border
+                if col_idx == 9:
+                    c.fill = hours_fill
+                elif col_idx == 10:
+                    c.fill = tot_amt_fill
+
+        for col in ws2.columns:
+            max_len = max(len(str(cell.value or "")) for cell in col)
+            col_letter = get_column_letter(col[0].column)
+            ws2.column_dimensions[col_letter].width = max(max_len + 3, 12)
+
+        filename = f"OSLC_Combined_Monthly_Report_{shift}_{from_date}_to_{to_date}.xlsx"
+
     elif user:
         ws.title = f"{user[:20]} Daily"
         res_datewise = get_user_datewise(user, from_date, to_date, in_rate, out_rate, shift)
@@ -2003,14 +2391,14 @@ def export_excel_report(
         in_title = "IN (GROSS)" if is_gross else "IN (NET)"
         out_title = "OUT (GROSS)" if is_gross else "OUT (NET)"
         tot_title = "TOTAL PC (GROSS)" if is_gross else "TOTAL PC (NET)"
-        headers = ["DATE", in_title, f"{in_rate:.2f}", out_title, f"{out_rate:.2f}", tot_title, "NET PC" if is_gross else "GROSS PC", "CHORI PC", "HOURS (કલાક)", "TOTAL AMT", "TIME RANGE (સમય)"]
+        headers = ["DATE (તારીખ)", "TYPE (પ્રકાર)", in_title, f"{in_rate:.2f}", out_title, f"{out_rate:.2f}", tot_title, "NET PC" if is_gross else "GROSS PC", "CHORI PC", "HOURS (કલાક)", "TOTAL AMT", "TIME RANGE (સમય)"]
         ws.append(headers)
 
         for col_idx in range(1, len(headers) + 1):
             cell = ws.cell(row=1, column=col_idx)
             cell.font = header_font
             cell.fill = header_fill
-            cell.alignment = Alignment(horizontal="center" if col_idx > 1 else "left", vertical="center")
+            cell.alignment = Alignment(horizontal="center" if col_idx > 2 else "left", vertical="center")
 
         for r_idx, r in enumerate(days, start=2):
             cur_in = r.get("gross_in_pcs", r["in_pcs"]) if is_gross else r["in_pcs"]
@@ -2023,6 +2411,7 @@ def export_excel_report(
 
             ws.append([
                 r["formatted_date"],
+                "PIECE RATE (પીસ)" if r.get("is_piece") else "FIX (ફિક્સ)",
                 cur_in,
                 cur_in_amt,
                 cur_out,
@@ -2037,17 +2426,17 @@ def export_excel_report(
             for col_idx in range(1, len(headers) + 1):
                 c = ws.cell(row=r_idx, column=col_idx)
                 c.border = thin_border
-                if col_idx == 3:
+                if col_idx == 4:
                     c.fill = amt_in_fill
-                elif col_idx == 5:
+                elif col_idx == 6:
                     c.fill = amt_out_fill
-                elif col_idx == 8:
-                    c.fill = dupe_fill
                 elif col_idx == 9:
-                    c.fill = hours_fill
+                    c.fill = dupe_fill
                 elif col_idx == 10:
-                    c.fill = tot_amt_fill
+                    c.fill = hours_fill
                 elif col_idx == 11:
+                    c.fill = tot_amt_fill
+                elif col_idx == 12:
                     c.fill = time_fill
 
         tot_row_idx = len(days) + 2
@@ -2061,6 +2450,7 @@ def export_excel_report(
 
         ws.append([
             "TOTAL",
+            "PIECE RATE (પીસ)" if res_datewise.get("is_piece") else "FIX (ફિક્સ)",
             f_in,
             f_in_amt,
             f_out,
@@ -2076,11 +2466,11 @@ def export_excel_report(
             c = ws.cell(row=tot_row_idx, column=col_idx)
             c.font = Font(name="Calibri", size=11, bold=True)
             c.border = thin_border
-            if col_idx == 8:
+            if col_idx == 9:
                 c.fill = dupe_fill
-            elif col_idx == 9:
-                c.fill = hours_fill
             elif col_idx == 10:
+                c.fill = hours_fill
+            elif col_idx == 11:
                 c.fill = PatternFill(start_color="F6B26B", end_color="F6B26B", fill_type="solid")
 
         filename = f"OSLC_{user}_Report_{shift}_{from_date}_to_{to_date}.xlsx"
@@ -2091,14 +2481,14 @@ def export_excel_report(
         in_title = "IN (GROSS)" if is_gross else "IN (NET)"
         out_title = "OUT (GROSS)" if is_gross else "OUT (NET)"
         tot_title = "TOTAL PC (GROSS)" if is_gross else "TOTAL PC (NET)"
-        headers = ["NAME", in_title, f"{in_rate:.2f}", out_title, f"{out_rate:.2f}", tot_title, "NET PC" if is_gross else "GROSS PC", "CHORI PC", "HOURS (કલાક)", "TOTAL AMT", "TIME RANGE (સમય)"]
+        headers = ["NAME (કર્મચારી)", "TYPE (પ્રકાર)", in_title, f"{in_rate:.2f}", out_title, f"{out_rate:.2f}", tot_title, "NET PC" if is_gross else "GROSS PC", "CHORI PC", "HOURS (કલાક)", "TOTAL AMT", "TIME RANGE (સમય)"]
         ws.append(headers)
 
         for col_idx in range(1, len(headers) + 1):
             cell = ws.cell(row=1, column=col_idx)
             cell.font = header_font
             cell.fill = header_fill
-            cell.alignment = Alignment(horizontal="center" if col_idx > 1 else "left", vertical="center")
+            cell.alignment = Alignment(horizontal="center" if col_idx > 2 else "left", vertical="center")
 
         t_in_sum = 0
         t_out_sum = 0
@@ -2121,6 +2511,7 @@ def export_excel_report(
 
             ws.append([
                 r["name"],
+                "PIECE RATE (પીસ)" if r.get("is_piece") else "FIX (ફિક્સ)",
                 cur_in,
                 cur_in_amt,
                 cur_out,
@@ -2135,17 +2526,17 @@ def export_excel_report(
             for col_idx in range(1, len(headers) + 1):
                 c = ws.cell(row=r_idx, column=col_idx)
                 c.border = thin_border
-                if col_idx == 3:
+                if col_idx == 4:
                     c.fill = amt_in_fill
-                elif col_idx == 5:
+                elif col_idx == 6:
                     c.fill = amt_out_fill
-                elif col_idx == 8:
-                    c.fill = dupe_fill
                 elif col_idx == 9:
-                    c.fill = hours_fill
+                    c.fill = dupe_fill
                 elif col_idx == 10:
-                    c.fill = tot_amt_fill
+                    c.fill = hours_fill
                 elif col_idx == 11:
+                    c.fill = tot_amt_fill
+                elif col_idx == 12:
                     c.fill = time_fill
 
         tot_row_idx = len(rows) + 2
@@ -2159,6 +2550,7 @@ def export_excel_report(
 
         ws.append([
             "TOTAL",
+            f"{totals.get('piece_count', 0)} Piece / {totals.get('fix_count', 0)} Fix",
             f_in,
             f_in_amt,
             f_out,
@@ -2174,11 +2566,11 @@ def export_excel_report(
             c = ws.cell(row=tot_row_idx, column=col_idx)
             c.font = Font(name="Calibri", size=11, bold=True)
             c.border = thin_border
-            if col_idx == 8:
+            if col_idx == 9:
                 c.fill = dupe_fill
-            elif col_idx == 9:
-                c.fill = hours_fill
             elif col_idx == 10:
+                c.fill = hours_fill
+            elif col_idx == 11:
                 c.fill = PatternFill(start_color="F6B26B", end_color="F6B26B", fill_type="solid")
 
         filename = f"OSLC_Stock_Report_{shift}_{from_date}_to_{to_date}.xlsx"
