@@ -3025,18 +3025,268 @@
 
 
   // ========================================================
-  // DATEWISE BREAKDOWN MODAL FOR INDIVIDUAL EMPLOYEE
+  // DATEWISE BREAKDOWN MODAL (FOR SINGLE WORKER OR ALL WORKERS COMBINED)
   // ========================================================
-  window.openDatewiseBreakdown = async function(userName) {
-    currentModalUser = userName;
-    userDatewiseModal.classList.remove('hidden');
-    const initIsPiece = isWorkerPieceRate(userName);
-    datewiseModalUserName.innerHTML = `${userName} - તારીખ પ્રમાણે હિસાબ ${initIsPiece ? '<span class="worker-type-badge badge-piece" style="font-size:12px; vertical-align:middle; margin-left:6px;">🟢 પીસ રેટ</span>' : '<span class="worker-type-badge badge-fix" style="font-size:12px; vertical-align:middle; margin-left:6px;">🏢 FIX પગાર</span>'}`;
-    const shiftSub = selectedSalaryShift === 'day' ? ' [☀️ સવાર શિફ્ટ]' : selectedSalaryShift === 'night' ? ' [🌙 રાત શિફ્ટ]' : ' [🔄 24 કલાક]';
+  let currentDatewiseMode = 'single'; // 'single' or 'all'
+  let currentDwTabMode = 'daily_sum'; // 'daily_sum', 'days', 'workers'
+  let datewiseCombinedCacheData = null;
+
+  const datewiseWorkerSelectDropdown = document.getElementById('datewiseWorkerSelectDropdown');
+  const btnDatewiseViewToggleAll = document.getElementById('btnDatewiseViewToggleAll');
+  const datewiseViewPills = document.getElementById('datewiseViewPills');
+  const btnDwTabDays = document.getElementById('btnDwTabDays');
+  const btnDwTabDailySum = document.getElementById('btnDwTabDailySum');
+  const btnDwTabWorkers = document.getElementById('btnDwTabWorkers');
+  const btnDownloadUserExcelText = document.getElementById('btnDownloadUserExcelText');
+
+  const thDwDate = document.getElementById('thDwDate');
+  const thDwWorkerName = document.getElementById('thDwWorkerName');
+  const thDwWorkerType = document.getElementById('thDwWorkerType');
+
+  function populateDatewiseWorkerDropdown(selectedWorker) {
+    if (!datewiseWorkerSelectDropdown) return;
+    const allWorkers = getKnownWorkersList();
+    let html = `<option value="ALL">⭐ બધા કારીગરો એક સાથે (ALL WORKERS)</option>`;
+    if (selectedWorkerNames && selectedWorkerNames.size > 0) {
+      html += `<option value="SELECTED">⭐ પસંદ કરેલા (${selectedWorkerNames.size} કારીગરો)</option>`;
+    }
+    allWorkers.forEach(w => {
+      html += `<option value="${w}">${w}</option>`;
+    });
+    datewiseWorkerSelectDropdown.innerHTML = html;
+    if (selectedWorker) {
+      datewiseWorkerSelectDropdown.value = selectedWorker;
+    }
+  }
+
+  window.switchDatewiseModalWorker = function(val) {
+    window.openDatewiseBreakdown(val);
+  };
+
+  window.toggleDatewiseAllSelected = function() {
+    if (currentDatewiseMode === 'all') {
+      const allWorkers = getKnownWorkersList();
+      const target = (currentModalUser && currentModalUser !== 'ALL' && currentModalUser !== 'SELECTED')
+        ? currentModalUser
+        : (allWorkers[0] || 'AMIT');
+      window.openDatewiseBreakdown(target);
+    } else {
+      window.openDatewiseBreakdown('ALL');
+    }
+  };
+
+  window.setDwTabMode = function(mode) {
+    currentDwTabMode = mode;
+    if (btnDwTabDays) btnDwTabDays.classList.toggle('active', mode === 'days');
+    if (btnDwTabDailySum) btnDwTabDailySum.classList.toggle('active', mode === 'daily_sum');
+    if (btnDwTabWorkers) btnDwTabWorkers.classList.toggle('active', mode === 'workers');
+    renderDatewiseAllTable();
+  };
+
+  function renderDatewiseAllTable() {
+    if (!datewiseCombinedCacheData) return;
+    const curInRate = parseFloat(inRateInput.value) || 0.20;
+    const curOutRate = parseFloat(outRateInput.value) || 0.35;
     const isGross = (adminDeductionMode === 'gross');
-    const isCompare = (adminDeductionMode === 'compare');
-    const modeTag = isGross ? ' • 📦 કુલ સ્કેન (Gross)' : (isCompare ? ' • 🔍 Gross vs Net તુલના' : ' • 💰 કપાત બાદ ચોખ્ખો (Net)');
-    datewiseModalSub.textContent = `${formatDisplayDate(salaryFromDate)} થી ${formatDisplayDate(salaryToDate)}${shiftSub}${modeTag} સુધીની વિગત`;
+    const tot = datewiseCombinedCacheData.totals || {};
+
+    if (currentDwTabMode === 'daily_sum') {
+      // TAB 1: રોજનો કમ્બાઈન્ડ સરવાળો (DAILY COMBINED TOTAL - Matches user photo exactly!)
+      if (thDwWorkerName) thDwWorkerName.classList.remove('hidden');
+      if (thDwWorkerType) thDwWorkerType.classList.add('hidden');
+      if (thDwWorkerName) thDwWorkerName.textContent = 'કારીગરો (WORKERS)';
+
+      const dailySums = datewiseCombinedCacheData.daily_summaries || [];
+      if (dailySums.length === 0) {
+        datewiseTableBody.innerHTML = `<tr><td colspan="10" class="loading-cell">આ સમયગાળામાં કોઈ એન્ટ્રી નથી</td></tr>`;
+        datewiseTableFoot.innerHTML = '';
+        return;
+      }
+
+      let bHtml = '';
+      dailySums.forEach(d => {
+        let dupeBadge = '';
+        if (d.dupe_total_pc > 0) {
+          dupeBadge = isGross
+            ? `<div style="font-size: 10px; color: #fbbf24; font-weight: 600; margin-top: 2px;">⚠️ +${formatNumber(d.dupe_total_pc)} ડુપ્લિકેટ સહિત</div>`
+            : `<div style="font-size: 10px; color: #ef4444; font-weight: 600; margin-top: 2px;">🚨 -${formatNumber(d.dupe_total_pc)} ચોરી કપાત</div>`;
+        }
+        bHtml += `
+          <tr>
+            <td class="cell-name">
+              <div style="font-weight: 700; font-size: 13.5px;">${d.formatted_date || d.date}</div>
+              ${dupeBadge}
+            </td>
+            <td class="cell-name" style="text-align: center;">
+              <span class="tbl-rank-badge rank-norm" style="font-size: 11px; padding: 2px 7px;">👥 ${d.workers_count} જણા</span>
+            </td>
+            <td class="cell-in">${formatNumber(d.in_pcs)}</td>
+            <td class="cell-in-amt">${d.in_amt.toFixed(2)}</td>
+            <td class="cell-out">${formatNumber(d.out_pcs)}</td>
+            <td class="cell-out-amt">${d.out_amt.toFixed(2)}</td>
+            <td class="cell-total-pc">${formatNumber(d.total_pc)}</td>
+            <td class="cell-hours"><span class="hours-val">${d.hours > 0 ? d.hours.toFixed(1) + ' hrs' : '-'}</span></td>
+            <td class="cell-total-amt">₹${d.total_amt.toFixed(2)}</td>
+            <td class="cell-time"><span class="time-badge">⏱️ આખો દિવસ (${d.workers_count} જણા)</span></td>
+          </tr>
+        `;
+      });
+      datewiseTableBody.innerHTML = bHtml;
+
+      datewiseTableFoot.innerHTML = `
+        <tr class="total-row">
+          <td class="tf-name">TOTAL (${dailySums.length} દિવસ)</td>
+          <td class="tf-name" style="text-align:center;">${tot.workers_count || '-'} કારીગરો</td>
+          <td class="tf-in">${formatNumber(tot.in_pcs || 0)}</td>
+          <td class="tf-in-amt">${(tot.in_amt || 0).toFixed(2)}</td>
+          <td class="tf-out">${formatNumber(tot.out_pcs || 0)}</td>
+          <td class="tf-out-amt">${(tot.out_amt || 0).toFixed(2)}</td>
+          <td class="tf-total-pc">${formatNumber(tot.total_pc || 0)}</td>
+          <td class="tf-hours">${(tot.hours || 0) > 0 ? Number(tot.hours).toFixed(1) + ' hrs' : '-'}</td>
+          <td class="tf-total-amt">₹${(tot.total_amt || 0).toFixed(2)}</td>
+          <td class="tf-time">કુલ હિસાબ</td>
+        </tr>
+        <tr class="total-sub-row" style="background: rgba(15, 23, 42, 0.95); font-size: 11px; color: #94a3b8;">
+          <td colspan="10" style="padding: 7px 12px; text-align: right; border-top: 1px solid rgba(255,255,255,0.1);">
+            <span style="color:#38bdf8; font-weight:700;">📦 DigiBizz ERP કુલ મેળ: ${formatNumber(tot.gross_total_pc || 0)} Pcs</span> (IN: ${formatNumber(tot.gross_in_pcs || 0)} | OUT: ${formatNumber(tot.gross_out_pcs || 0)}) &bull; 
+            <span style="color:#fbbf24; font-weight:700;">🚨 ડુપ્લિકેટ ચોરી: -${formatNumber(tot.dupe_total_pc || 0)} Pcs</span> &bull; 
+            <span style="color:#34d399; font-weight:700;">💰 ચૂકવવાપાત્ર ચોખ્ખો હિસાબ: ${formatNumber(tot.in_pcs + tot.out_pcs)} Pcs</span>
+          </td>
+        </tr>
+      `;
+
+    } else if (currentDwTabMode === 'days') {
+      // TAB 2: તારીખવાર તમામ વિગત (DAY-BY-DAY FOR ALL WORKERS)
+      if (thDwWorkerName) thDwWorkerName.classList.remove('hidden');
+      if (thDwWorkerType) thDwWorkerType.classList.remove('hidden');
+      if (thDwWorkerName) thDwWorkerName.textContent = 'NAME (કારીગર)';
+
+      const days = datewiseCombinedCacheData.days || [];
+      if (days.length === 0) {
+        datewiseTableBody.innerHTML = `<tr><td colspan="11" class="loading-cell">આ સમયગાળામાં કોઈ એન્ટ્રી નથી</td></tr>`;
+        datewiseTableFoot.innerHTML = '';
+        return;
+      }
+
+      let bHtml = '';
+      days.forEach(d => {
+        const isPiece = d.is_piece;
+        const typeBadge = isPiece
+          ? `<span class="worker-type-badge badge-piece">🟢 પીસ</span>`
+          : `<span class="worker-type-badge badge-fix">🏢 FIX</span>`;
+        const amtDisplay = isPiece
+          ? (d.total_amt || 0).toFixed(2)
+          : `<span class="fix-salary-tag">🏢 FIX</span>`;
+
+        let dupeBadge = '';
+        if (d.dupe_total_pc > 0) {
+          dupeBadge = isGross
+            ? `<div style="font-size: 10px; color: #fbbf24; font-weight: 600; margin-top: 2px;">⚠️ +${formatNumber(d.dupe_total_pc)} ડુપ્લિકેટ સહિત</div>`
+            : `<div style="font-size: 10px; color: #ef4444; font-weight: 600; margin-top: 2px;">🚨 -${formatNumber(d.dupe_total_pc)} ચોરી કપાત</div>`;
+        }
+
+        bHtml += `
+          <tr>
+            <td class="cell-name">
+              <div style="font-weight: 600;">${d.formatted_date || d.date}</div>
+              ${dupeBadge}
+            </td>
+            <td class="cell-name" style="cursor:pointer;" onclick="window.openDatewiseBreakdown('${d.worker_name}')" title="${d.worker_name} નો વ્યક્તિગત હિસાબ જુઓ">
+              <span class="emp-name-text">${d.worker_name}</span>
+            </td>
+            <td class="cell-type" style="text-align: center;">${typeBadge}</td>
+            <td class="cell-in">${formatNumber(d.in_pcs)}</td>
+            <td class="cell-in-amt">${isPiece ? d.in_amt.toFixed(2) : '-'}</td>
+            <td class="cell-out">${formatNumber(d.out_pcs)}</td>
+            <td class="cell-out-amt">${isPiece ? d.out_amt.toFixed(2) : '-'}</td>
+            <td class="cell-total-pc">${formatNumber(d.total_pc)}</td>
+            <td class="cell-hours"><span class="hours-val">${d.hours > 0 ? d.hours.toFixed(1) + ' hrs' : '-'}</span></td>
+            <td class="cell-total-amt">${amtDisplay}</td>
+            <td class="cell-time"><span class="time-badge">⏱️ ${d.time_range || '-'}</span></td>
+          </tr>
+        `;
+      });
+      datewiseTableBody.innerHTML = bHtml;
+
+      datewiseTableFoot.innerHTML = `
+        <tr class="total-row">
+          <td class="tf-name">TOTAL (${days.length} એન્ટ્રી)</td>
+          <td class="tf-name">-</td>
+          <td class="tf-type">-</td>
+          <td class="tf-in">${formatNumber(tot.in_pcs || 0)}</td>
+          <td class="tf-in-amt">${(tot.in_amt || 0).toFixed(2)}</td>
+          <td class="tf-out">${formatNumber(tot.out_pcs || 0)}</td>
+          <td class="tf-out-amt">${(tot.out_amt || 0).toFixed(2)}</td>
+          <td class="tf-total-pc">${formatNumber(tot.total_pc || 0)}</td>
+          <td class="tf-hours">${(tot.hours || 0) > 0 ? Number(tot.hours).toFixed(1) + ' hrs' : '-'}</td>
+          <td class="tf-total-amt">₹${(tot.total_amt || 0).toFixed(2)}</td>
+          <td class="tf-time">કુલ હિસાબ</td>
+        </tr>
+      `;
+
+    } else if (currentDwTabMode === 'workers') {
+      // TAB 3: કારીગર સમરી (WORKER TOTAL SUMMARY)
+      if (thDwWorkerName) thDwWorkerName.classList.remove('hidden');
+      if (thDwWorkerType) thDwWorkerType.classList.remove('hidden');
+      if (thDwWorkerName) thDwWorkerName.textContent = 'NAME (કારીગર)';
+
+      const workersList = datewiseCombinedCacheData.workers || [];
+      if (workersList.length === 0) {
+        datewiseTableBody.innerHTML = `<tr><td colspan="11" class="loading-cell">કોઈ સમરી ડેટા નથી</td></tr>`;
+        datewiseTableFoot.innerHTML = '';
+        return;
+      }
+
+      let bHtml = '';
+      workersList.forEach(w => {
+        const isPiece = w.is_piece;
+        const typeBadge = isPiece
+          ? `<span class="worker-type-badge badge-piece">🟢 પીસ રેટ</span>`
+          : `<span class="worker-type-badge badge-fix">🏢 FIX પગાર</span>`;
+        const amtDisplay = isPiece
+          ? (w.total_amt || 0).toFixed(2)
+          : `<span class="fix-salary-tag">🏢 FIX</span>`;
+
+        bHtml += `
+          <tr>
+            <td class="cell-name" style="font-weight: 700; color: #38bdf8;">${w.days_count} દિવસ કામ</td>
+            <td class="cell-name" style="cursor:pointer;" onclick="window.openDatewiseBreakdown('${w.name}')" title="${w.name} નો તારીખ પ્રમાણે હિસાબ જુઓ">
+              <span class="emp-name-text" style="font-weight: 700;">${w.name}</span>
+            </td>
+            <td class="cell-type" style="text-align: center;">${typeBadge}</td>
+            <td class="cell-in">${formatNumber(w.in_pcs)}</td>
+            <td class="cell-in-amt">${isPiece ? (w.in_amt || 0).toFixed(2) : '-'}</td>
+            <td class="cell-out">${formatNumber(w.out_pcs)}</td>
+            <td class="cell-out-amt">${isPiece ? (w.out_amt || 0).toFixed(2) : '-'}</td>
+            <td class="cell-total-pc" style="font-weight: 700;">${formatNumber(w.total_pc)}</td>
+            <td class="cell-hours"><span class="hours-val">${w.hours > 0 ? w.hours.toFixed(1) + ' hrs' : '-'}</span></td>
+            <td class="cell-total-amt" style="font-weight: 700;">${amtDisplay}</td>
+            <td class="cell-time"><span class="time-badge">⚡ ${w.pcs_per_hour || 0} pc/hr</span></td>
+          </tr>
+        `;
+      });
+      datewiseTableBody.innerHTML = bHtml;
+
+      datewiseTableFoot.innerHTML = `
+        <tr class="total-row">
+          <td class="tf-name">TOTAL (${workersList.length} કારીગરો)</td>
+          <td class="tf-name">-</td>
+          <td class="tf-type">-</td>
+          <td class="tf-in">${formatNumber(tot.in_pcs || 0)}</td>
+          <td class="tf-in-amt">${(tot.in_amt || 0).toFixed(2)}</td>
+          <td class="tf-out">${formatNumber(tot.out_pcs || 0)}</td>
+          <td class="tf-out-amt">${(tot.out_amt || 0).toFixed(2)}</td>
+          <td class="tf-total-pc">${formatNumber(tot.total_pc || 0)}</td>
+          <td class="tf-hours">${(tot.hours || 0) > 0 ? Number(tot.hours).toFixed(1) + ' hrs' : '-'}</td>
+          <td class="tf-total-amt">₹${(tot.total_amt || 0).toFixed(2)}</td>
+          <td class="tf-time">કુલ સમરી</td>
+        </tr>
+      `;
+    }
+  }
+
+  window.openDatewiseBreakdown = async function(userName) {
+    userDatewiseModal.classList.remove('hidden');
     datewiseTableBody.innerHTML = '';
     datewiseTableFoot.innerHTML = '';
     datewiseModalLoading.classList.remove('hidden');
@@ -3045,6 +3295,70 @@
     const curOutRate = parseFloat(outRateInput.value) || 0.35;
     thDatewiseInRate.textContent = curInRate.toFixed(2);
     thDatewiseOutRate.textContent = curOutRate.toFixed(2);
+
+    const shiftSub = selectedSalaryShift === 'day' ? ' [☀️ સવાર શિફ્ટ]' : selectedSalaryShift === 'night' ? ' [🌙 રાત શિફ્ટ]' : ' [🔄 24 કલાક]';
+    const isGross = (adminDeductionMode === 'gross');
+    const isCompare = (adminDeductionMode === 'compare');
+    const modeTag = isGross ? ' • 📦 કુલ સ્કેન (Gross)' : (isCompare ? ' • 🔍 Gross vs Net તુલના' : ' • 💰 કપાત બાદ ચોખ્ખો (Net)');
+
+    // Check if ALL or SELECTED is requested
+    const isAllMode = (!userName || userName === 'ALL' || userName === 'SELECTED');
+
+    if (isAllMode) {
+      currentDatewiseMode = 'all';
+      currentModalUser = userName || 'ALL';
+      populateDatewiseWorkerDropdown(currentModalUser);
+
+      if (datewiseViewPills) datewiseViewPills.classList.remove('hidden');
+      if (btnDatewiseViewToggleAll) btnDatewiseViewToggleAll.innerHTML = '<span>👤 સિંગલ કર્મચારી પર જાઓ</span>';
+      if (btnDownloadUserExcelText) btnDownloadUserExcelText.textContent = '📥 આખા મહિનાનું Excel ડાઉનલોડ કરો';
+
+      let targetWorkersParam = '';
+      let targetLabel = 'તમામ કારીગરો (ALL)';
+      if (userName === 'SELECTED' && selectedWorkerNames.size > 0) {
+        targetWorkersParam = Array.from(selectedWorkerNames).join(',');
+        targetLabel = `${selectedWorkerNames.size} પસંદ કરેલા કારીગરો`;
+      } else if (selectedWorkerNames.size > 0 && userName !== 'ALL') {
+        targetWorkersParam = Array.from(selectedWorkerNames).join(',');
+        targetLabel = `${selectedWorkerNames.size} પસંદ કરેલા કારીગરો`;
+      }
+
+      datewiseModalUserName.innerHTML = `📊 આખા મહિનાનો સંયુક્ત હિસાબ <span class="worker-type-badge badge-piece" style="font-size:12px; vertical-align:middle; margin-left:6px;">${targetLabel}</span>`;
+      datewiseModalSub.textContent = `${formatDisplayDate(salaryFromDate)} થી ${formatDisplayDate(salaryToDate)}${shiftSub}${modeTag} સુધીની વિગત`;
+
+      try {
+        await resolveBestServer();
+        const url = `${currentApiBase}/api/godaun/combined-month-report?from_date=${salaryFromDate}&to_date=${salaryToDate}&workers=${encodeURIComponent(targetWorkersParam)}&in_rate=${curInRate}&out_rate=${curOutRate}&shift=${selectedSalaryShift}&mode=${adminDeductionMode}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        datewiseCombinedCacheData = data;
+        combinedMonthReportData = data;
+        renderDatewiseAllTable();
+      } catch (err) {
+        console.error('Fetch combined month error:', err);
+        datewiseTableBody.innerHTML = `<tr><td colspan="10" class="loading-cell" style="color:#ef4444;">ડેટા મેળવવામાં ક્ષતિ આવી: ${err.message || err}</td></tr>`;
+      } finally {
+        datewiseModalLoading.classList.add('hidden');
+      }
+      return;
+    }
+
+    // Single Worker Mode
+    currentDatewiseMode = 'single';
+    currentModalUser = userName;
+    populateDatewiseWorkerDropdown(userName);
+
+    if (datewiseViewPills) datewiseViewPills.classList.add('hidden');
+    if (btnDatewiseViewToggleAll) btnDatewiseViewToggleAll.innerHTML = '<span>👥 બધા કારીગરો એક સાથે (ALL)</span>';
+    if (btnDownloadUserExcelText) btnDownloadUserExcelText.textContent = 'આ વ્યક્તિનું Excel ડાઉનલોડ કરો';
+
+    if (thDwWorkerName) thDwWorkerName.classList.add('hidden');
+    if (thDwWorkerType) thDwWorkerType.classList.add('hidden');
+
+    const initIsPiece = isWorkerPieceRate(userName);
+    datewiseModalUserName.innerHTML = `${userName} - તારીખ પ્રમાણે હિસાબ ${initIsPiece ? '<span class="worker-type-badge badge-piece" style="font-size:12px; vertical-align:middle; margin-left:6px;">🟢 પીસ રેટ</span>' : '<span class="worker-type-badge badge-fix" style="font-size:12px; vertical-align:middle; margin-left:6px;">🏢 FIX પગાર</span>'}`;
+    datewiseModalSub.textContent = `${formatDisplayDate(salaryFromDate)} થી ${formatDisplayDate(salaryToDate)}${shiftSub}${modeTag} સુધીની વિગત`;
 
     try {
       let data;
@@ -3151,12 +3465,15 @@
     }
   };
 
-
   btnDownloadUserExcel.addEventListener('click', () => {
-    if (currentModalUser) triggerExcelDownload(currentModalUser);
+    if (currentDatewiseMode === 'all') {
+      downloadCombinedMonthExcel();
+    } else if (currentModalUser) {
+      triggerExcelDownload(currentModalUser);
+    }
   });
 
-  datewiseModalCloseBtn.addEventListener('click', () => {
+    datewiseModalCloseBtn.addEventListener('click', () => {
     userDatewiseModal.classList.add('hidden');
   });
 
