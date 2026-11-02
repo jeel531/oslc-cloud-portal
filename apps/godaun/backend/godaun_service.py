@@ -445,7 +445,14 @@ async def save_hours_api(request: Request):
 @app.get("/api/godaun/worker-types")
 def get_worker_types_endpoint():
     settings = load_worker_settings()
-    return {"success": True, "settings": settings}
+    return {
+        "success": True, 
+        "settings": settings,
+        "piece_rate_workers": settings.get("piece_rate_workers", []),
+        "fix_workers": settings.get("fix_workers", []),
+        "worker_types": settings.get("worker_types", {}),
+        "default_daily_hours": settings.get("default_daily_hours", 12.0)
+    }
 
 @app.post("/api/godaun/worker-types")
 async def save_worker_types_endpoint(request: Request):
@@ -453,7 +460,15 @@ async def save_worker_types_endpoint(request: Request):
         body = await request.json()
         ok = save_worker_settings(body)
         _cache.clear()
-        return {"success": ok, "settings": load_worker_settings()}
+        settings = load_worker_settings()
+        return {
+            "success": ok, 
+            "settings": settings,
+            "piece_rate_workers": settings.get("piece_rate_workers", []),
+            "fix_workers": settings.get("fix_workers", []),
+            "worker_types": settings.get("worker_types", {}),
+            "default_daily_hours": settings.get("default_daily_hours", 12.0)
+        }
     except Exception as e:
         return {"success": False, "error": str(e)}
 
@@ -1442,8 +1457,8 @@ def get_combined_month_report(
             cur_out = net_out
             cur_tot = net_pc
 
-        in_amt = round(cur_in * in_rate, 2) if is_piece else 0.0
-        out_amt = round(cur_out * out_rate, 2) if is_piece else 0.0
+        in_amt = round(cur_in * in_rate, 2)
+        out_amt = round(cur_out * out_rate, 2)
         total_amt = round(in_amt + out_amt, 2)
 
         tot_in += cur_in
@@ -2434,7 +2449,7 @@ def export_excel_report(
                     w_tot_in_amt = round(w_tot_in * in_rate, 2)
                     w_tot_out_amt = round(w_tot_out * out_rate, 2)
                     w_tot_pc = w_tot_in + w_tot_out
-                    w_tot_amt = round(w_tot_in_amt + w_tot_out_amt, 2) if is_p else 0.0
+                    w_tot_amt = round(w_tot_in_amt + w_tot_out_amt, 2)
                     w_tot_hours = round(sum(r.get("hours", 0.0) for r in w_days), 1)
                     w_tot_dupe = sum(r.get("dupe_total_pc", 0) for r in w_days)
 
@@ -2455,7 +2470,7 @@ def export_excel_report(
                             c_tot_pc,
                             r.get("dupe_total_pc", 0),
                             r.get("hours", 0.0),
-                            c_tot_amt if is_p else "FIX",
+                            c_tot_amt,
                             r.get("time_range", "-")
                         ])
                         for ci in range(1, len(headers_ind) + 1):
@@ -2478,7 +2493,7 @@ def export_excel_report(
                         w_tot_pc,
                         w_tot_dupe,
                         w_tot_hours,
-                        w_tot_amt if is_p else "FIX",
+                        w_tot_amt,
                         comb_data.get("shift_label", "")
                     ])
                     for ci in range(1, len(headers_ind) + 1):
@@ -2679,7 +2694,7 @@ def export_excel_report(
             w_tot_in_amt = round(w_tot_in * in_rate, 2)
             w_tot_out_amt = round(w_tot_out * out_rate, 2)
             w_tot_pc = w_tot_in + w_tot_out
-            w_tot_amt = round(w_tot_in_amt + w_tot_out_amt, 2) if is_p else 0.0
+            w_tot_amt = round(w_tot_in_amt + w_tot_out_amt, 2)
             w_tot_hours = round(sum(r.get("hours", 0.0) for r in w_days), 1)
             w_tot_dupe = sum(r.get("dupe_total_pc", 0) for r in w_days)
 
@@ -2700,7 +2715,7 @@ def export_excel_report(
                     c_tot_pc,
                     r.get("dupe_total_pc", 0),
                     r.get("hours", 0.0),
-                    c_tot_amt if is_p else "FIX",
+                    c_tot_amt,
                     r.get("time_range", "-")
                 ])
                 for ci in range(1, len(headers_w) + 1):
@@ -2723,7 +2738,7 @@ def export_excel_report(
                 w_tot_pc,
                 w_tot_dupe,
                 w_tot_hours,
-                w_tot_amt if is_p else "FIX",
+                w_tot_amt,
                 comb_data.get("shift_label", "")
             ])
             for ci in range(1, len(headers_w) + 1):

@@ -32,13 +32,14 @@ def load_worker_settings() -> Dict[str, Any]:
     try:
         content = SETTINGS_FILE.read_text(encoding="utf-8").strip()
         if not content:
-            return {
+            data = {
                 "worker_types": {},
                 "default_type": DEFAULT_WORKER_TYPE,
                 "global_default_hours": DEFAULT_GLOBAL_HOURS,
                 "worker_default_hours": {}
             }
-        data = json.loads(content)
+        else:
+            data = json.loads(content)
         if "worker_types" not in data or not isinstance(data["worker_types"], dict):
             data["worker_types"] = {}
         if "global_default_hours" not in data:
@@ -47,13 +48,21 @@ def load_worker_settings() -> Dict[str, Any]:
             data["default_type"] = DEFAULT_WORKER_TYPE
         if "worker_default_hours" not in data or not isinstance(data["worker_default_hours"], dict):
             data["worker_default_hours"] = {}
+
+        # Seamless support for both list and dict formats
+        data["piece_rate_workers"] = [w for w, t in data["worker_types"].items() if str(t).lower() == "piece"]
+        data["fix_workers"] = [w for w, t in data["worker_types"].items() if str(t).lower() == "fix"]
+        data["default_daily_hours"] = float(data.get("global_default_hours", DEFAULT_GLOBAL_HOURS))
         return data
     except Exception as e:
         print(f"Error loading worker settings: {e}")
         return {
             "worker_types": {},
+            "piece_rate_workers": [],
+            "fix_workers": [],
             "default_type": DEFAULT_WORKER_TYPE,
             "global_default_hours": DEFAULT_GLOBAL_HOURS,
+            "default_daily_hours": DEFAULT_GLOBAL_HOURS,
             "worker_default_hours": {}
         }
 
@@ -61,6 +70,21 @@ def save_worker_settings(settings: Dict[str, Any]) -> bool:
     _ensure_files()
     try:
         clean_types = {}
+        # 1. From piece_rate_workers list
+        if isinstance(settings.get("piece_rate_workers"), list):
+            for w in settings["piece_rate_workers"]:
+                w_str = str(w).strip().upper()
+                if w_str:
+                    clean_types[w_str] = "piece"
+
+        # 2. From fix_workers list
+        if isinstance(settings.get("fix_workers"), list):
+            for w in settings["fix_workers"]:
+                w_str = str(w).strip().upper()
+                if w_str:
+                    clean_types[w_str] = "fix"
+
+        # 3. From worker_types dict
         if isinstance(settings.get("worker_types"), dict):
             for k, v in settings["worker_types"].items():
                 w = str(k).strip().upper()
@@ -78,14 +102,17 @@ def save_worker_settings(settings: Dict[str, Any]) -> bool:
                     pass
 
         try:
-            g_hours = round(float(settings.get("global_default_hours", DEFAULT_GLOBAL_HOURS)), 2)
+            g_hours = round(float(settings.get("default_daily_hours") or settings.get("global_default_hours", DEFAULT_GLOBAL_HOURS)), 2)
         except (ValueError, TypeError):
             g_hours = DEFAULT_GLOBAL_HOURS
 
         data_to_save = {
             "worker_types": clean_types,
+            "piece_rate_workers": [w for w, t in clean_types.items() if t == "piece"],
+            "fix_workers": [w for w, t in clean_types.items() if t == "fix"],
             "default_type": str(settings.get("default_type", DEFAULT_WORKER_TYPE)).strip().lower(),
             "global_default_hours": g_hours,
+            "default_daily_hours": g_hours,
             "worker_default_hours": clean_w_hours,
             "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
@@ -93,6 +120,15 @@ def save_worker_settings(settings: Dict[str, Any]) -> bool:
         temp_file = HERE / "worker_settings.json.tmp"
         temp_file.write_text(json.dumps(data_to_save, indent=2, ensure_ascii=False), encoding="utf-8")
         temp_file.replace(SETTINGS_FILE)
+
+        # Cross-sync to both project locations
+        other_dir = Path("D:/OSLC_CLOUD_MASTER_PORTAL/apps/godaun/backend") if "NOTA" in str(HERE) else Path("D:/NOTA/OSLC IN OUT/backend")
+        try:
+            if other_dir.exists():
+                (other_dir / "worker_settings.json").write_text(json.dumps(data_to_save, indent=2, ensure_ascii=False), encoding="utf-8")
+        except Exception:
+            pass
+
         return True
     except Exception as e:
         print(f"Error saving worker settings: {e}")
