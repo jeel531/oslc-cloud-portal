@@ -337,11 +337,11 @@
 
             <!-- Action Buttons Row: Daily Hours Entry + Worker Settings + 2 Download Options (ZIP & MIX) -->
             <div class="excel-action-wrap dual-actions-wrap tri-actions-wrap">
-              <button type="button" id="btnDownloadAllZip" class="btn-sel-action btn-sel-zip" onclick="window.downloadWorkerZip()" title="બધા કારીગરોની અલગ અલગ Excel ફાઇલ ZIP માં ડાઉનલોડ કરો">
+              <button type="button" id="btnDownloadAllZip" class="btn-sel-action btn-sel-zip" title="બધા કારીગરોની અલગ અલગ Excel ફાઇલ ZIP માં ડાઉનલોડ કરો">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 <span>📦 ૧. ZIP (અલગ અલગ ID વાઈઝ)</span>
               </button>
-              <button type="button" id="btnDownloadAllMix" class="btn-sel-action btn-sel-excel" onclick="window.downloadWorkerMixExcel()" title="બધા કારીગરોનો ૧ જ Excel માં ID વાઈઝ ટોટલ સાથે મિક્સ રિપોર્ટ ડાઉનલોડ કરો">
+              <button type="button" id="btnDownloadAllMix" class="btn-sel-action btn-sel-excel" title="બધા કારીગરોનો ૧ જ Excel માં ID વાઈઝ ટોટલ સાથે મિક્સ રિપોર્ટ ડાઉનલોડ કરો">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 <span>📊 ૨. MIX Excel (ID વાઈઝ ટોટલ)</span>
               </button>
@@ -453,11 +453,11 @@
             <button type="button" id="btnViewCombinedMonthReport" class="btn-sel-action btn-sel-primary" title="પસંદ કરેલા કારીગરોનો આખા મહિનાનો તારીખ વાઈઝ રિપોર્ટ">
               <span>📅 આખા મહિનાનો રિપોર્ટ જુઓ</span>
             </button>
-            <button type="button" id="btnDownloadSelectedZip" class="btn-sel-action btn-sel-zip" onclick="window.downloadWorkerZip()" title="પસંદ કરેલા દરેક કારીગરની અલગ અલગ Excel ફાઇલ ZIP માં ડાઉનલોડ કરો">
+            <button type="button" id="btnDownloadSelectedZip" class="btn-sel-action btn-sel-zip" title="પસંદ કરેલા દરેક કારીગરની અલગ અલગ Excel ફાઇલ ZIP માં ડાઉનલોડ કરો">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
               <span>📦 ૧. ZIP (અલગ અલગ ID વાઈઝ)</span>
             </button>
-            <button type="button" id="btnDownloadSelectedMix" class="btn-sel-action btn-sel-excel" onclick="window.downloadWorkerMixExcel()" title="પસંદ કરેલા તમામ કારીગરોનો એક જ Excel માં ID વાઈઝ ટોટલ સાથે રિપોર્ટ ડાઉનલોડ કરો">
+            <button type="button" id="btnDownloadSelectedMix" class="btn-sel-action btn-sel-excel" title="પસંદ કરેલા તમામ કારીગરોનો એક જ Excel માં ID વાઈઝ ટોટલ સાથે રિપોર્ટ ડાઉનલોડ કરો">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
               <span>📊 ૨. MIX Excel (ID વાઈઝ ટોટલ)</span>
             </button>
@@ -1359,10 +1359,10 @@
               </svg>
               <span id="btnDownloadUserExcelText">આ વ્યક્તિનું Excel ડાઉનલોડ કરો</span>
             </button>
-            <button id="btnDownloadUserZip" type="button" class="btn-excel-small btn-zip-small hidden" onclick="window.downloadWorkerZip()" title="બધા કારીગરોની અલગ અલગ Excel ફાઇલ એક ZIP માં ડાઉનલોડ કરો">
+            <button id="btnDownloadUserZip" type="button" class="btn-excel-small btn-zip-small hidden" title="બધા કારીગરોની અલગ અલગ Excel ફાઇલ એક ZIP માં ડાઉનલોડ કરો">
               <span>📦 ૧. ZIP (અલગ અલગ ID વાઈઝ)</span>
             </button>
-            <button id="btnDownloadAllSepInModal" type="button" class="btn-excel-small btn-sep-small hidden" onclick="window.downloadWorkerMixExcel()" title="એક જ Excel માં ID વાઈઝ ટોટલ સાથે મિક્સ રિપોર્ટ ડાઉનલોડ કરો">
+            <button id="btnDownloadAllSepInModal" type="button" class="btn-excel-small btn-sep-small hidden" title="એક જ Excel માં ID વાઈઝ ટોટલ સાથે મિક્સ રિપોર્ટ ડાઉનલોડ કરો">
               <span>📊 ૨. MIX Excel (ID વાઈઝ ટોટલ)</span>
             </button>
           </div>
@@ -1956,10 +1956,10 @@
             </div>
             <input type="text" id="combSearchInput" placeholder="રિપોર્ટમાં શોધો..." class="styled-search-input comb-search-input">
           </div>
-          <button type="button" id="btnDownloadCombZipModal" class="btn-excel-small btn-zip-small" onclick="window.downloadWorkerZip()" title="પસંદ કરેલા تمام કારીગરોની અલગ અલગ Excel ફાઇલો એક ZIP માં ડાઉનલોડ કરો" style="background: linear-gradient(135deg, #7c3aed, #8b5cf6); color: #fff;">
+          <button type="button" id="btnDownloadCombZipModal" class="btn-excel-small btn-zip-small" title="પસંદ કરેલા تمام કારીગરોની અલગ અલગ Excel ફાઇલો એક ZIP માં ડાઉનલોડ કરો" style="background: linear-gradient(135deg, #7c3aed, #8b5cf6); color: #fff;">
             <span>📦 ૧. ZIP (અલગ અલગ ID વાઈઝ)</span>
           </button>
-          <button type="button" id="btnDownloadCombMonthExcelModal" class="btn-excel-small" onclick="window.downloadWorkerMixExcel()" title="એક જ Excel માં ID વાઈઝ ટોટલ સાથે મિક્સ રિપોર્ટ ડાઉનલોડ કરો" style="background: linear-gradient(135deg, #059669, #10b981); color: #fff;">
+          <button type="button" id="btnDownloadCombMonthExcelModal" class="btn-excel-small" title="એક જ Excel માં ID વાઈઝ ટોટલ સાથે મિક્સ રિપોર્ટ ડાઉનલોડ કરો" style="background: linear-gradient(135deg, #059669, #10b981); color: #fff;">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="7 10 12 15 17 10"></polyline>

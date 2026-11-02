@@ -2373,7 +2373,10 @@
       const rowOutAmt = row._calcOutAmt;
       const rowTotalPc = row._calcTotalPc;
       const rowTotalAmt = row._calcTotalAmt;
-      const rowHours = row.hours != null && row.hours > 0 ? Number(row.hours) : getWorkerHoursInRange(row.name, salaryFromDate, salaryToDate);
+      const rowActiveDays = row.active_days != null ? Number(row.active_days) : (salaryFromDate === salaryToDate ? 1 : 0);
+      const rowHours = (row.hours != null && Number(row.hours) > 0)
+        ? Number(row.hours)
+        : (rowActiveDays > 0 ? (rowActiveDays * (workerTypesSettings.default_daily_hours || 12.0)) : getWorkerHoursInRange(row.name, salaryFromDate, salaryToDate));
       const rowTimeRange = row.time_range || (row.first_time && row.last_time ? row.first_time + ' - ' + row.last_time : (row.first_time || '-'));
 
       const gIn = row.gross_in_pcs != null ? row.gross_in_pcs : (row.in_pcs || 0);
@@ -3082,7 +3085,15 @@
   // "mane 2 opsen de 1 zip ne 1 mix zip ma alg alg id vays ne mix ma bathu mix but id vays dekhavu joye total"
   // ========================================================
 
+  let isDownloadingZip = false;
   window.downloadWorkerZip = async function(customList = null) {
+    if (isDownloadingZip) {
+      console.log('ZIP download already in progress, skipping duplicate.');
+      return;
+    }
+    isDownloadingZip = true;
+    setTimeout(() => { isDownloadingZip = false; }, 3000);
+
     let targetWorkers = [];
     if (customList && Array.isArray(customList) && customList.length > 0) {
       targetWorkers = customList;
@@ -3115,7 +3126,6 @@
       const link = document.createElement('a');
       link.href = exportUrl;
       link.setAttribute('download', fName);
-      link.target = '_blank';
       document.body.appendChild(link);
       link.click();
       setTimeout(() => { try { document.body.removeChild(link); } catch(e){} }, 2000);
@@ -3126,7 +3136,15 @@
     }
   };
 
+  let isDownloadingMix = false;
   window.downloadWorkerMixExcel = async function(customList = null) {
+    if (isDownloadingMix) {
+      console.log('MIX Excel download already in progress, skipping duplicate.');
+      return;
+    }
+    isDownloadingMix = true;
+    setTimeout(() => { isDownloadingMix = false; }, 3000);
+
     let targetWorkers = [];
     if (customList && Array.isArray(customList) && customList.length > 0) {
       targetWorkers = customList;
@@ -3162,7 +3180,6 @@
       const link = document.createElement('a');
       link.href = exportUrl;
       link.setAttribute('download', fName);
-      link.target = '_blank';
       document.body.appendChild(link);
       link.click();
       setTimeout(() => { try { document.body.removeChild(link); } catch(e){} }, 2000);
@@ -3341,10 +3358,18 @@
     const btnDownloadSelectedZip = document.getElementById('btnDownloadSelectedZip');
     const btnDownloadSelectedMix = document.getElementById('btnDownloadSelectedMix');
 
-    if (btnDownloadAllZip) btnDownloadAllZip.addEventListener('click', () => window.downloadWorkerZip());
-    if (btnDownloadAllMix) btnDownloadAllMix.addEventListener('click', () => window.downloadWorkerMixExcel());
-    if (btnDownloadSelectedZip) btnDownloadSelectedZip.addEventListener('click', () => window.downloadWorkerZip());
-    if (btnDownloadSelectedMix) btnDownloadSelectedMix.addEventListener('click', () => window.downloadWorkerMixExcel());
+    if (btnDownloadAllZip) btnDownloadAllZip.onclick = (e) => { e.preventDefault(); window.downloadWorkerZip(); };
+    if (btnDownloadAllMix) btnDownloadAllMix.onclick = (e) => { e.preventDefault(); window.downloadWorkerMixExcel(); };
+    if (btnDownloadSelectedZip) btnDownloadSelectedZip.onclick = (e) => { e.preventDefault(); window.downloadWorkerZip(); };
+    if (btnDownloadSelectedMix) btnDownloadSelectedMix.onclick = (e) => { e.preventDefault(); window.downloadWorkerMixExcel(); };
+    const btnDwCombZipModal = document.getElementById('btnDownloadCombZipModal');
+    if (btnDwCombZipModal) btnDwCombZipModal.onclick = (e) => { e.preventDefault(); window.downloadWorkerZip(); };
+    const btnDwCombMixModal = document.getElementById('btnDownloadCombMonthExcelModal');
+    if (btnDwCombMixModal) btnDwCombMixModal.onclick = (e) => { e.preventDefault(); window.downloadWorkerMixExcel(); };
+    const btnDwUserZip = document.getElementById('btnDownloadUserZip');
+    if (btnDwUserZip) btnDwUserZip.onclick = (e) => { e.preventDefault(); window.downloadWorkerZip(); };
+    const btnDwAllSepModal = document.getElementById('btnDownloadAllSepInModal');
+    if (btnDwAllSepModal) btnDwAllSepModal.onclick = (e) => { e.preventDefault(); window.downloadWorkerMixExcel(); };
 
   if (headerExcelBtn) headerExcelBtn.addEventListener('click', handleExcelClick);
   if (navBtnExcelBottom) navBtnExcelBottom.addEventListener('click', handleExcelClick);
@@ -3846,7 +3871,9 @@
         let bHtml = '';
         let totDayHours = 0.0;
         days.forEach(d => {
-          const dHours = d.hours != null && d.hours > 0 ? Number(d.hours) : getWorkerHoursForDay(userName, d.date);
+          const dHours = (d.hours != null && Number(d.hours) > 0) 
+            ? Number(d.hours) 
+            : (getWorkerHoursForDay(userName, d.date) || (workerTypesSettings.default_daily_hours || 12.0));
           totDayHours += dHours;
 
           let dayInPcs = d.in_pcs;

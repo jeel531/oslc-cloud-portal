@@ -197,7 +197,6 @@ def set_hours_for_date(date_str: str, worker_hours: Dict[str, Any]) -> bool:
                 clean_hours[str(w).strip().upper()] = val
         except (ValueError, TypeError):
             continue
-
     all_hours[date_str] = clean_hours
     return save_all_hours(all_hours)
 
@@ -232,11 +231,70 @@ def apply_bulk_hours_range(from_date: str, to_date: str, worker_hours: Dict[str,
 
     return save_all_hours(all_hours)
 
-def get_worker_hours_in_range(from_date: str, to_date: str, active_worker_days: Optional[Dict[str, int]] = None) -> Dict[str, float]:
+def calc_worker_range_hours(
+    worker_name: str, 
+    active_days: int, 
+    from_date: str, 
+    to_date: str, 
+    all_hours: Optional[Dict[str, Dict[str, float]]] = None, 
+    w_settings: Optional[Dict[str, Any]] = None
+) -> float:
+    """
+    Calculates total hours for a worker over a date range.
+    - If single day (from_date == to_date): returns the day's hours (custom or default 12.0).
+    - If date range: sums custom hours for any days entered in daily_hours.json, and fills
+      all remaining active days with the worker's default daily hours (12.0 hrs).
+    """
+    if all_hours is None:
+        all_hours = load_all_hours()
+    if w_settings is None:
+        w_settings = load_worker_settings()
+
+    w_clean = str(worker_name).strip().upper()
+    global_def = float(w_settings.get("global_default_hours", DEFAULT_GLOBAL_HOURS))
+    w_defs = w_settings.get("worker_default_hours", {})
+    w_def = float(w_defs.get(w_clean, global_def))
+
+    if active_days <= 0:
+        if from_date == to_date:
+            active_days = 1
+        else:
+            try:
+                d1 = datetime.strptime(from_date, "%Y-%m-%d").date()
+                d2 = datetime.strptime(to_date, "%Y-%m-%d").date()
+                active_days = max(1, (d2 - d1).days + 1)
+            except Exception:
+                active_days = 1
+
+    if from_date == to_date:
+        d_map = all_hours.get(from_date, {})
+        return float(d_map.get(w_clean, w_def))
+
+    custom_hours = 0.0
+    custom_days = 0
+    for d_str, d_map in all_hours.items():
+        if from_date <= d_str <= to_date and w_clean in d_map:
+            try:
+                val = float(d_map[w_clean])
+                if val > 0:
+                    custom_hours += val
+                    custom_days += 1
+            except (ValueError, TypeError):
+                pass
+
+    remaining_days = max(0, active_days - custom_days)
+    total_h = custom_hours + (remaining_days * w_def)
+    return round(total_h, 1)
+
+def get_worker_hours_in_range(
+    from_date: str, 
+    to_date: str, 
+    active_worker_days: Optional[Dict[str, int]] = None,
+    active_worker_dates: Optional[Dict[str, Any]] = None
+) -> Dict[str, float]:
     """
     Returns a dictionary of worker_name (uppercase) -> total hours worked between from_date and to_date (inclusive).
-    If a worker worked on active days but daily_hours.json has no explicit entry for that date,
-    it falls back to the configured default hours so '1 var teim nakhu to te roj ma avu pade' works seamlessly.
+    Properly sums hours across all active days in the range (e.g. 31 days * 12 hrs = 372 hrs).
     """
     all_hours = load_all_hours()
     settings = load_worker_settings()
@@ -245,33 +303,41 @@ def get_worker_hours_in_range(from_date: str, to_date: str, active_worker_days: 
 
     worker_totals: Dict[str, float] = {}
 
-    try:
-        d_start = datetime.strptime(from_date, "%Y-%m-%d").date()
-        d_end = datetime.strptime(to_date, "%Y-%m-%d").date()
-    except Exception:
-        for d_str, w_map in all_hours.items():
-            if from_date <= d_str <= to_date:
-                for w, h in w_map.items():
-                    worker_totals[w] = round(worker_totals.get(w, 0.0) + h, 2)
+    # If active_worker_dates is provided (worker_name -> set/list of date strings):
+    if active_worker_dates:
+        for w, dates in active_worker_dates.items():
+            w_clean = str(w).strip().upper()
+            w_def = float(w_defs.get(w_clean, global_def))
+            tot_h = 0.0
+            for d_str in dates:
+                d_map = all_hours.get(d_str, {})
+                tot_h += float(d_map.get(w_clean, w_def))
+            worker_totals[w_clean] = round(tot_h, 1)
         return worker_totals
 
-    cur = d_start
-    while cur <= d_end:
-        d_str = cur.strftime("%Y-%m-%d")
-        w_map = all_hours.get(d_str, {})
-        for w, h in w_map.items():
-            worker_totals[w] = round(worker_totals.get(w, 0.0) + h, 2)
-        cur += timedelta(days=1)
-
-    # If active_worker_days is provided (worker -> number of days active with scans):
-    # Any worker with active days who lacks hours in all_hours gets active_days * default_hours
+    # If active_worker_days is provided (worker_name -> count of active days):
     if active_worker_days:
         for w, days_count in active_worker_days.items():
             w_clean = str(w).strip().upper()
-            if w_clean not in worker_totals or worker_totals[w_clean] <= 0:
-                def_h = float(w_defs.get(w_clean, global_def))
-                if def_h > 0 and days_count > 0:
-                    worker_totals[w_clean] = round(days_count * def_h, 2)
+            worker_totals[w_clean] = calc_worker_range_hours(w_clean, days_count, from_date, to_date, all_hours, settings)
+        return worker_totals
+
+    # Default fallback when neither active_worker_dates nor active_worker_days is provided:
+    try:
+        d_start = datetime.strptime(from_date, "%Y-%m-%d").date()
+        d_end = datetime.strptime(to_date, "%Y-%m-%d").date()
+        total_days = max(1, (d_end - d_start).days + 1)
+    except Exception:
+        total_days = 1
+
+    known_workers = set(w_defs.keys())
+    for d_str, w_map in all_hours.items():
+        if from_date <= d_str <= to_date:
+            for w in w_map.keys():
+                known_workers.add(str(w).strip().upper())
+
+    for w_clean in known_workers:
+        worker_totals[w_clean] = calc_worker_range_hours(w_clean, total_days, from_date, to_date, all_hours, settings)
 
     return worker_totals
 
@@ -315,7 +381,7 @@ def get_worker_daily_hours(worker_name: str, from_date: str, to_date: str, activ
             # Auto-apply default hours for active scanning days!
             daily_map[d_str] = default_h
         else:
-            daily_map[d_str] = 0.0
+            daily_map[d_str] = default_h
         cur += timedelta(days=1)
 
     return daily_map

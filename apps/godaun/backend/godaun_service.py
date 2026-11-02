@@ -27,6 +27,7 @@ try:
         get_hours_for_date,
         set_hours_for_date,
         get_worker_hours_in_range,
+        calc_worker_range_hours,
         get_worker_daily_hours,
         load_worker_settings,
         save_worker_settings,
@@ -42,6 +43,7 @@ except (ImportError, ValueError):
             get_hours_for_date,
             set_hours_for_date,
             get_worker_hours_in_range,
+            calc_worker_range_hours,
             get_worker_daily_hours,
             load_worker_settings,
             save_worker_settings,
@@ -775,7 +777,10 @@ def get_user_summary(
             SUM(CASE WHEN SCAN_SEQ > 1 THEN QTY_PIECES ELSE 0 END) AS DUPE_QTY,
             COUNT(*) AS ENTRIES,
             MIN(CREATED_DATE) AS FIRST_SCAN,
-            MAX(CREATED_DATE) AS LAST_SCAN
+            MAX(CREATED_DATE) AS LAST_SCAN,
+            COUNT(DISTINCT CASE WHEN CAST(CREATED_DATE AS TIME) < '07:30:00' 
+                               THEN CONVERT(VARCHAR(10), DATEADD(day, -1, CREATED_DATE), 120) 
+                               ELSE CONVERT(VARCHAR(10), CREATED_DATE, 120) END) AS ACTIVE_DAYS
         FROM ScansWithSeq
         WHERE {sc.outer_cond}
         GROUP BY CREATED_BY
@@ -955,7 +960,10 @@ def fetch_salary_report_data(from_date: str, to_date: str, in_rate: float, out_r
             SUM(CASE WHEN SCAN_SEQ = 1 AND NORM_PROCESS = 'INWARD' THEN QTY_PIECES ELSE 0 END) AS NET_IN_PCS,
             SUM(CASE WHEN SCAN_SEQ = 1 AND NORM_PROCESS = 'OUTWARD' THEN QTY_PIECES ELSE 0 END) AS NET_OUT_PCS,
             MIN(CREATED_DATE) AS FIRST_SCAN,
-            MAX(CREATED_DATE) AS LAST_SCAN
+            MAX(CREATED_DATE) AS LAST_SCAN,
+            COUNT(DISTINCT CASE WHEN CAST(CREATED_DATE AS TIME) < '07:30:00' 
+                               THEN CONVERT(VARCHAR(10), DATEADD(day, -1, CREATED_DATE), 120) 
+                               ELSE CONVERT(VARCHAR(10), CREATED_DATE, 120) END) AS ACTIVE_DAYS
         FROM ScansWithSeq
         WHERE {sc.outer_cond}
         GROUP BY CREATED_BY
@@ -965,7 +973,14 @@ def fetch_salary_report_data(from_date: str, to_date: str, in_rate: float, out_r
     rows = cur.fetchall()
     conn.close()
 
-    hours_map = get_worker_hours_in_range(from_date, to_date)
+    active_days_map = {}
+    for r in rows:
+        name_clean = str(r[0]).strip().upper()
+        act_d = int(r[9]) if len(r) > 9 and r[9] is not None else (1 if from_date == to_date else 0)
+        active_days_map[name_clean] = act_d
+
+    hours_map = get_worker_hours_in_range(from_date, to_date, active_worker_days=active_days_map)
+    all_hours_data = load_all_hours()
 
     result_rows = []
     tot_in_pcs = 0
@@ -1017,10 +1032,12 @@ def fetch_salary_report_data(from_date: str, to_date: str, in_rate: float, out_r
         dupe_out_amt = round(dupe_out * out_rate, 2)
         dupe_total_amt = round(dupe_in_amt + dupe_out_amt, 2)
 
+        active_days = active_days_map.get(name.upper(), 1 if from_date == to_date else 0)
         worker_hrs = hours_map.get(name.upper(), 0.0)
-        # 1 var teim nakhu to te roj ma avu pade - auto fallback to default hours
         if worker_hrs <= 0 and (net_pc > 0 or gross_pc > 0):
-            worker_hrs = w_def_h
+            worker_hrs = calc_worker_range_hours(name, active_days, from_date, to_date, all_hours_data, w_settings)
+        if worker_hrs <= 0 and (net_pc > 0 or gross_pc > 0):
+            worker_hrs = w_def_h if from_date == to_date else round(w_def_h * max(1, active_days), 1)
         pcs_per_hr = round(net_pc / worker_hrs, 1) if worker_hrs > 0 else 0.0
 
         f_time = format_scan_time(r[7], idx + 1)
@@ -1068,6 +1085,7 @@ def fetch_salary_report_data(from_date: str, to_date: str, in_rate: float, out_r
             "dupe_pct": round((dupe_pc / gross_pc * 100), 1) if gross_pc > 0 else 0.0,
             # Extra info
             "hours": worker_hrs,
+            "active_days": active_days,
             "pcs_per_hr": pcs_per_hr,
             "first_time": f_time,
             "last_time": l_time,
@@ -2543,7 +2561,6 @@ def export_excel_report(
                     ind_buf = io.BytesIO()
                     wb_ind.save(ind_buf)
                     clean_name = re.sub(r'[\\/*?:\[\]]', '_', w_name).strip()
-                    zf.writestr(f"OSLC_Salary_{clean_name}_{from_date}_to_{to_date}_{shift}.xls", ind_buf.getvalue())
                     zf.writestr(f"OSLC_Salary_{clean_name}_{from_date}_to_{to_date}_{shift}.xlsx", ind_buf.getvalue())
 
             return Response(
