@@ -3053,7 +3053,111 @@
     document.body.removeChild(link);
   }
 
-      window.downloadSeparateExcelFiles = async function(workersList = null) {
+      
+  // ========================================================
+  // USER REQUIREMENT: 2 CLEAR DOWNLOAD OPTIONS
+  // Option 1: 📦 ZIP (અલગ અલગ ID વાઈઝ)
+  // Option 2: 📊 MIX Excel (ID વાઈઝ ટોટલ સાથે)
+  // "mane 2 opsen de 1 zip ne 1 mix zip ma alg alg id vays ne mix ma bathu mix but id vays dekhavu joye total"
+  // ========================================================
+
+  window.downloadWorkerZip = async function(customList = null) {
+    let targetWorkers = [];
+    if (customList && Array.isArray(customList) && customList.length > 0) {
+      targetWorkers = customList;
+    } else if (selectedWorkerNames && selectedWorkerNames.size > 0) {
+      targetWorkers = Array.from(selectedWorkerNames);
+    } else {
+      const known = getKnownWorkersList();
+      targetWorkers = (known && known.length > 0) ? known : (rawSalaryRows || []).map(r => r.name);
+    }
+
+    if (!targetWorkers || targetWorkers.length === 0) {
+      showToast('કૃપા કરીને ઓછામાં ઓછો ૧ કારીગર સિલેક્ટ કરો!', '⚠️');
+      return;
+    }
+
+    const fromD = salaryFromDate || todayStr;
+    const toD = salaryToDate || todayStr;
+    const rIn = inRate;
+    const rOut = outRate;
+    const sShift = selectedSalaryShift;
+    const workersParam = targetWorkers.join(',');
+    const fName = `OSLC_Salary_ID_Wise_Separate_Files_${fromD}_to_${toD}_${sShift}.zip`;
+
+    showToast(`📦 ${targetWorkers.length} કારીગરોની અલગ અલગ ફાઇલ (ZIP) ડાઉનલોડ થઈ રહી છે...`, '⏳');
+
+    try {
+      await resolveBestServer();
+      const exportUrl = `${currentApiBase}/api/godaun/export-excel?report_type=combined&format=zip&from_date=${fromD}&to_date=${toD}&workers=${encodeURIComponent(workersParam)}&in_rate=${rIn}&out_rate=${rOut}&shift=${sShift}&mode=${adminDeductionMode}`;
+
+      const link = document.createElement('a');
+      link.href = exportUrl;
+      link.setAttribute('download', fName);
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => { try { document.body.removeChild(link); } catch(e){} }, 2000);
+      showToast(`✅ ${targetWorkers.length} કારીગરોની અલગ અલગ ફાઇલ (ZIP) ડાઉનલોડ શરૂ થઈ ગઈ!`, '🎉');
+    } catch (e) {
+      console.warn('ZIP download error:', e);
+      showToast('❌ ZIP ડાઉનલોડમાં ક્ષતિ આવી', '⚠️');
+    }
+  };
+
+  window.downloadWorkerMixExcel = async function(customList = null) {
+    let targetWorkers = [];
+    if (customList && Array.isArray(customList) && customList.length > 0) {
+      targetWorkers = customList;
+    } else if (selectedWorkerNames && selectedWorkerNames.size > 0) {
+      targetWorkers = Array.from(selectedWorkerNames);
+    } else {
+      const known = getKnownWorkersList();
+      targetWorkers = (known && known.length > 0) ? known : (rawSalaryRows || []).map(r => r.name);
+    }
+
+    if (!targetWorkers || targetWorkers.length === 0) {
+      showToast('કૃપા કરીને ઓછામાં ઓછો ૧ કારીગર સિલેક્ટ કરો!', '⚠️');
+      return;
+    }
+
+    const fromD = salaryFromDate || todayStr;
+    const toD = salaryToDate || todayStr;
+    const rIn = inRate;
+    const rOut = outRate;
+    const sShift = selectedSalaryShift;
+    const isDaily = (fromD === toD);
+    const workersParam = targetWorkers.join(',');
+    const fName = isDaily 
+      ? `OSLC_MIX_Daily_Report_${fromD}_${sShift}.xlsx`
+      : `OSLC_MIX_Report_ID_Wise_Totals_${fromD}_to_${toD}_${sShift}.xlsx`;
+
+    showToast(`📊 ${targetWorkers.length} કારીગરોનો MIX Excel રિપોર્ટ (ID વાઈઝ ટોટલ સાથે) તૈયાર થઈ રહ્યો છે...`, '⏳');
+
+    try {
+      await resolveBestServer();
+      const exportUrl = `${currentApiBase}/api/godaun/export-excel?report_type=combined&format=excel&from_date=${fromD}&to_date=${toD}&workers=${encodeURIComponent(workersParam)}&in_rate=${rIn}&out_rate=${rOut}&shift=${sShift}&mode=${adminDeductionMode}`;
+
+      const link = document.createElement('a');
+      link.href = exportUrl;
+      link.setAttribute('download', fName);
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => { try { document.body.removeChild(link); } catch(e){} }, 2000);
+      showToast(`✅ MIX Excel (ID વાઈઝ ટોટલ) ડાઉનલોડ શરૂ થઈ ગઈ!`, '🎉');
+    } catch (e) {
+      console.warn('MIX Excel download error, fallback to client:', e);
+      await triggerExcelDownload('', targetWorkers);
+    }
+  };
+
+  // Backward-compatible aliases
+  window.downloadCombinedZip = window.downloadWorkerZip;
+  window.downloadCombinedMonthExcel = window.downloadWorkerMixExcel;
+  window.downloadSeparateExcelFiles = window.downloadWorkerZip;
+
+  window.legacy_downloadSeparateExcelFiles = async function(workersList = null) {
     let targetWorkers = [];
     if (workersList && Array.isArray(workersList) && workersList.length > 0) {
       targetWorkers = workersList;
@@ -3206,21 +3310,21 @@
       triggerExcelDownload(currentUser.worker_name);
       return;
     }
-    const fromD = salaryFromDate || todayStr;
-    const toD = salaryToDate || todayStr;
     const targetWorkers = (selectedWorkerNames && selectedWorkerNames.size > 0) ? Array.from(selectedWorkerNames) : null;
-
-    if (fromD === toD) {
-      // Daily Report: 1 Single combined Excel file for today
-      triggerExcelDownload('', targetWorkers);
-      return;
-    }
-
-    // Month Report / Date Range: Separate Excel files for each worker + companion ZIP
-    window.downloadSeparateExcelFiles(targetWorkers);
+    window.downloadWorkerMixExcel(targetWorkers);
   }
 
   if (btnDownloadExcel) btnDownloadExcel.addEventListener('click', handleExcelClick);
+    const btnDownloadAllZip = document.getElementById('btnDownloadAllZip');
+    const btnDownloadAllMix = document.getElementById('btnDownloadAllMix');
+    const btnDownloadSelectedZip = document.getElementById('btnDownloadSelectedZip');
+    const btnDownloadSelectedMix = document.getElementById('btnDownloadSelectedMix');
+
+    if (btnDownloadAllZip) btnDownloadAllZip.addEventListener('click', () => window.downloadWorkerZip());
+    if (btnDownloadAllMix) btnDownloadAllMix.addEventListener('click', () => window.downloadWorkerMixExcel());
+    if (btnDownloadSelectedZip) btnDownloadSelectedZip.addEventListener('click', () => window.downloadWorkerZip());
+    if (btnDownloadSelectedMix) btnDownloadSelectedMix.addEventListener('click', () => window.downloadWorkerMixExcel());
+
   if (headerExcelBtn) headerExcelBtn.addEventListener('click', handleExcelClick);
   if (navBtnExcelBottom) navBtnExcelBottom.addEventListener('click', handleExcelClick);
 
