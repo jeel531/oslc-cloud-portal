@@ -112,7 +112,29 @@ async def add_no_cache_headers(request: Request, call_next):
 
 # In-memory caching
 _cache: dict[str, tuple[float, Any]] = {}
-CACHE_TTL = 30  # 30 seconds
+import calendar
+
+def sanitize_iso_date(date_str: str) -> str:
+    """Safely clamp any malformed or out-of-range date like 2026-09-31 to a valid date."""
+    if not date_str:
+        return datetime.now().strftime("%Y-%m-%d")
+    try:
+        parts = [int(p) for p in str(date_str).strip().split("-")]
+        if len(parts) == 3:
+            year, month, day = parts[0], parts[1], parts[2]
+            month = max(1, min(12, month))
+            max_days = calendar.monthrange(year, month)[1]
+            day = max(1, min(max_days, day))
+            return f"{year:04d}-{month:02d}-{day:02d}"
+    except Exception:
+        pass
+    try:
+        dt = datetime.strptime(str(date_str).strip(), "%Y-%m-%d")
+        return dt.strftime("%Y-%m-%d")
+    except Exception:
+        return datetime.now().strftime("%Y-%m-%d")
+
+CACHE_TTL = 60  # 30 seconds
 
 def get_cache(key: str) -> Optional[Any]:
     if key in _cache:
@@ -200,6 +222,8 @@ def get_shift_context(from_date: str, to_date: str, shift: str) -> ShiftQueryCon
       - 'night': 07:30 PM to 07:30 AM next day (19:30:00 to 07:30:00)
       - 'all': 07:30 AM to 07:30 AM next day (Day + Night 100% exact match)
     """
+    from_date = sanitize_iso_date(from_date)
+    to_date = sanitize_iso_date(to_date)
     shift = (shift or "all").lower().strip()
     try:
         to_dt = datetime.strptime(to_date, "%Y-%m-%d")
@@ -884,6 +908,14 @@ def get_user_detail(
     return res
 
 def fetch_salary_report_data(from_date: str, to_date: str, in_rate: float, out_rate: float, name_filter: str = "", shift: str = "all"):
+    from_date = sanitize_iso_date(from_date)
+    to_date = sanitize_iso_date(to_date)
+    shift = (shift or "all").lower().strip()
+    cache_key = f"sal_rep_{from_date}_{to_date}_{in_rate}_{out_rate}_{name_filter}_{shift}"
+    cached = get_cache(cache_key)
+    if cached is not None:
+        return cached
+
     sc = get_shift_context(from_date, to_date, shift)
     shift_label = sc.label
     conn = get_db_connection()

@@ -2065,7 +2065,28 @@
   // ========================================================
   // SALARY & PIECE RATE REPORT LOGIC
   // ========================================================
+  
+  // Safely clamp invalid calendar dates like 31/09/2026 to 30/09/2026
+  function sanitizeDateStr(dStr) {
+    if (!dStr) return todayStr;
+    try {
+      const parts = dStr.split('-');
+      if (parts.length === 3) {
+        let y = parseInt(parts[0], 10);
+        let m = parseInt(parts[1], 10);
+        let d = parseInt(parts[2], 10);
+        m = Math.max(1, Math.min(12, m));
+        const maxD = new Date(y, m, 0).getDate();
+        d = Math.max(1, Math.min(maxD, d));
+        return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      }
+    } catch (e) {}
+    return dStr;
+  }
+
   function setSalaryRange(fromDate, toDate) {
+    fromDate = sanitizeDateStr(fromDate);
+    toDate = sanitizeDateStr(toDate);
     updateExcelButtonLabels();
     salaryFromDate = fromDate;
     salaryToDate = toDate;
