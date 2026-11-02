@@ -1,7 +1,26 @@
 {
-  "worker_types": {},
+  "worker_types": {
+    "SEKHRIPAN": "piece",
+    "RAHULPARMAR": "piece",
+    "AZAHAR": "piece",
+    "AMIT": "piece",
+    "SONU": "piece",
+    "MAYURVAGHELA": "piece",
+    "PARVEEN": "piece"
+  },
+  "piece_rate_workers": [
+    "SEKHRIPAN",
+    "RAHULPARMAR",
+    "AZAHAR",
+    "AMIT",
+    "SONU",
+    "MAYURVAGHELA",
+    "PARVEEN"
+  ],
+  "fix_workers": [],
   "default_type": "fix",
   "global_default_hours": 12.0,
+  "default_daily_hours": 12.0,
   "worker_default_hours": {},
-  "updated_at": "2026-11-02 09:08:48"
+  "updated_at": "2026-11-02 09:16:04"
 }
