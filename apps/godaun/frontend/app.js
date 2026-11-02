@@ -2842,7 +2842,7 @@
         <td class="c-out">${formatNumber(r.out_pcs || 0)}</td>
         <td class="c-out-amt">${Number(r.out_amt || 0).toFixed(2)}</td>
         <td class="c-tot-pc">${formatNumber(r.total_pc || 0)}</td>
-        <td class="c-hours">${r.hours != null && r.hours > 0 ? r.hours.toFixed(1) + ' hrs' : '-'}</td>
+        <td class="c-hours">${(salaryFromDate === salaryToDate && !r.formatted_date) ? (isWorkerPieceRate(r.name) ? 'PIS' : 'FIX') : (r.hours != null && r.hours > 0 ? r.hours.toFixed(1) + ' hrs' : '-')}</td>
         <td class="c-tot-amt">${Number(r.total_amt || 0).toFixed(2)}</td>
         <td class="c-time">${timeVal}</td>
       </tr>`;
@@ -2857,7 +2857,7 @@
         <td style="color:#ffffff;">${formatNumber(totals.out_pcs || 0)}</td>
         <td style="color:#ffffff;">${Number(totals.out_amt || 0).toFixed(2)}</td>
         <td style="color:#ffffff;">${formatNumber(totals.total_pc || 0)}</td>
-        <td style="color:#ffffff;text-align:center;">${totals.hours != null && totals.hours > 0 ? totals.hours.toFixed(1) + ' hrs' : '-'}</td>
+        <td style="color:#ffffff;text-align:center;">${salaryFromDate === salaryToDate ? '-' : (totals.hours != null && totals.hours > 0 ? totals.hours.toFixed(1) + ' hrs' : '-')}</td>
         <td style="color:#ffffff;">${Number(totals.total_amt || 0).toFixed(2)}</td>
         <td style="color:#ffffff;text-align:center;">${shiftTag}</td>
       </tr>`;
