@@ -218,7 +218,7 @@
   loadWorkerTypesLocal();
 
   function isWorkerPieceRate(workerName) {
-    if (!workerName) return true;
+    if (!workerName) return false;
     const nameUpper = String(workerName).trim().toUpperCase();
     const fixList = (workerTypesSettings.fix_workers || []).map(x => String(x).trim().toUpperCase());
     if (fixList.includes(nameUpper)) {
@@ -228,7 +228,11 @@
     if (pieceList.length > 0) {
       return pieceList.includes(nameUpper);
     }
-    return true; // Default piece rate
+    if (workerTypesSettings.worker_types && typeof workerTypesSettings.worker_types === 'object') {
+      const t = workerTypesSettings.worker_types[nameUpper];
+      if (t) return String(t).toLowerCase() === 'piece';
+    }
+    return false;
   }
 
   async function syncWorkerTypesWithServer() {
@@ -237,15 +241,21 @@
       const res = await fetch(`${currentApiBase}/api/godaun/worker-types`);
       if (res.ok) {
         const data = await res.json();
-        if (data && data.success) {
-          workerTypesSettings = {
-            piece_rate_workers: data.piece_rate_workers || [],
-            fix_workers: data.fix_workers || [],
-            default_daily_hours: data.default_daily_hours != null ? Number(data.default_daily_hours) : 12.0
-          };
-          localStorage.setItem('oslc_worker_types', JSON.stringify(workerTypesSettings));
-          return workerTypesSettings;
+        const cfg = data.settings || data;
+        let pList = cfg.piece_rate_workers || [];
+        let fList = cfg.fix_workers || [];
+        if ((!pList || pList.length === 0) && cfg.worker_types) {
+          pList = Object.entries(cfg.worker_types).filter(([_, t]) => String(t).toLowerCase() === 'piece').map(([w]) => w);
+          fList = Object.entries(cfg.worker_types).filter(([_, t]) => String(t).toLowerCase() === 'fix').map(([w]) => w);
         }
+        workerTypesSettings = {
+          piece_rate_workers: pList,
+          fix_workers: fList,
+          worker_types: cfg.worker_types || {},
+          default_daily_hours: cfg.default_daily_hours != null ? Number(cfg.default_daily_hours) : 12.0
+        };
+        localStorage.setItem('oslc_worker_types', JSON.stringify(workerTypesSettings));
+        return workerTypesSettings;
       }
     } catch (e) {
       console.warn('Sync worker types from server failed:', e);
@@ -255,9 +265,14 @@
   }
 
   async function saveWorkerTypesToServer(pieceList, fixList, defaultHours = 12.0) {
+    const wMap = {};
+    (pieceList || []).forEach(w => { if (w) wMap[String(w).trim().toUpperCase()] = 'piece'; });
+    (fixList || []).forEach(w => { if (w) wMap[String(w).trim().toUpperCase()] = 'fix'; });
+
     workerTypesSettings = {
       piece_rate_workers: pieceList,
       fix_workers: fixList,
+      worker_types: wMap,
       default_daily_hours: Number(defaultHours) || 12.0
     };
     localStorage.setItem('oslc_worker_types', JSON.stringify(workerTypesSettings));
@@ -2207,7 +2222,7 @@
       const rowInAmt = Math.round((inPcs * inRate) * 100) / 100;
       const rowOutAmt = Math.round((outPcs * outRate) * 100) / 100;
       const rowTotalPc = inPcs + outPcs;
-      const rowTotalAmt = isPiece ? Math.round((rowInAmt + rowOutAmt) * 100) / 100 : 0.0;
+      const rowTotalAmt = Math.round((rowInAmt + rowOutAmt) * 100) / 100;
 
       row._isPiece = isPiece;
       row._calcInPcs = inPcs;
@@ -2284,13 +2299,13 @@
               <div class="mini-col inward-col">
                 <span class="m-lbl">IN (${inRate.toFixed(2)})</span>
                 <span class="m-val">${formatNumber(row._calcInPcs)} pc</span>
-                <span class="m-amt">${row._isPiece ? formatCurrency(row._calcInAmt) : '-'}</span>
+                <span class="m-amt">${formatCurrency(row._calcInAmt)}</span>
               </div>
               <div class="mini-divider"></div>
               <div class="mini-col outward-col">
                 <span class="m-lbl">OUT (${outRate.toFixed(2)})</span>
                 <span class="m-val">${formatNumber(row._calcOutPcs)} pc</span>
-                <span class="m-amt">${row._isPiece ? formatCurrency(row._calcOutAmt) : '-'}</span>
+                <span class="m-amt">${formatCurrency(row._calcOutAmt)}</span>
               </div>
             </div>
 
@@ -2358,11 +2373,9 @@
 
       totInPcs += inPcs;
       totOutPcs += outPcs;
-      if (isPiece) {
-        totInAmt += rowInAmt;
-        totOutAmt += rowOutAmt;
-        totPieceAmt += rowTotalAmt;
-      }
+      totInAmt += rowInAmt;
+      totOutAmt += rowOutAmt;
+      totPieceAmt += rowTotalAmt;
       totHours += rowHours;
 
       let rankTag = '';
@@ -2423,9 +2436,9 @@
           </td>
           <td class="cell-type" style="text-align: center;">${typeBadge}</td>
           <td class="cell-in">${formatNumber(inPcs)}</td>
-          <td class="cell-in-amt">${isPiece ? rowInAmt.toFixed(2) : '-'}</td>
+          <td class="cell-in-amt">${rowInAmt.toFixed(2)}</td>
           <td class="cell-out">${formatNumber(outPcs)}</td>
-          <td class="cell-out-amt">${isPiece ? rowOutAmt.toFixed(2) : '-'}</td>
+          <td class="cell-out-amt">${rowOutAmt.toFixed(2)}</td>
           <td class="cell-total-pc">${formatNumber(rowTotalPc)}</td>
           <td class="cell-hours">
             <span class="hours-val">${rowHours > 0 ? rowHours.toFixed(1) + ' hrs' : '-'}</span>
@@ -3087,7 +3100,7 @@
             out_amt: outAmt,
             total_pc: inPcs + outPcs,
             hours: h,
-            total_amt: (d.is_piece !== false) ? Math.round((inAmt + outAmt) * 100) / 100 : 0,
+            total_amt: Math.round((inAmt + outAmt) * 100) / 100,
             time_range: timeVal
           };
         });
@@ -3101,7 +3114,7 @@
           out_amt: totOutA,
           total_pc: totIn + totOut,
           hours: wSum.hours != null ? wSum.hours : totHrs,
-          total_amt: (wSum.is_piece !== false) ? Math.round((totInA + totOutA) * 100) / 100 : 0,
+          total_amt: Math.round((totInA + totOutA) * 100) / 100,
           shift_label: combData.shift_label || shiftTitleStr
         };
 
@@ -3327,9 +3340,7 @@
         const typeBadge = isPiece
           ? `<span class="worker-type-badge badge-piece">🟢 પીસ</span>`
           : `<span class="worker-type-badge badge-fix">🏢 FIX</span>`;
-        const amtDisplay = isPiece
-          ? (d.total_amt || 0).toFixed(2)
-          : `<span class="fix-salary-tag">🏢 FIX</span>`;
+        const amtDisplay = (d.total_amt || 0).toFixed(2);
 
         let dupeBadge = '';
         if (d.dupe_total_pc > 0) {
@@ -3349,9 +3360,9 @@
             </td>
             <td class="cell-type" style="text-align: center;">${typeBadge}</td>
             <td class="cell-in">${formatNumber(d.in_pcs)}</td>
-            <td class="cell-in-amt">${isPiece ? d.in_amt.toFixed(2) : '-'}</td>
+            <td class="cell-in-amt">${(d.in_amt || 0).toFixed(2)}</td>
             <td class="cell-out">${formatNumber(d.out_pcs)}</td>
-            <td class="cell-out-amt">${isPiece ? d.out_amt.toFixed(2) : '-'}</td>
+            <td class="cell-out-amt">${(d.out_amt || 0).toFixed(2)}</td>
             <td class="cell-total-pc">${formatNumber(d.total_pc)}</td>
             <td class="cell-hours"><span class="hours-val">${d.hours > 0 ? d.hours.toFixed(1) + ' hrs' : '-'}</span></td>
             <td class="cell-total-amt">${amtDisplay}</td>
@@ -3396,9 +3407,7 @@
         const typeBadge = isPiece
           ? `<span class="worker-type-badge badge-piece">🟢 પીસ રેટ</span>`
           : `<span class="worker-type-badge badge-fix">🏢 FIX પગાર</span>`;
-        const amtDisplay = isPiece
-          ? (w.total_amt || 0).toFixed(2)
-          : `<span class="fix-salary-tag">🏢 FIX</span>`;
+        const amtDisplay = (w.total_amt || 0).toFixed(2);
 
         bHtml += `
           <tr>
@@ -3408,9 +3417,9 @@
             </td>
             <td class="cell-type" style="text-align: center;">${typeBadge}</td>
             <td class="cell-in">${formatNumber(w.in_pcs)}</td>
-            <td class="cell-in-amt">${isPiece ? (w.in_amt || 0).toFixed(2) : '-'}</td>
+            <td class="cell-in-amt">${(w.in_amt || 0).toFixed(2)}</td>
             <td class="cell-out">${formatNumber(w.out_pcs)}</td>
-            <td class="cell-out-amt">${isPiece ? (w.out_amt || 0).toFixed(2) : '-'}</td>
+            <td class="cell-out-amt">${(w.out_amt || 0).toFixed(2)}</td>
             <td class="cell-total-pc" style="font-weight: 700;">${formatNumber(w.total_pc)}</td>
             <td class="cell-hours"><span class="hours-val">${w.hours > 0 ? w.hours.toFixed(1) + ' hrs' : '-'}</span></td>
             <td class="cell-total-amt" style="font-weight: 700;">${amtDisplay}</td>
@@ -3477,13 +3486,13 @@
           const curOut = isGross ? (d.gross_out_pcs != null ? d.gross_out_pcs : d.out_pcs) : d.out_pcs;
           wTotIn += curIn;
           wTotOut += curOut;
-          wTotInAmt += isPiece ? (curIn * curInRate) : 0;
-          wTotOutAmt += isPiece ? (curOut * curOutRate) : 0;
+          wTotInAmt += (curIn * curInRate);
+          wTotOutAmt += (curOut * curOutRate);
           wTotHours += (d.hours > 0 ? Number(d.hours) : 0);
           wTotDupe += (d.dupe_total_pc || 0);
         });
         const wTotPc = wTotIn + wTotOut;
-        const wTotAmt = isPiece ? (wTotInAmt + wTotOutAmt) : 0;
+        const wTotAmt = (wTotInAmt + wTotOutAmt);
 
         // Worker header banner row
         bHtml += `
@@ -3507,11 +3516,11 @@
         wDays.forEach(d => {
           const curIn = isGross ? (d.gross_in_pcs != null ? d.gross_in_pcs : d.in_pcs) : d.in_pcs;
           const curOut = isGross ? (d.gross_out_pcs != null ? d.gross_out_pcs : d.out_pcs) : d.out_pcs;
-          const dInAmt = isPiece ? Math.round((curIn * curInRate) * 100) / 100 : 0;
-          const dOutAmt = isPiece ? Math.round((curOut * curOutRate) * 100) / 100 : 0;
+          const dInAmt = Math.round((curIn * curInRate) * 100) / 100;
+          const dOutAmt = Math.round((curOut * curOutRate) * 100) / 100;
           const dTotPc = curIn + curOut;
-          const dTotAmt = isPiece ? Math.round((dInAmt + dOutAmt) * 100) / 100 : 0;
-          const amtDisplay = isPiece ? dTotAmt.toFixed(2) : `<span class="fix-salary-tag">🏢 FIX</span>`;
+          const dTotAmt = Math.round((dInAmt + dOutAmt) * 100) / 100;
+          const amtDisplay = dTotAmt.toFixed(2);
 
           let dupeBadge = '';
           if (d.dupe_total_pc > 0) {
@@ -3528,9 +3537,9 @@
               </td>
               <td class="cell-name"><span class="emp-name-text" style="color:#94a3b8; font-size:12px;">${wName}</span></td>
               <td class="cell-in">${formatNumber(curIn)}</td>
-              <td class="cell-in-amt">${isPiece ? dInAmt.toFixed(2) : '-'}</td>
+              <td class="cell-in-amt">${dInAmt.toFixed(2)}</td>
               <td class="cell-out">${formatNumber(curOut)}</td>
-              <td class="cell-out-amt">${isPiece ? dOutAmt.toFixed(2) : '-'}</td>
+              <td class="cell-out-amt">${dOutAmt.toFixed(2)}</td>
               <td class="cell-total-pc">${formatNumber(dTotPc)}</td>
               <td class="cell-hours"><span class="hours-val">${d.hours > 0 ? Number(d.hours).toFixed(1) + ' hrs' : '-'}</span></td>
               <td class="cell-total-amt">${amtDisplay}</td>
@@ -3545,12 +3554,12 @@
             <td class="tf-name" style="color:#38bdf8;">સરવાળો (${wName})</td>
             <td class="tf-name" style="font-size:11px; color:#94a3b8;">${wDays.length} દિવસ</td>
             <td class="tf-in">${formatNumber(wTotIn)}</td>
-            <td class="tf-in-amt">${isPiece ? wTotInAmt.toFixed(2) : '-'}</td>
+            <td class="tf-in-amt">${wTotInAmt.toFixed(2)}</td>
             <td class="tf-out">${formatNumber(wTotOut)}</td>
-            <td class="tf-out-amt">${isPiece ? wTotOutAmt.toFixed(2) : '-'}</td>
+            <td class="tf-out-amt">${wTotOutAmt.toFixed(2)}</td>
             <td class="tf-total-pc">${formatNumber(wTotPc)}</td>
             <td class="tf-hours">${wTotHours > 0 ? wTotHours.toFixed(1) + ' hrs' : '-'}</td>
-            <td class="tf-total-amt">${isPiece ? '₹' + wTotAmt.toFixed(2) : 'FIX'}</td>
+            <td class="tf-total-amt">₹${wTotAmt.toFixed(2)}</td>
             <td class="tf-time" style="font-size:11px;">-</td>
           </tr>
         `;
@@ -3686,8 +3695,8 @@
           const dayOutAmt = Math.round((dayOutPcs * curOutRate) * 100) / 100;
           const dayTotalPc = dayInPcs + dayOutPcs;
           const isCurPiece = (data.is_piece != null) ? data.is_piece : isWorkerPieceRate(userName);
-          const dayTotalAmt = isCurPiece ? Math.round((dayInAmt + dayOutAmt) * 100) / 100 : 0.0;
-          const dayAmtDisplay = isCurPiece ? dayTotalAmt.toFixed(2) : `<span class="fix-salary-tag">🏢 FIX</span>`;
+          const dayTotalAmt = Math.round((dayInAmt + dayOutAmt) * 100) / 100;
+          const dayAmtDisplay = dayTotalAmt.toFixed(2);
 
           let dupeBadge = '';
           const dupePcs = d.dupe_total_pc || 0;
@@ -4615,7 +4624,7 @@
       const badge = isPiece
         ? `<span class="worker-type-badge badge-piece">🟢 પીસ</span>`
         : `<span class="worker-type-badge badge-fix">🏢 FIX</span>`;
-      const amtStr = isPiece ? `₹${(r.total_amt || 0).toFixed(2)}` : `<span class="fix-salary-tag">🏢 FIX</span>`;
+      const amtStr = `₹${(r.total_amt || 0).toFixed(2)}`;
       const hStr = r.hours > 0 ? `${Number(r.hours).toFixed(1)} hrs` : '-';
 
       bHtml += `
@@ -4624,9 +4633,9 @@
           <td class="cell-name"><span class="emp-name-text">${r.user_name}</span></td>
           <td class="cell-type" style="text-align:center;">${badge}</td>
           <td class="cell-in">${formatNumber(r.in_pcs || 0)}</td>
-          <td class="cell-in-amt">${isPiece ? (r.in_amt || 0).toFixed(2) : '-'}</td>
+          <td class="cell-in-amt">${(r.in_amt || 0).toFixed(2)}</td>
           <td class="cell-out">${formatNumber(r.out_pcs || 0)}</td>
-          <td class="cell-out-amt">${isPiece ? (r.out_amt || 0).toFixed(2) : '-'}</td>
+          <td class="cell-out-amt">${(r.out_amt || 0).toFixed(2)}</td>
           <td class="cell-total-pc" style="font-weight:700;">${formatNumber(r.total_pcs || 0)}</td>
           <td class="cell-hours"><span class="hours-val">${hStr}</span></td>
           <td class="cell-total-amt" style="font-weight:700;">${amtStr}</td>
@@ -4672,7 +4681,7 @@
       const badge = isPiece
         ? `<span class="worker-type-badge badge-piece">🟢 પીસ</span>`
         : `<span class="worker-type-badge badge-fix">🏢 FIX</span>`;
-      const amtStr = isPiece ? `₹${(w.total_amt || 0).toFixed(2)}` : `<span class="fix-salary-tag">🏢 FIX</span>`;
+      const amtStr = `₹${(w.total_amt || 0).toFixed(2)}`;
 
       bHtml += `
         <tr>
@@ -4680,9 +4689,9 @@
           <td class="cell-type" style="text-align:center;">${badge}</td>
           <td class="cell-name" style="text-align:center; font-weight:700; color:#38bdf8;">${w.days_worked || 0} દિવસ</td>
           <td class="cell-in">${formatNumber(w.total_in || 0)}</td>
-          <td class="cell-in-amt">${isPiece ? (w.in_amt || 0).toFixed(2) : '-'}</td>
+          <td class="cell-in-amt">${(w.in_amt || 0).toFixed(2)}</td>
           <td class="cell-out">${formatNumber(w.total_out || 0)}</td>
-          <td class="cell-out-amt">${isPiece ? (w.out_amt || 0).toFixed(2) : '-'}</td>
+          <td class="cell-out-amt">${(w.out_amt || 0).toFixed(2)}</td>
           <td class="cell-total-pc" style="font-weight:700;">${formatNumber(w.total_pcs || 0)}</td>
           <td class="cell-hours"><span class="hours-val">${(w.total_hours || 0).toFixed(1)} hrs</span></td>
           <td class="cell-total-amt" style="font-weight:700; font-size:14px;">${amtStr}</td>
