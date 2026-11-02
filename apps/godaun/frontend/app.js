@@ -2281,9 +2281,7 @@
         const typeBadge = row._isPiece 
           ? `<span class="worker-type-badge badge-piece">🟢 પીસ રેટ</span>` 
           : `<span class="worker-type-badge badge-fix">🏢 FIX પગાર</span>`;
-        const earningsText = row._isPiece 
-          ? formatCurrency(row._calcTotalAmt) 
-          : `<span style="font-size:18px; color:#38bdf8; font-weight:700;">🏢 FIX પગારદાર</span>`;
+        const earningsText = formatCurrency(row._calcTotalAmt);
 
         top5CardsHtml += `
           <div class="top5-item-card ${conf.cardClass}" onclick="window.openDatewiseBreakdown('${row.name}')" title="${row.name} નો વિગતવાર હિસાબ જુઓ">
@@ -2442,9 +2440,7 @@
         ? `<span class="worker-type-badge badge-piece">🟢 પીસ</span>`
         : `<span class="worker-type-badge badge-fix">🏢 FIX</span>`;
 
-      const amtDisplay = isPiece
-        ? rowTotalAmt.toFixed(2)
-        : `<span class="fix-salary-tag" title="ફિક્સ પગારદાર (પીસ રેટ નથી)">🏢 FIX</span>`;
+      const amtDisplay = rowTotalAmt.toFixed(2);
 
       bodyHtml += `
         <tr onclick="window.openDatewiseBreakdown('${escapedName}')" title="આ કર્મચારીનો તારીખ પ્રમાણે હિસાબ જુઓ" class="${isChecked ? 'row-selected' : ''}">
@@ -3940,7 +3936,7 @@
             <td class="tf-out-amt">${fOutAmt.toFixed(2)}</td>
             <td class="tf-total-pc">${formatNumber(fTotalPc)}</td>
             <td class="tf-hours">${totDayHours > 0 ? totDayHours.toFixed(1) + ' hrs' : (totals.hours > 0 ? totals.hours.toFixed(1) + ' hrs' : '-')}</td>
-            <td class="tf-total-amt">${((data.is_piece != null) ? data.is_piece : isWorkerPieceRate(userName)) ? fTotalAmt.toFixed(2) : '[🏢 FIX]'}</td>
+            <td class="tf-total-amt">₹${fTotalAmt.toFixed(2)}</td>
             <td class="tf-time">${selectedSalaryShift === 'day' ? '☀️ સવાર' : selectedSalaryShift === 'night' ? '🌙 રાત' : '24 કલાક'}</td>
           </tr>
           <tr class="total-sub-row" style="background: rgba(15, 23, 42, 0.95); font-size: 11px; color: #94a3b8;">
