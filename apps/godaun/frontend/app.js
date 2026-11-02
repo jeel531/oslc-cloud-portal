@@ -2066,6 +2066,7 @@
   // SALARY & PIECE RATE REPORT LOGIC
   // ========================================================
   function setSalaryRange(fromDate, toDate) {
+    updateExcelButtonLabels();
     salaryFromDate = fromDate;
     salaryToDate = toDate;
     if (salaryFromDateInput) salaryFromDateInput.value = fromDate;
@@ -2846,7 +2847,7 @@
   }
 
   // Excel Download (Phone App Native / In-Browser)
-  async function triggerExcelDownload(user = '') {
+  async function triggerExcelDownload(user = '', customWorkersList = null) {
     const fromD = salaryFromDate;
     const toD = salaryToDate;
     const rIn = inRate;
@@ -2854,9 +2855,12 @@
     const nameF = nameSearchTerm;
     const sShift = selectedSalaryShift;
 
+    const isDaily = (fromD === toD);
     const fName = user 
       ? `OSLC_Salary_${user.replace(/\s+/g, '_')}_${fromD}_to_${toD}_${sShift}.xls`
-      : `OSLC_Salary_Report_${fromD}_to_${toD}_${sShift}.xls`;
+      : (isDaily 
+          ? `OSLC_Salary_Daily_Report_${fromD}_${sShift}.xls`
+          : `OSLC_Salary_Report_${fromD}_to_${toD}_${sShift}.xls`);
 
     try {
       let rowsToExport = [];
@@ -2939,7 +2943,21 @@
       } else {
         const filter = nameF.toLowerCase().trim();
         const isGross = (adminDeductionMode === 'gross');
-        rowsToExport = rawSalaryRows.filter(r => !filter || r.name.toLowerCase().includes(filter));
+        
+        let targetSet = null;
+        if (customWorkersList && Array.isArray(customWorkersList) && customWorkersList.length > 0) {
+          targetSet = new Set(customWorkersList.map(n => n.toUpperCase().trim()));
+        } else if (selectedWorkerNames && selectedWorkerNames.size > 0) {
+          targetSet = new Set(Array.from(selectedWorkerNames).map(n => n.toUpperCase().trim()));
+        }
+
+        rowsToExport = (rawSalaryRows || []).filter(r => {
+          if (targetSet && !targetSet.has((r.name || '').toUpperCase().trim())) {
+            return false;
+          }
+          if (filter && !r.name.toLowerCase().includes(filter)) return false;
+          return true;
+        });
         
         let tIn = 0, tOut = 0, tInA = 0, tOutA = 0, tHrs = 0;
         rowsToExport = rowsToExport.map(r => {
@@ -2982,8 +3000,15 @@
 
       const shiftTitleStr = sShift === 'day' ? ' (સવાર શિફ્ટ 07:30 - 19:30)' : sShift === 'night' ? ' (રાત શિફ્ટ 19:30 - 07:30)' : ' (24 કલાક)';
       const modeStr = adminDeductionMode === 'gross' ? ' [કુલ સ્કેન (Gross)]' : ' [કપાત બાદ ચોખ્ખો (Net)]';
-      const reportTitle = user ? `OSLC GODAUN - ${user.toUpperCase()} તારીખ પ્રમાણે હિસાબ${shiftTitleStr}${modeStr}` : `OSLC GODAUN - PIECE RATE & SALARY REPORT${shiftTitleStr}${modeStr}`;
-      const subtitle = `સમયગાળો: ${formatDisplayDate(fromD)} થી ${formatDisplayDate(toD)} [${shiftTitleStr.trim()}] | ${modeStr.trim()} | દર: Inward = ₹${rIn.toFixed(2)}, Outward = ₹${rOut.toFixed(2)}`;
+      const isDailyTitle = (fromD === toD);
+      const reportTitle = user 
+        ? `OSLC GODAUN - ${user.toUpperCase()} ${isDailyTitle ? 'દૈનિક હિસાબ' : 'તારીખ પ્રમાણે હિસાબ'}${shiftTitleStr}${modeStr}`
+        : (isDailyTitle 
+            ? `OSLC GODAUN - રોજનો દૈનિક હિસાબ રિપોર્ટ (DAILY REPORT)${shiftTitleStr}${modeStr}` 
+            : `OSLC GODAUN - PIECE RATE & SALARY REPORT${shiftTitleStr}${modeStr}`);
+      const subtitle = isDailyTitle
+        ? `તારીખ: ${formatDisplayDate(fromD)} [${shiftTitleStr.trim()}] | ${modeStr.trim()} | દર: Inward = ₹${rIn.toFixed(2)}, Outward = ₹${rOut.toFixed(2)}`
+        : `સમયગાળો: ${formatDisplayDate(fromD)} થી ${formatDisplayDate(toD)} [${shiftTitleStr.trim()}] | ${modeStr.trim()} | દર: Inward = ₹${rIn.toFixed(2)}, Outward = ₹${rOut.toFixed(2)}`;
       const inHeader = adminDeductionMode === 'gross' ? 'IN (GROSS)' : 'IN';
       const outHeader = adminDeductionMode === 'gross' ? 'OUT (GROSS)' : 'OUT';
       const totHeader = adminDeductionMode === 'gross' ? 'TOTAL PC (GROSS)' : 'TOTAL PC';
@@ -3051,7 +3076,14 @@
     const sShift = selectedSalaryShift;
     const isGross = (adminDeductionMode === 'gross');
 
-    showToast('⏳ ' + targetWorkers.length + ' કારીગરોનો તારીખવાર હિસાબ તૈયાર થઈ રહ્યો છે...', '📥');
+    // રોજનો રિપોર્ટ: જો fromD === toD હોય તો અલગ અલગ ફાઇલો ડાઉનલોડ ના કરવી, 1 જ સિંગલ એક્સેલ ફાઇલ ડાઉનલોડ કરવી
+    if (fromD === toD) {
+      showToast('ℹ️ રોજના રિપોર્ટમાં ૧ જ સિંગલ Excel ફાઇલ ડાઉનલોડ થાય છે.', '📊');
+      await triggerExcelDownload('', targetWorkers);
+      return;
+    }
+
+    showToast('⏳ ' + targetWorkers.length + ' કારીગરોનો તારીખવાર અલગ અલગ હિસાબ તૈયાર થઈ રહ્યો છે...', '📥');
 
     try {
       await resolveBestServer();
@@ -3174,11 +3206,18 @@
       triggerExcelDownload(currentUser.worker_name);
       return;
     }
-    if (selectedWorkerNames && selectedWorkerNames.size > 0) {
-      window.downloadSeparateExcelFiles(Array.from(selectedWorkerNames));
+    const fromD = salaryFromDate || todayStr;
+    const toD = salaryToDate || todayStr;
+    const targetWorkers = (selectedWorkerNames && selectedWorkerNames.size > 0) ? Array.from(selectedWorkerNames) : null;
+
+    if (fromD === toD) {
+      // Daily Report: 1 Single combined Excel file for today
+      triggerExcelDownload('', targetWorkers);
       return;
     }
-    window.downloadSeparateExcelFiles();
+
+    // Month Report / Date Range: Separate Excel files for each worker + companion ZIP
+    window.downloadSeparateExcelFiles(targetWorkers);
   }
 
   if (btnDownloadExcel) btnDownloadExcel.addEventListener('click', handleExcelClick);
@@ -4316,7 +4355,33 @@
   // ========================================================
   // WORKER SELECTION & ACTION BAR LOGIC (મલ્ટી સિલેક્શન)
   // ========================================================
+  
+  function updateExcelButtonLabels() {
+    const fromD = salaryFromDate || todayStr;
+    const toD = salaryToDate || todayStr;
+    const isDaily = (fromD === toD);
+
+    const btnAllSep = document.getElementById('btnDownloadAllSeparateExcel');
+    if (btnAllSep) {
+      const span = btnAllSep.querySelector('span');
+      if (span) {
+        span.textContent = isDaily ? '📥 આજનો સિંગલ Excel રિપોર્ટ (.xls)' : '📥 તમામની અલગ અલગ Excel (ALL SEPARATE .xls)';
+      }
+      btnAllSep.title = isDaily ? 'આજના દિવસનો ૧ જ સિંગલ Excel રિપોર્ટ ડાઉનલોડ કરો' : 'બધા જ કારીગરોની અલગ અલગ Excel ફાઇલ ડાઉનલોડ કરો (OSLC_Salary_કારીગર.xls)';
+    }
+
+    const btnSelSep = document.getElementById('btnDownloadSelectedSeparateExcel');
+    if (btnSelSep) {
+      const span = btnSelSep.querySelector('span');
+      if (span) {
+        span.textContent = isDaily ? '📥 પસંદ કરેલાની ૧ સિંગલ Excel (.xls)' : '📥 દરેકની અલગ અલગ Excel (.xls)';
+      }
+      btnSelSep.title = isDaily ? 'પસંદ કરેલા કારીગરોની ૧ સિંગલ Excel ફાઇલ (.xls) ડાઉનલોડ કરો' : 'પસંદ કરેલા દરેક કારીગરની અલગ અલગ Excel ફાઇલ (.xls) ડાઉનલોડ કરો';
+    }
+  }
+
   function updateWorkerSelectionUI(currentRows) {
+    updateExcelButtonLabels();
     const rows = currentRows || rawSalaryRows || [];
     const count = selectedWorkerNames.size;
     if (selectedWorkersCountText) {

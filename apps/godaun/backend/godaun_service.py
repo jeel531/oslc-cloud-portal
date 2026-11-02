@@ -2890,8 +2890,11 @@ def export_excel_report(
 
         filename = f"OSLC_{user}_Report_{shift}_{from_date}_to_{to_date}.xlsx"
     else:
-        ws.title = f"Report {shift.upper()}"
+        ws.title = f"Daily Report {shift.upper()}" if from_date == to_date else f"Report {shift.upper()}"
         rows, totals, shift_label = fetch_salary_report_data(from_date, to_date, in_rate, out_rate, name, shift)
+        if workers:
+            w_set = set(w.strip().upper() for w in workers.split(",") if w.strip())
+            rows = [r for r in rows if (r.get("name") or "").strip().upper() in w_set]
 
         in_title = "IN (GROSS)" if is_gross else "IN (NET)"
         out_title = "OUT (GROSS)" if is_gross else "OUT (NET)"
@@ -2988,7 +2991,10 @@ def export_excel_report(
             elif col_idx == 11:
                 c.fill = PatternFill(start_color="F6B26B", end_color="F6B26B", fill_type="solid")
 
-        filename = f"OSLC_Salary_Summary_{shift}_{from_date}_to_{to_date}.xlsx"
+        if from_date == to_date:
+            filename = f"OSLC_Salary_Daily_Report_{shift}_{from_date}.xlsx"
+        else:
+            filename = f"OSLC_Salary_Summary_{shift}_{from_date}_to_{to_date}.xlsx"
 
     for col in ws.columns:
         max_len = max(len(str(cell.value or "")) for cell in col)
