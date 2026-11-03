@@ -2266,6 +2266,15 @@ def make_valid_sheet_title(name: str, existing_titles: set) -> str:
     existing_titles.add(title.lower())
     return title
 
+def format_dmy(d_str: str) -> str:
+    try:
+        parts = str(d_str).strip().split("-")
+        if len(parts) == 3:
+            return f"{parts[2]}/{parts[1]}/{parts[0]}"
+    except Exception:
+        pass
+    return str(d_str)
+
 @app.get("/api/godaun/export-excel")
 def export_excel_report(
     from_date: str = "",
