@@ -696,6 +696,7 @@
   const btnCombViewWorkers = document.getElementById('btnCombViewWorkers');
   const combSearchInput = document.getElementById('combSearchInput');
   const btnDownloadCombMonthExcelModal = document.getElementById('btnDownloadCombMonthExcelModal');
+  const btnDownloadCombDailyModal = document.getElementById('btnDownloadCombDailyModal');
   const combModalLoading = document.getElementById('combModalLoading');
   const combKpiWorkersCount = document.getElementById('combKpiWorkersCount');
   const combKpiDaysCount = document.getElementById('combKpiDaysCount');
@@ -3132,6 +3133,126 @@
     }
   };
 
+  // ========================================================
+  // 1. SINGLE-DAY REPORT (PHOTO 2 EXACT FORMAT)
+  // 9 COLUMNS: NAME | IN | 0.2 | OUT | 0.35 | TOTAL PC | HOURS (PIS/FIX) | TOTAL AMT | TIME
+  // 24 HOURS (ALL), DAY SHIFT (DAY), OR NIGHT SHIFT (NIGHT)
+  // ========================================================
+  let isDownloadingDaily = false;
+  window.downloadDailySalaryReport = async function(customList = null) {
+    if (isDownloadingDaily) {
+      console.log('Daily Excel download already in progress, skipping duplicate.');
+      return;
+    }
+    isDownloadingDaily = true;
+    setTimeout(() => { isDownloadingDaily = false; }, 3000);
+
+    let targetWorkers = [];
+    if (customList && Array.isArray(customList) && customList.length > 0) {
+      targetWorkers = customList;
+    } else if (selectedWorkerNames && selectedWorkerNames.size > 0) {
+      targetWorkers = Array.from(selectedWorkerNames);
+    } else {
+      const known = getKnownWorkersList();
+      targetWorkers = (known && known.length > 0) ? known : (rawSalaryRows || []).map(r => r.name);
+    }
+
+    if (!targetWorkers || targetWorkers.length === 0) {
+      showToast('કૃપા કરીને ઓછામાં ઓછો ૧ કારીગર સિલેક્ટ કરો!', '⚠️');
+      return;
+    }
+
+    const fromD = salaryFromDate || todayStr;
+    const rIn = inRate;
+    const rOut = outRate;
+    const sShift = selectedSalaryShift;
+    const workersParam = targetWorkers.join(',');
+    const shiftLabel = sShift === 'day' ? 'સવાર શિફ્ટ' : sShift === 'night' ? 'રાત શિફ્ટ' : '24 કલાક (બધી શિફ્ટ)';
+    const fName = `OSLC_Daily_Salary_Report_${fromD}_${sShift}.xlsx`;
+
+    showToast(`📊 દૈનિક પગાર રિપોર્ટ (${formatDisplayDate(fromD)} - ${shiftLabel}) તૈયાર થઈ રહ્યો છે...`, '⏳');
+
+    try {
+      await resolveBestServer();
+      const exportUrl = `${currentApiBase}/api/godaun/export-excel?report_type=daily&format=excel&from_date=${fromD}&to_date=${fromD}&workers=${encodeURIComponent(workersParam)}&in_rate=${rIn}&out_rate=${rOut}&shift=${sShift}&mode=${adminDeductionMode}`;
+
+      const link = document.createElement('a');
+      link.href = exportUrl;
+      link.setAttribute('download', fName);
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => { try { document.body.removeChild(link); } catch(e){} }, 2000);
+      showToast(`✅ દૈનિક પગાર રિપોર્ટ (${shiftLabel}) સફળતાપૂર્વક ડાઉનલોડ થયો!`, '🎉');
+    } catch (e) {
+      console.warn('Daily Excel download error, fallback to client:', e);
+      await triggerExcelDownload('', targetWorkers);
+    }
+  };
+
+  // ========================================================
+  // 2. DAY BY DAY REPORT (૧ જ EXCEL ફાઇલમાં બધા દિવસોનો હિસાબ)
+  // SHEET 1: રોજ-બ-રોજ હિસાબ | SHEET 2: દૈનિક સમરી | SHEET 3: કારીગર સમરી
+  // ========================================================
+  let isDownloadingDayByDay = false;
+  window.downloadDayByDayExcel = async function(customList = null) {
+    if (isDownloadingDayByDay) {
+      console.log('Day by Day download already in progress, skipping duplicate.');
+      return;
+    }
+    isDownloadingDayByDay = true;
+    setTimeout(() => { isDownloadingDayByDay = false; }, 3000);
+
+    let targetWorkers = [];
+    if (customList && Array.isArray(customList) && customList.length > 0) {
+      targetWorkers = customList;
+    } else if (selectedWorkerNames && selectedWorkerNames.size > 0) {
+      targetWorkers = Array.from(selectedWorkerNames);
+    } else {
+      const known = getKnownWorkersList();
+      targetWorkers = (known && known.length > 0) ? known : (rawSalaryRows || []).map(r => r.name);
+    }
+
+    if (!targetWorkers || targetWorkers.length === 0) {
+      showToast('કૃપા કરીને ઓછામાં ઓછો ૧ કારીગર સિલેક્ટ કરો!', '⚠️');
+      return;
+    }
+
+    const fromD = salaryFromDate || todayStr;
+    const toD = salaryToDate || todayStr;
+
+    // જો ૧ જ દિવસ હોય તો સીધો Photo 2 ફોર્મેટમાં દૈનિક રિપોર્ટ ડાઉનલોડ કરવો
+    if (fromD === toD) {
+      return window.downloadDailySalaryReport(targetWorkers);
+    }
+
+    const rIn = inRate;
+    const rOut = outRate;
+    const sShift = selectedSalaryShift;
+    const workersParam = targetWorkers.join(',');
+    const fName = `OSLC_Day_By_Day_Report_${fromD}_to_${toD}_${sShift}.xlsx`;
+
+    showToast(`📅 ૧ જ ફાઇલમાં રોજ-બ-રોજ (Day by Day) હિસાબ તૈયાર થઈ રહ્યો છે...`, '⏳');
+
+    try {
+      await resolveBestServer();
+      const exportUrl = `${currentApiBase}/api/godaun/export-excel?report_type=day_by_day&format=excel&from_date=${fromD}&to_date=${toD}&workers=${encodeURIComponent(workersParam)}&in_rate=${rIn}&out_rate=${rOut}&shift=${sShift}&mode=${adminDeductionMode}`;
+
+      const link = document.createElement('a');
+      link.href = exportUrl;
+      link.setAttribute('download', fName);
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => { try { document.body.removeChild(link); } catch(e){} }, 2000);
+      showToast(`✅ રોજ-બ-રોજ (Day by Day) Excel સફળતાપૂર્વક ડાઉનલોડ થઈ ગઈ!`, '🎉');
+    } catch (e) {
+      console.warn('Day By Day download error:', e);
+      showToast('❌ Day by Day ડાઉનલોડમાં ક્ષતિ આવી', '⚠️');
+    }
+  };
+
+  // ========================================================
+  // 3. MIX EXCEL REPORT (ID વાઈઝ ગ્રુપિંગ અને ટોટલ સાથે)
+  // ========================================================
   let isDownloadingMix = false;
   window.downloadWorkerMixExcel = async function(customList = null) {
     if (isDownloadingMix) {
@@ -3158,14 +3279,17 @@
 
     const fromD = salaryFromDate || todayStr;
     const toD = salaryToDate || todayStr;
+
+    // જો ૧ જ દિવસ હોય (fromD === toD), તો દૈનિક રિપોર્ટ (Photo 2) ડાઉનલોડ કરવો
+    if (fromD === toD) {
+      return window.downloadDailySalaryReport(targetWorkers);
+    }
+
     const rIn = inRate;
     const rOut = outRate;
     const sShift = selectedSalaryShift;
-    const isDaily = (fromD === toD);
     const workersParam = targetWorkers.join(',');
-    const fName = isDaily 
-      ? `OSLC_MIX_Daily_Report_${fromD}_${sShift}.xlsx`
-      : `OSLC_MIX_Report_ID_Wise_Totals_${fromD}_to_${toD}_${sShift}.xlsx`;
+    const fName = `OSLC_MIX_Report_ID_Wise_Totals_${fromD}_to_${toD}_${sShift}.xlsx`;
 
     showToast(`📊 ${targetWorkers.length} કારીગરોનો MIX Excel રિપોર્ટ (ID વાઈઝ ટોટલ સાથે) તૈયાર થઈ રહ્યો છે...`, '⏳');
 
@@ -3339,36 +3463,141 @@
     }
   };
 
+  // ========================================================
+  // DOWNLOAD CHOICE MODAL & HANDLERS
+  // ========================================================
+  let choiceModalTargetWorkers = null;
+
+  function openDownloadChoiceModal(targetWorkers = null) {
+    choiceModalTargetWorkers = targetWorkers;
+    const modal = document.getElementById('downloadChoiceModal');
+    const txt = document.getElementById('dlChoiceDateRangeText');
+    const fromD = salaryFromDate || todayStr;
+    const toD = salaryToDate || todayStr;
+    const sShift = selectedSalaryShift;
+    const shiftLabel = sShift === 'day' ? 'સવાર શિફ્ટ' : sShift === 'night' ? 'રાત શિફ્ટ' : '24 કલાક';
+    if (txt) {
+      txt.textContent = `${formatDisplayDate(fromD)} થી ${formatDisplayDate(toD)} [${shiftLabel}]`;
+    }
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.style.display = 'flex';
+    }
+  }
+
+  function closeDownloadChoiceModal() {
+    const modal = document.getElementById('downloadChoiceModal');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.style.display = 'none';
+    }
+    choiceModalTargetWorkers = null;
+  }
+
   function handleExcelClick() {
     if (currentUser && currentUser.role === 'worker') {
       triggerExcelDownload(currentUser.worker_name);
       return;
     }
     const targetWorkers = (selectedWorkerNames && selectedWorkerNames.size > 0) ? Array.from(selectedWorkerNames) : null;
-    window.downloadWorkerMixExcel(targetWorkers);
+    const fromD = salaryFromDate || todayStr;
+    const toD = salaryToDate || todayStr;
+
+    // ૧. સિંગલ દિવસ (ગઈકાલ કે ૧ તારીખ): સીધો Photo 2 ફોર્મેટમાં દૈનિક રિપોર્ટ!
+    if (fromD === toD) {
+      window.downloadDailySalaryReport(targetWorkers);
+      return;
+    }
+
+    // ૨. એક કરતાં વધારે દિવસો: મોડલ ખોલો (DAY BY DAY, MIX, અથવા ZIP પસંદ કરવા)
+    openDownloadChoiceModal(targetWorkers);
   }
 
   if (btnDownloadExcel) btnDownloadExcel.addEventListener('click', handleExcelClick);
-    const btnDownloadAllZip = document.getElementById('btnDownloadAllZip');
-    const btnDownloadAllMix = document.getElementById('btnDownloadAllMix');
-    const btnDownloadSelectedZip = document.getElementById('btnDownloadSelectedZip');
-    const btnDownloadSelectedMix = document.getElementById('btnDownloadSelectedMix');
-
-    if (btnDownloadAllZip) btnDownloadAllZip.onclick = (e) => { e.preventDefault(); window.downloadWorkerZip(); };
-    if (btnDownloadAllMix) btnDownloadAllMix.onclick = (e) => { e.preventDefault(); window.downloadWorkerMixExcel(); };
-    if (btnDownloadSelectedZip) btnDownloadSelectedZip.onclick = (e) => { e.preventDefault(); window.downloadWorkerZip(); };
-    if (btnDownloadSelectedMix) btnDownloadSelectedMix.onclick = (e) => { e.preventDefault(); window.downloadWorkerMixExcel(); };
-    const btnDwCombZipModal = document.getElementById('btnDownloadCombZipModal');
-    if (btnDwCombZipModal) btnDwCombZipModal.onclick = (e) => { e.preventDefault(); window.downloadWorkerZip(); };
-    const btnDwCombMixModal = document.getElementById('btnDownloadCombMonthExcelModal');
-    if (btnDwCombMixModal) btnDwCombMixModal.onclick = (e) => { e.preventDefault(); window.downloadWorkerMixExcel(); };
-    const btnDwUserZip = document.getElementById('btnDownloadUserZip');
-    if (btnDwUserZip) btnDwUserZip.onclick = (e) => { e.preventDefault(); window.downloadWorkerZip(); };
-    const btnDwAllSepModal = document.getElementById('btnDownloadAllSepInModal');
-    if (btnDwAllSepModal) btnDwAllSepModal.onclick = (e) => { e.preventDefault(); window.downloadWorkerMixExcel(); };
-
   if (headerExcelBtn) headerExcelBtn.addEventListener('click', handleExcelClick);
   if (navBtnExcelBottom) navBtnExcelBottom.addEventListener('click', handleExcelClick);
+
+  const btnDownloadAllZip = document.getElementById('btnDownloadAllZip');
+  const btnDownloadAllMix = document.getElementById('btnDownloadAllMix');
+  const btnDownloadAllDaily = document.getElementById('btnDownloadAllDaily');
+  const btnDownloadSelectedZip = document.getElementById('btnDownloadSelectedZip');
+  const btnDownloadSelectedMix = document.getElementById('btnDownloadSelectedMix');
+  const btnDownloadSelectedDaily = document.getElementById('btnDownloadSelectedDaily');
+
+  if (btnDownloadAllZip) btnDownloadAllZip.onclick = (e) => { e.preventDefault(); window.downloadWorkerZip(); };
+  if (btnDownloadAllMix) btnDownloadAllMix.onclick = (e) => { e.preventDefault(); window.downloadWorkerMixExcel(); };
+  if (btnDownloadAllDaily) btnDownloadAllDaily.onclick = (e) => { e.preventDefault(); window.downloadDayByDayExcel(); };
+
+  if (btnDownloadSelectedZip) btnDownloadSelectedZip.onclick = (e) => { 
+    e.preventDefault(); 
+    const w = (selectedWorkerNames && selectedWorkerNames.size > 0) ? Array.from(selectedWorkerNames) : null; 
+    window.downloadWorkerZip(w); 
+  };
+  if (btnDownloadSelectedMix) btnDownloadSelectedMix.onclick = (e) => { 
+    e.preventDefault(); 
+    const w = (selectedWorkerNames && selectedWorkerNames.size > 0) ? Array.from(selectedWorkerNames) : null; 
+    window.downloadWorkerMixExcel(w); 
+  };
+  if (btnDownloadSelectedDaily) btnDownloadSelectedDaily.onclick = (e) => { 
+    e.preventDefault(); 
+    const w = (selectedWorkerNames && selectedWorkerNames.size > 0) ? Array.from(selectedWorkerNames) : null; 
+    window.downloadDayByDayExcel(w); 
+  };
+
+  const btnDwCombZipModal = document.getElementById('btnDownloadCombZipModal');
+  if (btnDwCombZipModal) btnDwCombZipModal.onclick = (e) => { e.preventDefault(); window.downloadWorkerZip(); };
+  const btnDwCombMixModal = document.getElementById('btnDownloadCombMonthExcelModal');
+  if (btnDwCombMixModal) btnDwCombMixModal.onclick = (e) => { e.preventDefault(); window.downloadWorkerMixExcel(); };
+  const btnDwCombDailyModal = document.getElementById('btnDownloadCombDailyModal');
+  if (btnDwCombDailyModal) btnDwCombDailyModal.onclick = (e) => { e.preventDefault(); window.downloadDayByDayExcel(); };
+
+  const btnDwUserZip = document.getElementById('btnDownloadUserZip');
+  if (btnDwUserZip) btnDwUserZip.onclick = (e) => { e.preventDefault(); window.downloadWorkerZip(); };
+  const btnDwAllSepModal = document.getElementById('btnDownloadAllSepInModal');
+  if (btnDwAllSepModal) btnDwAllSepModal.onclick = (e) => { e.preventDefault(); window.downloadWorkerMixExcel(); };
+
+  // Choice modal action listeners
+  const btnChoiceDaily = document.getElementById('btnChoiceDaily');
+  const btnChoiceMix = document.getElementById('btnChoiceMix');
+  const btnChoiceZip = document.getElementById('btnChoiceZip');
+  const btnCloseDownloadChoiceModal = document.getElementById('btnCloseDownloadChoiceModal');
+
+  if (btnChoiceDaily) {
+    btnChoiceDaily.onclick = (e) => {
+      e.preventDefault();
+      const targets = choiceModalTargetWorkers;
+      closeDownloadChoiceModal();
+      window.downloadDayByDayExcel(targets);
+    };
+  }
+  if (btnChoiceMix) {
+    btnChoiceMix.onclick = (e) => {
+      e.preventDefault();
+      const targets = choiceModalTargetWorkers;
+      closeDownloadChoiceModal();
+      window.downloadWorkerMixExcel(targets);
+    };
+  }
+  if (btnChoiceZip) {
+    btnChoiceZip.onclick = (e) => {
+      e.preventDefault();
+      const targets = choiceModalTargetWorkers;
+      closeDownloadChoiceModal();
+      window.downloadWorkerZip(targets);
+    };
+  }
+  if (btnCloseDownloadChoiceModal) {
+    btnCloseDownloadChoiceModal.onclick = (e) => {
+      e.preventDefault();
+      closeDownloadChoiceModal();
+    };
+  }
+  const dlModal = document.getElementById('downloadChoiceModal');
+  if (dlModal) {
+    dlModal.addEventListener('click', (e) => {
+      if (e.target === dlModal) closeDownloadChoiceModal();
+    });
+  }
 
 
   // ========================================================
@@ -5037,6 +5266,7 @@
   if (btnDownloadCombinedMonthExcel) btnDownloadCombinedMonthExcel.addEventListener('click', downloadCombinedMonthExcel);
   if (btnDownloadCombinedZip) btnDownloadCombinedZip.addEventListener('click', downloadCombinedZip);
   if (btnDownloadCombMonthExcelModal) btnDownloadCombMonthExcelModal.addEventListener('click', downloadCombinedMonthExcel);
+  if (btnDownloadCombDailyModal) btnDownloadCombDailyModal.addEventListener('click', () => window.downloadDayByDayExcel());
   if (btnClearWorkerSelection) btnClearWorkerSelection.addEventListener('click', clearWorkerSelection);
   if (btnClearSelectedWorkers) btnClearSelectedWorkers.addEventListener('click', clearWorkerSelection);
 
