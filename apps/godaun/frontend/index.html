@@ -345,6 +345,10 @@
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 <span>📊 ૨. MIX Excel (ID વાઈઝ ટોટલ)</span>
               </button>
+              <button type="button" id="btnDownloadAllDaily" class="btn-sel-action btn-sel-daily" title="૧ જ Excel ફાઇલમાં બધા દિવસોનો રોજિંદો હિસાબ (DAY BY DAY) ડાઉનલોડ કરો" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff;">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>📅 ૩. DAY BY DAY Excel (૧ માં જ બધા દિવસ)</span>
+              </button>
               <button type="button" id="btnOpenAllMonthDatewise" class="btn-all-month-primary" onclick="window.openDatewiseBreakdown('ALL')" aria-label="Open All Month Datewise Report">
                 <span class="btn-hours-icon">📊</span>
                 <span>આખા મહિનાનો તમામ રિપોર્ટ (ALL MONTH REPORT)</span>
@@ -460,6 +464,10 @@
             <button type="button" id="btnDownloadSelectedMix" class="btn-sel-action btn-sel-excel" title="પસંદ કરેલા તમામ કારીગરોનો એક જ Excel માં ID વાઈઝ ટોટલ સાથે રિપોર્ટ ડાઉનલોડ કરો">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
               <span>📊 ૨. MIX Excel (ID વાઈઝ ટોટલ)</span>
+            </button>
+            <button type="button" id="btnDownloadSelectedDaily" class="btn-sel-action btn-sel-daily" title="પસંદ કરેલા તમામ કારીગરોનો ૧ જ Excel માં DAY BY DAY રિપોર્ટ ડાઉનલોડ કરો" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>📅 ૩. DAY BY DAY Excel (૧ માં જ બધા દિવસ)</span>
             </button>
             <button type="button" id="btnClearSelectedWorkers" class="btn-sel-action btn-sel-clear">
               <span>✕ ક્લિયર</span>
@@ -1967,6 +1975,9 @@
             </svg>
             <span>📊 ૨. MIX Excel (ID વાઈઝ ટોટલ)</span>
           </button>
+          <button type="button" id="btnDownloadCombDailyModal" class="btn-excel-small" title="૧ જ Excel માં DAY BY DAY રિપોર્ટ ડાઉનલોડ કરો" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff;">
+            <span>📅 ૩. DAY BY DAY Excel</span>
+          </button>
         </div>
 
         <div class="modal-body">
@@ -2153,5 +2164,43 @@
   <button id="floatingGodaunRefreshBtn" onclick="doGodaunHardRefresh()" title="Ctrl + F5 તાજું કરો" style="position:fixed;bottom:76px;right:24px;z-index:99999;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:1px solid rgba(255,255,255,0.3);padding:10px 18px;border-radius:50px;font-size:13px;font-weight:700;box-shadow:0 6px 20px rgba(16,185,129,0.5);cursor:pointer;display:flex;align-items:center;gap:8px;">
     🔄 <span>Ctrl + F5 તાજું કરો</span>
   </button>
+
+    <!-- Quick Download Options Modal for Multi-day -->
+    <div id="downloadChoiceModal" class="modal-backdrop hidden" style="z-index: 10000;">
+      <div class="modal-card" style="max-width: 480px; text-align: center; padding: 24px; border-radius: 16px; background: #1e293b; color: #fff; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); border: 1px solid rgba(255,255,255,0.1);">
+        <div class="modal-header" style="justify-content: center; position: relative; margin-bottom: 12px;">
+          <h3 class="modal-title" style="font-size: 1.25rem; font-weight: bold; color: #f8fafc;">📥 Excel રિપોર્ટ ડાઉનલોડ કરો</h3>
+          <button type="button" id="btnCloseDownloadChoiceModal" class="modal-close" style="position: absolute; right: 0; top: 0; background: none; border: none; font-size: 1.6rem; color: #94a3b8; cursor: pointer;" aria-label="Close">&times;</button>
+        </div>
+        <p style="color: #94a3b8; font-size: 0.9rem; margin: 4px 0 18px 0;">
+          સમયગાળો: <strong id="dlChoiceDateRangeText" style="color: #38bdf8;">--</strong><br>
+          તમારે કયા ફોર્મેટમાં Excel ડાઉનલોડ કરવી છે?
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <button type="button" id="btnChoiceDaily" class="btn-sel-action" style="padding: 14px 18px; font-size: 0.95rem; display: flex; align-items: center; justify-content: flex-start; border-radius: 10px; border: none; cursor: pointer; background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
+            <span style="font-size: 1.4rem; margin-right: 12px;">📅</span>
+            <div style="text-align: left;">
+              <strong style="display: block; font-size: 1rem;">૧. DAY BY DAY Excel (૧ માં જ બધા દિવસ)</strong>
+              <small style="opacity: 0.9; font-size: 0.78rem;">બધા દિવસો ૧ જ ફાઇલમાં રોજ-બ-રોજ અલગ ટેબલ સાથે</small>
+            </div>
+          </button>
+          <button type="button" id="btnChoiceMix" class="btn-sel-action" style="padding: 14px 18px; font-size: 0.95rem; display: flex; align-items: center; justify-content: flex-start; border-radius: 10px; border: none; cursor: pointer; background: linear-gradient(135deg, #059669, #10b981); color: #fff; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+            <span style="font-size: 1.4rem; margin-right: 12px;">📊</span>
+            <div style="text-align: left;">
+              <strong style="display: block; font-size: 1rem;">૨. MIX Excel (ID વાઈઝ ટોટલ)</strong>
+              <small style="opacity: 0.9; font-size: 0.78rem;">દરેક કારીગરના ID મુજબ અલગ ગ્રુપ અને સરવાળા સાથે</small>
+            </div>
+          </button>
+          <button type="button" id="btnChoiceZip" class="btn-sel-action" style="padding: 14px 18px; font-size: 0.95rem; display: flex; align-items: center; justify-content: flex-start; border-radius: 10px; border: none; cursor: pointer; background: linear-gradient(135deg, #7c3aed, #8b5cf6); color: #fff; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);">
+            <span style="font-size: 1.4rem; margin-right: 12px;">📦</span>
+            <div style="text-align: left;">
+              <strong style="display: block; font-size: 1rem;">૩. ZIP ફાઇલ (અલગ અલગ ID વાઈઝ)</strong>
+              <small style="opacity: 0.9; font-size: 0.78rem;">દરેક કારીગરની અલગ અલગ Excel ફાઇલો ૧ ZIP માં</small>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
 </body>
 </html>
