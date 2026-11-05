@@ -215,6 +215,11 @@ for route in MK_API_ROUTES:
         methods=["GET", "POST"]
     )
 
+# 8. Morning Report APIs
+@master_app.api_route("/api/morning-report/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+async def proxy_morning_report_api(request: Request, path: str):
+    return await forward_to_app(morning_report_app, request)
+
 # Frontend paths
 GODAUN_FRONTEND = ROOT / "apps" / "godaun" / "frontend"
 STOCK_FRONTEND = ROOT / "apps" / "stock" / "frontend"
@@ -224,8 +229,10 @@ PO_ASSETS = PO_FRONTEND / "assets"
 GATEPASS_FRONTEND = ROOT / "apps" / "gatepass" / "frontend"
 MK_FRONTEND = ROOT / "apps" / "mk" / "frontend"
 BARCODE_FRONTEND = ROOT / "apps" / "barcode" / "frontend"
+MORNING_REPORT_FRONTEND = ROOT / "apps" / "morning_report" / "frontend"
 
 STATIC_CANDIDATE_DIRS = [
+    MORNING_REPORT_FRONTEND,
     GATEPASS_FRONTEND,
     BARCODE_FRONTEND,
     ALTER_FRONTEND,
@@ -343,6 +350,8 @@ def redir_gatepass(): return RedirectResponse(url="/gatepass/", status_code=301)
 def redir_mk(): return RedirectResponse(url="/mk/", status_code=301)
 @master_app.get("/barcode")
 def redir_barcode(): return RedirectResponse(url="/barcode/", status_code=301)
+@master_app.get("/morning-report")
+def redir_morning_report(): return RedirectResponse(url="/morning-report/", status_code=301)
 
 # Health & Overview Status Endpoint
 @master_app.get("/health")
@@ -376,7 +385,8 @@ def hub_status():
             "po": {"name": "PO & Cutting Dashboard", "path": "/po/", "status": "active"},
             "gatepass": {"name": "Karigar Gate Pass System", "path": "/gatepass/", "status": "active"},
             "mk": {"name": "MK Checking Report", "path": "/mk/", "status": "active"},
-            "barcode": {"name": "Godaun Barcode Print", "path": "/barcode/", "status": "active"}
+            "barcode": {"name": "Godaun Barcode Print", "path": "/barcode/", "status": "active"},
+            "morning_report": {"name": "OSLC Boss In/Out Report", "path": "/morning-report/", "status": "active"}
         }
     }
 
@@ -446,6 +456,26 @@ master_app.mount("/po", po_app)
 master_app.mount("/gatepass", gatepass_app)
 master_app.mount("/mk", mk_app)
 master_app.mount("/barcode", barcode_app)
+
+@master_app.get("/morning-report/", response_class=HTMLResponse)
+async def serve_morning_report_ui():
+    index_file = MORNING_REPORT_FRONTEND / "index.html"
+    if index_file.exists():
+        return FileResponse(index_file)
+    return HTMLResponse("Morning Report UI not found", status_code=404)
+
+@master_app.get("/download/morning-report-apk")
+async def download_morning_report_apk():
+    apk_path = Path(r"d:\MY PC-106\MY REPORT SHORTCUT\OSLC_Morning_Report.apk")
+    if not apk_path.exists():
+        apk_path = Path(r"C:\Users\PC-106\Desktop\OSLC_Morning_Report.apk")
+    if apk_path.exists():
+        return FileResponse(
+            apk_path,
+            filename="OSLC_Morning_Report.apk",
+            media_type="application/vnd.android.package-archive"
+        )
+    return HTMLResponse("<h3>APK તૈયાર થઈ રહી છે, કૃપા કરીને ૧ મિનિટ પછી ટ્રાય કરો.</h3>", status_code=404)
 
 USER_PROJECTS_DIR = ROOT / "apps" / "user_projects"
 SYNC_STATUS_FILE = ROOT / "portal_ui" / "sync_status.json"
