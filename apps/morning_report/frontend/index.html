@@ -344,15 +344,90 @@ Good Morning Boss
   </div>
 
   <script>
-    // Smart API Base URL resolver
-    function getApiBase() {
+    function updateConnBadge(isOnline, label = 'Online') {
+      const connDot = document.getElementById('connDot');
+      const connText = document.getElementById('connText');
+      if (connDot) {
+        connDot.className = `w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-rose-400'}`;
+      }
+      if (connText) {
+        connText.innerText = isOnline ? label : 'ઑફલાઇન';
+      }
+    }
+
+    async function autoDetectServer() {
+      // 1. If loaded directly from web server with port 8080 or live web domain
+      if (window.location.protocol.startsWith('http') && window.location.port === '8080') {
+        API_BASE = window.location.origin;
+        updateConnBadge(true, 'Local PC');
+        return API_BASE;
+      }
+      if (window.location.protocol.startsWith('http') && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+        API_BASE = window.location.origin;
+        updateConnBadge(true, 'Cloud Web');
+        return API_BASE;
+      }
+
+      // 2. In Android APK / WebView: Check saved URL first if healthy
+      const saved = localStorage.getItem('oslc_server_url');
+      if (saved) {
+        try {
+          const c = new AbortController();
+          const tid = setTimeout(() => c.abort(), 1500);
+          const r = await fetch(saved + '/health', { signal: c.signal });
+          clearTimeout(tid);
+          if (r.ok) {
+            API_BASE = saved;
+            updateConnBadge(true, saved.includes('192.168') ? 'Wi-Fi' : 'Cloud');
+            return API_BASE;
+          }
+        } catch(e) {}
+      }
+
+      // 3. Test Office Wi-Fi (Ultra fast if phone is connected to office Wi-Fi)
+      try {
+        const c = new AbortController();
+        const tid = setTimeout(() => c.abort(), 1200);
+        const r = await fetch('http://192.168.100.106:8080/health', { signal: c.signal });
+        clearTimeout(tid);
+        if (r.ok) {
+          API_BASE = 'http://192.168.100.106:8080';
+          localStorage.setItem('oslc_server_url', API_BASE);
+          updateConnBadge(true, 'Wi-Fi');
+          return API_BASE;
+        }
+      } catch(e) {}
+
+      // 4. Query Surge Router for live dynamic Cloudflare tunnel (Instant 24x7)
+      try {
+        const c = new AbortController();
+        const tid = setTimeout(() => c.abort(), 3000);
+        const r = await fetch('https://oslcerp-live.surge.sh/target.json?t=' + Date.now(), { signal: c.signal });
+        clearTimeout(tid);
+        if (r.ok) {
+          const j = await r.json();
+          if (j && j.url) {
+            const cleanUrl = j.url.replace(/\/+$/, '');
+            API_BASE = cleanUrl;
+            localStorage.setItem('oslc_server_url', API_BASE);
+            updateConnBadge(true, 'Cloud');
+            return API_BASE;
+          }
+        }
+      } catch(e) {}
+
+      // 5. Fallback active tunnel
+      API_BASE = 'https://paint-offline-locale-guidance.trycloudflare.com';
+      updateConnBadge(true, 'Tunnel');
+      return API_BASE;
+    }
+
+    let API_BASE = (function() {
       if (window.location.protocol.startsWith('http') && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
         return window.location.origin;
       }
-      return localStorage.getItem('oslc_server_url') || 'https://ricky-plugin-august-inside.trycloudflare.com';
-    }
-
-    let API_BASE = getApiBase();
+      return localStorage.getItem('oslc_server_url') || 'http://192.168.100.106:8080';
+    })();
     let currentNumbers = [];
 
     function showToast(msg, isSuccess = true) {
@@ -391,6 +466,7 @@ Good Morning Boss
         if (res.ok) {
           localStorage.setItem('oslc_server_url', url);
           API_BASE = url;
+          updateConnBadge(true, url.includes('192.168') ? 'Wi-Fi' : (url.includes('localhost') ? 'Local PC' : 'Cloud'));
           showToast("સર્વર કનેક્શન સફળ! URL સેવ થઈ ગયો.");
           closeServerModal();
           refreshData();
@@ -468,6 +544,8 @@ Good Morning Boss
 
       } catch (e) {
         console.error("Status load error:", e);
+        updateConnBadge(false);
+        autoDetectServer();
       } finally {
         setTimeout(() => icon.classList.remove('animate-spin'), 600);
       }
@@ -652,10 +730,11 @@ Good Morning Boss
       }
     }
 
-    // Auto-refresh on page load
-    window.addEventListener('DOMContentLoaded', () => {
-      refreshData();
-      loadHistory();
+    // Auto-detect server and refresh on page load
+    window.addEventListener('DOMContentLoaded', async () => {
+      await autoDetectServer();
+      await refreshData();
+      await loadHistory();
       // Auto-refresh every 30 seconds
       setInterval(refreshData, 30000);
     });
