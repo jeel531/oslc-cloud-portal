@@ -59,6 +59,10 @@
         </div>
       </div>
       <div class="flex items-center gap-1.5">
+        <span id="connPill" class="text-[10px] px-2 py-1 rounded-lg bg-slate-800/90 text-slate-300 font-medium flex items-center gap-1.5 border border-slate-700/60" title="Server Connection Status">
+          <span id="connDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <span id="connText">ચેક કરે છે...</span>
+        </span>
         <button onclick="openServerModal()" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition" title="Connection Settings">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
         </button>
@@ -314,11 +318,14 @@ Good Morning Boss
       </p>
       <input type="url" id="inputServerUrl" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-indigo-500 mb-3" placeholder="https://...trycloudflare.com">
       <div class="space-y-1.5 mb-4">
-        <button onclick="setQuickServer('https://ricky-plugin-august-inside.trycloudflare.com')" class="w-full text-left px-2.5 py-1.5 rounded bg-slate-800 text-[11px] text-amber-300 font-mono">
-          ☁️ Cloud Tunnel (4G/Internet)
-        </button>
         <button onclick="setQuickServer('http://192.168.100.106:8080')" class="w-full text-left px-2.5 py-1.5 rounded bg-slate-800 text-[11px] text-emerald-300 font-mono">
           📶 Office Wi-Fi (192.168.100.106:8080)
+        </button>
+        <button onclick="setQuickServer('https://paint-offline-locale-guidance.trycloudflare.com')" class="w-full text-left px-2.5 py-1.5 rounded bg-slate-800 text-[11px] text-amber-300 font-mono">
+          ☁️ Cloud Tunnel (Live 4G/Internet)
+        </button>
+        <button onclick="setQuickServer('http://localhost:8080')" class="w-full text-left px-2.5 py-1.5 rounded bg-slate-800 text-[11px] text-sky-300 font-mono">
+          💻 Local PC (localhost:8080)
         </button>
       </div>
       <div class="flex gap-2">
