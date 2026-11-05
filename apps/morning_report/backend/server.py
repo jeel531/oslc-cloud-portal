@@ -301,3 +301,4 @@ async def get_history():
         except Exception as e:
             return {"success": False, "error": str(e), "history": []}
     return {"success": True, "history": []}
+
