@@ -466,6 +466,17 @@ Good Morning Boss
       }
     }
 
+    function copyWhatsappMsg() {
+      const text = document.getElementById('boxWhatsappMsg').innerText;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast("મેસેજ ક્લિપબોર્ડ પર કોપી થઈ ગયો!");
+        });
+      } else {
+        showToast("મેસેજ સિલેક્ટ કરી કોપી કરો");
+      }
+    }
+
     function renderNumbersList(numbers) {
       const container = document.getElementById('numbersList');
       const countBadge = document.getElementById('numbersCount');
