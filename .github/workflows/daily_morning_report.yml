@@ -32,3 +32,4 @@ jobs:
           TARGET_WHATSAPP: "917041181117"
         run: |
           python "apps/morning_report/cloud_morning_report.py"
+
