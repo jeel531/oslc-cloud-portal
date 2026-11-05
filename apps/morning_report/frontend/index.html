@@ -154,6 +154,34 @@
       </div>
     </div>
 
+    <!-- WhatsApp Message Format Preview Card -->
+    <div class="card-glass rounded-2xl p-4 shadow-xl">
+      <div class="flex items-center justify-between mb-3 border-b border-slate-700/60 pb-2">
+        <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+          <span>💬</span> વોટ્સએપ મેસેજ ફોર્મેટ (Official Message)
+        </h3>
+        <button onclick="copyWhatsappMsg()" class="text-[11px] font-bold text-amber-300 bg-amber-950/60 px-2.5 py-1 rounded-lg border border-amber-700/50 hover:bg-amber-900/60 transition flex items-center gap-1">
+          <span>📋</span> કોપી કરો
+        </button>
+      </div>
+      <div class="bg-slate-950/80 rounded-xl p-3.5 border border-slate-800 font-sans text-xs leading-relaxed text-slate-200 space-y-2 whitespace-pre-line select-text" id="boxWhatsappMsg">
+Hare Krishna 🙏
+Good Morning Boss
+
+📊 *OSLC Warehouse Stock Report*
+
+📅 *Date:* 04-11-2026
+📦 *Total Stock:* 2,75,710
+📥 *INWARD:* 4,809
+📤 *OUTWARD:* 8,183
+🔍 *AUDIT:* 17,281
+🚫 *BLOCK:* 1,620
+
+━━━━━━━━━━━━━━━━━━━━
+👤 *Created by: Jeel Vaghani*
+      </div>
+    </div>
+
     <!-- Table Image Preview (Exactly what gets sent on WhatsApp) -->
     <div class="card-glass rounded-2xl p-4 shadow-xl">
       <div class="flex items-center justify-between mb-3 border-b border-slate-700/60 pb-2">
@@ -404,6 +432,11 @@
         document.getElementById('valOutward').innerText = formatNumber(m.OUTWARD);
         document.getElementById('valAudit').innerText = formatNumber(m.AUDIT);
         document.getElementById('valBlock').innerText = formatNumber(m.BLOCK);
+
+        // Update WhatsApp message text preview
+        const repDate = data.report_date || data.today_date;
+        const msgText = `Hare Krishna 🙏\nGood Morning Boss\n\n📊 *OSLC Warehouse Stock Report*\n\n📅 *Date:* ${repDate}\n📦 *Total Stock:* ${formatNumber(m.TOTAL)}\n📥 *INWARD:* ${formatNumber(m.INWARD)}\n📤 *OUTWARD:* ${formatNumber(m.OUTWARD)}\n🔍 *AUDIT:* ${formatNumber(m.AUDIT)}\n🚫 *BLOCK:* ${formatNumber(m.BLOCK)}\n\n━━━━━━━━━━━━━━━━━━━━\n👤 *Created by: Jeel Vaghani*`;
+        document.getElementById('boxWhatsappMsg').innerText = msgText;
 
         // Schedule Time
         if (data.scheduled_time) {
