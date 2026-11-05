@@ -14,16 +14,6 @@
         extend: {
           fontFamily: {
             sans: ['"Plus Jakarta Sans"', '"Noto Sans Gujarati"', 'sans-serif'],
-          },
-          colors: {
-            brand: {
-              50: '#eef2ff',
-              100: '#e0e7ff',
-              500: '#6366f1',
-              600: '#4f46e5',
-              700: '#4338ca',
-              900: '#312e81',
-            }
           }
         }
       }
@@ -31,30 +21,26 @@
   </script>
   <style>
     body {
-      background: #0f172a;
+      background: #0b1120;
       color: #f8fafc;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
     }
     .card-glass {
-      background: rgba(30, 41, 59, 0.85);
-      backdrop-filter: blur(12px);
+      background: rgba(30, 41, 59, 0.88);
+      backdrop-filter: blur(14px);
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
     .yellow-header {
       background-color: #FFFF00;
       color: #000000;
     }
-    /* Pulse glow */
     .glow-green {
-      box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
-    }
-    .glow-brand {
-      box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.35);
     }
   </style>
 </head>
-<body class="min-h-screen pb-12 antialiased">
+<body class="min-h-screen pb-14 antialiased">
 
   <!-- Top App Bar -->
   <header class="sticky top-0 z-30 card-glass border-b border-slate-700/60 px-4 py-3 shadow-lg">
@@ -72,11 +58,16 @@
           </p>
         </div>
       </div>
-      <button onclick="refreshData()" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition" title="Refresh">
-        <svg id="refreshIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-        </svg>
-      </button>
+      <div class="flex items-center gap-1.5">
+        <button onclick="openServerModal()" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition" title="Connection Settings">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        </button>
+        <button onclick="refreshData()" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition" title="Refresh">
+          <svg id="refreshIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -101,7 +92,7 @@
       </div>
     </div>
 
-    <!-- Quick Action: Send Now Button -->
+    <!-- Quick Action: Send Now Button (હવે જ મોકલો) -->
     <div class="card-glass rounded-2xl p-3.5 shadow-xl">
       <button id="btnSendNow" onclick="triggerSendNow()" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-600 text-white font-bold text-base shadow-lg hover:shadow-green-500/20 active:scale-[0.98] transition flex items-center justify-center gap-2">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,7 +101,7 @@
         <span>હવે જ મોકલો (Send Report Now)</span>
       </button>
       <p class="text-[11px] text-center text-slate-400 mt-2">
-        બટન દબાવતા જ DigiBizz માંથી નવો ડેટા લેવાશે, ગૂગલ શીટ અપડેટ થશે અને વોટ્સએપ પર ફોટો જતો રહેશે.
+        બટન દબાવતા જ DigiBizz માંથી નવો ડેટા લેવાશે, ગૂગલ શીટ અપડેટ થશે અને વોટ્સએપ પર ૧૦૦% ઓટોમેટિક ફોટો જતો રહેશે.
       </p>
     </div>
 
@@ -172,7 +163,7 @@
         <span class="text-[11px] text-slate-400">વોટ્સએપ પર આ જ ફોટો જાય છે</span>
       </div>
       <div class="bg-white rounded-xl p-2 flex items-center justify-center shadow-inner overflow-hidden">
-        <img id="reportImage" src="/api/morning-report/image" alt="Report Table Image" class="max-w-full h-auto rounded border border-slate-300 shadow-sm" onerror="this.src='/portal_static/icon-192.png'; this.classList.add('opacity-40');">
+        <img id="reportImage" src="" alt="Report Table Image" class="max-w-full h-auto rounded border border-slate-300 shadow-sm" onerror="this.src='/portal_static/icon-192.png'; this.classList.add('opacity-40');">
       </div>
     </div>
 
@@ -264,8 +255,8 @@
       </div>
     </div>
 
-    <!-- Android APK Direct Download Banner -->
-    <div class="rounded-2xl p-4 bg-gradient-to-r from-indigo-900/60 via-purple-900/60 to-slate-900/80 border border-indigo-500/30 shadow-xl flex items-center justify-between">
+    <!-- Android APK Direct Download Banner (Web mode) -->
+    <div id="bannerApkDownload" class="rounded-2xl p-4 bg-gradient-to-r from-indigo-900/60 via-purple-900/60 to-slate-900/80 border border-indigo-500/30 shadow-xl flex items-center justify-between">
       <div class="flex items-center gap-3">
         <span class="text-3xl">🤖</span>
         <div>
@@ -273,7 +264,7 @@
           <p class="text-[11px] text-indigo-200">મોબાઈલમાં સીધું ઇન્સ્ટોલ કરો</p>
         </div>
       </div>
-      <a href="/download/morning-report-apk" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5">
+      <a id="linkDownloadApk" href="/download/morning-report-apk" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
         <span>APK ડાઉનલોડ</span>
       </a>
@@ -281,11 +272,52 @@
 
   </main>
 
+  <!-- Server Settings Modal -->
+  <div id="serverModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="card-glass w-full max-w-sm rounded-2xl p-5 border border-slate-700 shadow-2xl">
+      <div class="flex items-center justify-between mb-3 border-b border-slate-700 pb-2">
+        <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+          <span>⚙️</span> સર્વર કનેક્શન સેટિંગ
+        </h3>
+        <button onclick="closeServerModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+      <p class="text-xs text-slate-300 mb-3">
+        મોબાઈલ એપ સર્વર કનેક્શન URL:
+      </p>
+      <input type="url" id="inputServerUrl" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-indigo-500 mb-3" placeholder="https://...trycloudflare.com">
+      <div class="space-y-1.5 mb-4">
+        <button onclick="setQuickServer('https://ricky-plugin-august-inside.trycloudflare.com')" class="w-full text-left px-2.5 py-1.5 rounded bg-slate-800 text-[11px] text-amber-300 font-mono">
+          ☁️ Cloud Tunnel (4G/Internet)
+        </button>
+        <button onclick="setQuickServer('http://192.168.100.106:8080')" class="w-full text-left px-2.5 py-1.5 rounded bg-slate-800 text-[11px] text-emerald-300 font-mono">
+          📶 Office Wi-Fi (192.168.100.106:8080)
+        </button>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="testAndSaveServer()" class="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md">
+          ટેસ્ટ & સેવ
+        </button>
+        <button onclick="closeServerModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold">
+          બંધ કરો
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Notification Toast -->
   <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-2xl transition-all duration-300 opacity-0 pointer-events-none max-w-sm text-center">
   </div>
 
   <script>
+    // Smart API Base URL resolver
+    function getApiBase() {
+      if (window.location.protocol.startsWith('http') && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+        return window.location.origin;
+      }
+      return localStorage.getItem('oslc_server_url') || 'https://ricky-plugin-august-inside.trycloudflare.com';
+    }
+
+    let API_BASE = getApiBase();
     let currentNumbers = [];
 
     function showToast(msg, isSuccess = true) {
@@ -303,11 +335,43 @@
       return (Number(num) || 0).toLocaleString('en-IN');
     }
 
+    function openServerModal() {
+      document.getElementById('inputServerUrl').value = API_BASE;
+      document.getElementById('serverModal').classList.remove('hidden');
+    }
+
+    function closeServerModal() {
+      document.getElementById('serverModal').classList.add('hidden');
+    }
+
+    function setQuickServer(url) {
+      document.getElementById('inputServerUrl').value = url;
+    }
+
+    async function testAndSaveServer() {
+      const url = document.getElementById('inputServerUrl').value.trim().replace(/\/$/, '');
+      if (!url) return;
+      try {
+        const res = await fetch(url + '/api/morning-report/status');
+        if (res.ok) {
+          localStorage.setItem('oslc_server_url', url);
+          API_BASE = url;
+          showToast("સર્વર કનેક્શન સફળ! URL સેવ થઈ ગયો.");
+          closeServerModal();
+          refreshData();
+        } else {
+          showToast("સર્વર રિસ્પોન્ડ નથી કરતું", false);
+        }
+      } catch (e) {
+        showToast("કનેક્શન નિષ્ફળ: " + e.message, false);
+      }
+    }
+
     async function refreshData() {
       const icon = document.getElementById('refreshIcon');
       icon.classList.add('animate-spin');
       try {
-        const res = await fetch('/api/morning-report/status');
+        const res = await fetch(API_BASE + '/api/morning-report/status');
         const data = await res.json();
 
         // Status Card
@@ -357,7 +421,10 @@
         }
 
         // Image refresh
-        document.getElementById('reportImage').src = '/api/morning-report/image?t=' + Date.now();
+        document.getElementById('reportImage').src = API_BASE + '/api/morning-report/image?t=' + Date.now();
+
+        // Download link
+        document.getElementById('linkDownloadApk').href = API_BASE + '/download/morning-report-apk';
 
       } catch (e) {
         console.error("Status load error:", e);
@@ -403,7 +470,7 @@
       btn.disabled = true;
       btn.innerText = "સાચવે છે...";
       try {
-        const res = await fetch('/api/morning-report/schedule', {
+        const res = await fetch(API_BASE + '/api/morning-report/schedule', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ time: timeVal })
@@ -431,7 +498,7 @@
         return;
       }
       try {
-        const res = await fetch('/api/morning-report/numbers', {
+        const res = await fetch(API_BASE + '/api/morning-report/numbers', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ action: 'add', number: val })
@@ -451,7 +518,7 @@
     async function removePhoneNumber(num) {
       if (!confirm(`શું તમે +${num} નંબર કાઢી નાખવા માંગો છો?`)) return;
       try {
-        const res = await fetch('/api/morning-report/numbers', {
+        const res = await fetch(API_BASE + '/api/morning-report/numbers', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ action: 'remove', number: num })
@@ -478,7 +545,7 @@
         <span>રિપોર્ટ મોકલાઈ રહ્યો છે... (થોડીવાર રાહ જુઓ)</span>
       `;
       try {
-        const res = await fetch('/api/morning-report/send-now', {
+        const res = await fetch(API_BASE + '/api/morning-report/send-now', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({})
@@ -507,7 +574,7 @@
     async function loadHistory() {
       const container = document.getElementById('historyList');
       try {
-        const res = await fetch('/api/morning-report/history');
+        const res = await fetch(API_BASE + '/api/morning-report/history');
         const data = await res.json();
         if (!data.history || data.history.length === 0) {
           container.innerHTML = '<div class="text-xs text-slate-500 p-2 text-center">કોઈ હિસ્ટ્રી નથી</div>';
