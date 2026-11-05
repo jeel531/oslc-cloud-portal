@@ -46,6 +46,7 @@ from apps.po.backend.app import app as po_app
 from apps.gatepass.backend.server import app as gatepass_app
 from apps.mk.backend.server import app as mk_app
 from apps.barcode.backend.server import app as barcode_app
+from apps.morning_report.backend.server import app as morning_report_app
 
 master_app = FastAPI(
     title="OSLC Cloud Master Portal - Om Sai Latest Creation",

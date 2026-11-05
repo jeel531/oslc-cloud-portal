@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>OSLC BOSS REPORT | OM SAI LATEST CREATION</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Gujarati:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '"Noto Sans Gujarati"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#312e81',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background: #0f172a;
+      color: #f8fafc;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .card-glass {
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .yellow-header {
+      background-color: #FFFF00;
+      color: #000000;
+    }
+    /* Pulse glow */
+    .glow-green {
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+    }
+    .glow-brand {
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-12 antialiased">
+
+  <!-- Top App Bar -->
+  <header class="sticky top-0 z-30 card-glass border-b border-slate-700/60 px-4 py-3 shadow-lg">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-400 to-yellow-300 flex items-center justify-center font-black text-slate-900 text-lg shadow-md">
+          📊
+        </div>
+        <div>
+          <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
+            OSLC BOSS REPORT
+          </h1>
+          <p class="text-[11px] text-amber-300 font-semibold tracking-wide uppercase">
+            OM SAI LATEST CREATION • JEEL VAGHANI
+          </p>
+        </div>
+      </div>
+      <button onclick="refreshData()" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition" title="Refresh">
+        <svg id="refreshIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-md mx-auto px-4 mt-4 space-y-4">
+
+    <!-- Status Card: Sent or Pending -->
+    <div id="statusCard" class="card-glass rounded-2xl p-4 shadow-xl border-l-4 border-amber-500 transition-all duration-300">
+      <div class="flex items-start justify-between">
+        <div>
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">આજનો સ્ટેટસ (Today Status)</span>
+          <div class="flex items-center gap-2 mt-1">
+            <span id="statusIndicatorDot" class="w-3 h-3 rounded-full bg-amber-400 animate-pulse"></span>
+            <h2 id="statusTitle" class="text-lg font-bold text-amber-400">ચેક થઈ રહ્યું છે...</h2>
+          </div>
+          <p id="statusTime" class="text-xs text-slate-400 mt-1">સવારનો સમય: લોડ થાય છે...</p>
+        </div>
+        <div class="text-right">
+          <span class="text-[10px] uppercase font-bold text-slate-400 block">રિપોર્ટ તારીખ</span>
+          <span id="reportDateBadge" class="inline-block mt-0.5 px-2.5 py-1 rounded-md text-xs font-bold yellow-header shadow-sm">--/--/----</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Action: Send Now Button -->
+    <div class="card-glass rounded-2xl p-3.5 shadow-xl">
+      <button id="btnSendNow" onclick="triggerSendNow()" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-600 text-white font-bold text-base shadow-lg hover:shadow-green-500/20 active:scale-[0.98] transition flex items-center justify-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+        </svg>
+        <span>હવે જ મોકલો (Send Report Now)</span>
+      </button>
+      <p class="text-[11px] text-center text-slate-400 mt-2">
+        બટન દબાવતા જ DigiBizz માંથી નવો ડેટા લેવાશે, ગૂગલ શીટ અપડેટ થશે અને વોટ્સએપ પર ફોટો જતો રહેશે.
+      </p>
+    </div>
+
+    <!-- Live Report Numbers Cards (5 Key Metrics) -->
+    <div class="card-glass rounded-2xl p-4 shadow-xl">
+      <div class="flex items-center justify-between mb-3 border-b border-slate-700/60 pb-2">
+        <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+          <span>📋</span> લાઈવ ડેટા નંબર્સ (DigiBizz Live)
+        </h3>
+        <span class="text-[11px] font-semibold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/40">100% Match</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5">
+        <!-- TOTAL -->
+        <div class="col-span-2 bg-slate-800/80 rounded-xl p-3 border border-slate-700/50 flex items-center justify-between">
+          <div>
+            <span class="text-xs font-semibold text-slate-400 italic">TOTAL (Fresh Pcs.)</span>
+            <p class="text-xs text-slate-500">લાઈવ સ્ટોક રિપોર્ટ</p>
+          </div>
+          <span id="valTotal" class="text-2xl font-black text-amber-400 tracking-tight">0</span>
+        </div>
+
+        <!-- INWARD -->
+        <div class="bg-slate-800/80 rounded-xl p-3 border border-slate-700/50">
+          <span class="text-xs font-semibold text-emerald-400 italic">INWARD</span>
+          <p id="valInward" class="text-xl font-black text-white mt-0.5">0</p>
+          <span class="text-[10px] text-slate-400 block mt-0.5">WMS Stock Inward</span>
+        </div>
+
+        <!-- OUTWARD -->
+        <div class="bg-slate-800/80 rounded-xl p-3 border border-slate-700/50">
+          <span class="text-xs font-semibold text-rose-400 italic">OUTWARD</span>
+          <p id="valOutward" class="text-xl font-black text-white mt-0.5">0</p>
+          <span class="text-[10px] text-slate-400 block mt-0.5">Pickup + Outward</span>
+        </div>
+
+        <!-- AUDIT -->
+        <div class="bg-slate-800/80 rounded-xl p-3 border border-slate-700/50">
+          <span class="text-xs font-semibold text-sky-400 italic">AUDIT</span>
+          <p id="valAudit" class="text-xl font-black text-white mt-0.5">0</p>
+          <span class="text-[10px] text-slate-400 block mt-0.5">Pending Shelf Code</span>
+        </div>
+
+        <!-- BLOCK -->
+        <div class="bg-slate-800/80 rounded-xl p-3 border border-slate-700/50">
+          <span class="text-xs font-semibold text-amber-400 italic">BLOCK</span>
+          <p id="valBlock" class="text-xl font-black text-white mt-0.5">0</p>
+          <span class="text-[10px] text-slate-400 block mt-0.5">Block Pcs. Stock</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table Image Preview (Exactly what gets sent on WhatsApp) -->
+    <div class="card-glass rounded-2xl p-4 shadow-xl">
+      <div class="flex items-center justify-between mb-3 border-b border-slate-700/60 pb-2">
+        <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+          <span>🖼️</span> વોટ્સએપ ફોટો પ્રિવ્યૂ (Photo Preview)
+        </h3>
+        <span class="text-[11px] text-slate-400">વોટ્સએપ પર આ જ ફોટો જાય છે</span>
+      </div>
+      <div class="bg-white rounded-xl p-2 flex items-center justify-center shadow-inner overflow-hidden">
+        <img id="reportImage" src="/api/morning-report/image" alt="Report Table Image" class="max-w-full h-auto rounded border border-slate-300 shadow-sm" onerror="this.src='/portal_static/icon-192.png'; this.classList.add('opacity-40');">
+      </div>
+    </div>
+
+    <!-- Time Scheduler Setting (સમય વહેલા-મોડા કરવાની સગવડ) -->
+    <div class="card-glass rounded-2xl p-4 shadow-xl">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+          <span>⏰</span> મોકલવાનો સમય (Set Daily Time)
+        </h3>
+        <span id="badgeCurrentTime" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-700/50">
+          07:00 AM
+        </span>
+      </div>
+      <p class="text-xs text-slate-400 mb-3">
+        તમારે રોજ સવારે જેટલા વાગે રિપોર્ટ મોકલવો હોય તે સમય પસંદ કરો:
+      </p>
+
+      <!-- Quick time presets -->
+      <div class="grid grid-cols-4 gap-2 mb-3">
+        <button onclick="setTimeInput('06:30')" class="py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-700 text-center">06:30 AM</button>
+        <button onclick="setTimeInput('07:00')" class="py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-amber-300 border border-amber-700/50 text-center">07:00 AM</button>
+        <button onclick="setTimeInput('07:30')" class="py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-700 text-center">07:30 AM</button>
+        <button onclick="setTimeInput('08:00')" class="py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-700 text-center">08:00 AM</button>
+      </div>
+
+      <div class="flex gap-2">
+        <input type="time" id="inputTime" value="07:00" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold text-sm focus:outline-none focus:border-indigo-500">
+        <button onclick="saveScheduleTime()" id="btnSaveTime" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-md transition active:scale-95">
+          સમય બદલો
+        </button>
+      </div>
+    </div>
+
+    <!-- WhatsApp Numbers Management (નંબર્સ ઉમેરો / કાઢો) -->
+    <div class="card-glass rounded-2xl p-4 shadow-xl">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+          <span>📱</span> વોટ્સએપ નંબર્સ (Recipient Numbers)
+        </h3>
+        <span id="numbersCount" class="text-xs font-bold text-slate-400">1 નંબર</span>
+      </div>
+      <p class="text-xs text-slate-400 mb-3">
+        આ નંબરો પર રોજ સવારે ઓટોમેટિક ફોટો જશે:
+      </p>
+
+      <!-- Numbers List -->
+      <div id="numbersList" class="space-y-2 mb-3">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Add Number Form -->
+      <div class="flex gap-2">
+        <div class="relative flex-1">
+          <span class="absolute left-3 top-2.5 text-xs text-slate-400 font-bold">+91</span>
+          <input type="tel" id="inputNewNumber" placeholder="70411 81117" maxlength="10" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-11 pr-3 py-2 text-white font-semibold text-sm focus:outline-none focus:border-indigo-500">
+        </div>
+        <button onclick="addPhoneNumber()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md transition active:scale-95 flex items-center gap-1">
+          <span>+</span> ઉમેરો
+        </button>
+      </div>
+    </div>
+
+    <!-- Google Sheet Link Card -->
+    <div class="card-glass rounded-2xl p-3.5 shadow-xl flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-emerald-900/60 border border-emerald-700/60 flex items-center justify-center text-lg">
+          📈
+        </div>
+        <div>
+          <h4 class="text-xs font-bold text-white">BOSS IN OUT REPORT</h4>
+          <p class="text-[11px] text-slate-400">ગૂગલ શીટ લાઈવ અપડેટ થાય છે</p>
+        </div>
+      </div>
+      <a id="btnOpenSheet" href="https://docs.google.com/spreadsheets/d/1f34DjieNFmH1Wulj4M1iTiUcUsJBOYgFNkzoKNXC5bc/edit?gid=0#gid=0" target="_blank" class="px-3 py-1.5 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/40 text-xs font-bold transition">
+        ખોલો ↗
+      </a>
+    </div>
+
+    <!-- Past Reports History -->
+    <div class="card-glass rounded-2xl p-4 shadow-xl">
+      <div class="flex items-center justify-between mb-3 border-b border-slate-700/60 pb-2">
+        <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+          <span>📜</span> પાછલા રિપોર્ટ્સ (History Log)
+        </h3>
+        <button onclick="loadHistory()" class="text-xs text-indigo-400 hover:underline">રીફ્રેશ</button>
+      </div>
+      <div id="historyList" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- Android APK Direct Download Banner -->
+    <div class="rounded-2xl p-4 bg-gradient-to-r from-indigo-900/60 via-purple-900/60 to-slate-900/80 border border-indigo-500/30 shadow-xl flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-3xl">🤖</span>
+        <div>
+          <h4 class="text-xs font-bold text-white">Android Mobile APK</h4>
+          <p class="text-[11px] text-indigo-200">મોબાઈલમાં સીધું ઇન્સ્ટોલ કરો</p>
+        </div>
+      </div>
+      <a href="/download/morning-report-apk" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        <span>APK ડાઉનલોડ</span>
+      </a>
+    </div>
+
+  </main>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-2xl transition-all duration-300 opacity-0 pointer-events-none max-w-sm text-center">
+  </div>
+
+  <script>
+    let currentNumbers = [];
+
+    function showToast(msg, isSuccess = true) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.className = `fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-2xl transition-all duration-300 max-w-sm text-center ${
+        isSuccess ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
+      } opacity-100`;
+      setTimeout(() => {
+        toast.className += ' opacity-0 pointer-events-none';
+      }, 3500);
+    }
+
+    function formatNumber(num) {
+      return (Number(num) || 0).toLocaleString('en-IN');
+    }
+
+    async function refreshData() {
+      const icon = document.getElementById('refreshIcon');
+      icon.classList.add('animate-spin');
+      try {
+        const res = await fetch('/api/morning-report/status');
+        const data = await res.json();
+
+        // Status Card
+        const statusCard = document.getElementById('statusCard');
+        const statusTitle = document.getElementById('statusTitle');
+        const statusTime = document.getElementById('statusTime');
+        const statusDot = document.getElementById('statusIndicatorDot');
+        const dateBadge = document.getElementById('reportDateBadge');
+
+        dateBadge.innerText = data.report_date || data.today_date;
+
+        if (data.sent_today) {
+          statusCard.className = 'card-glass rounded-2xl p-4 shadow-xl border-l-4 border-emerald-500 glow-green transition-all duration-300';
+          statusTitle.className = 'text-lg font-bold text-emerald-400';
+          statusTitle.innerText = '✅ આજે મોકલાઈ ગયું (Sent)';
+          statusDot.className = 'w-3 h-3 rounded-full bg-emerald-400';
+          statusTime.innerText = `મોકલ્યા સમય: ${data.sent_at || 'આજે સવારે'}`;
+        } else {
+          statusCard.className = 'card-glass rounded-2xl p-4 shadow-xl border-l-4 border-amber-500 transition-all duration-300';
+          statusTitle.className = 'text-lg font-bold text-amber-400';
+          statusTitle.innerText = '⏳ મોકલવાનું બાકી છે (Pending)';
+          statusDot.className = 'w-3 h-3 rounded-full bg-amber-400 animate-pulse';
+          statusTime.innerText = `રોજ સવારનો સમય: ${data.scheduled_time || '07:00'}`;
+        }
+
+        // Metrics
+        const m = data.latest_data || {};
+        document.getElementById('valTotal').innerText = formatNumber(m.TOTAL);
+        document.getElementById('valInward').innerText = formatNumber(m.INWARD);
+        document.getElementById('valOutward').innerText = formatNumber(m.OUTWARD);
+        document.getElementById('valAudit').innerText = formatNumber(m.AUDIT);
+        document.getElementById('valBlock').innerText = formatNumber(m.BLOCK);
+
+        // Schedule Time
+        if (data.scheduled_time) {
+          document.getElementById('badgeCurrentTime').innerText = data.scheduled_time;
+          document.getElementById('inputTime').value = data.scheduled_time.replace(/[^0-9:]/g, '');
+        }
+
+        // Phone numbers
+        currentNumbers = data.whatsapp_numbers || [];
+        renderNumbersList(currentNumbers);
+
+        // Sheet URL
+        if (data.sheet_url) {
+          document.getElementById('btnOpenSheet').href = data.sheet_url;
+        }
+
+        // Image refresh
+        document.getElementById('reportImage').src = '/api/morning-report/image?t=' + Date.now();
+
+      } catch (e) {
+        console.error("Status load error:", e);
+      } finally {
+        setTimeout(() => icon.classList.remove('animate-spin'), 600);
+      }
+    }
+
+    function renderNumbersList(numbers) {
+      const container = document.getElementById('numbersList');
+      const countBadge = document.getElementById('numbersCount');
+      countBadge.innerText = `${numbers.length} નંબર`;
+
+      if (!numbers || numbers.length === 0) {
+        container.innerHTML = '<div class="text-xs text-slate-500 p-2 text-center">કોઈ નંબર ઉમેરેલો નથી</div>';
+        return;
+      }
+
+      container.innerHTML = numbers.map(num => `
+        <div class="flex items-center justify-between bg-slate-900/80 px-3 py-2 rounded-xl border border-slate-800">
+          <div class="flex items-center gap-2">
+            <span class="text-emerald-400">📱</span>
+            <span class="text-sm font-semibold text-white tracking-wide">+${num}</span>
+          </div>
+          <button onclick="removePhoneNumber('${num}')" class="text-slate-400 hover:text-rose-400 p-1 rounded transition" title="Delete">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function setTimeInput(val) {
+      document.getElementById('inputTime').value = val;
+    }
+
+    async function saveScheduleTime() {
+      const btn = document.getElementById('btnSaveTime');
+      const timeVal = document.getElementById('inputTime').value.trim();
+      if (!timeVal) {
+        showToast("કૃપા કરીને સમય પસંદ કરો", false);
+        return;
+      }
+      btn.disabled = true;
+      btn.innerText = "સાચવે છે...";
+      try {
+        const res = await fetch('/api/morning-report/schedule', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ time: timeVal })
+        });
+        const resp = await res.json();
+        if (resp.success) {
+          showToast(resp.message || "સમય બદલાઈ ગયો!");
+          document.getElementById('badgeCurrentTime').innerText = resp.scheduled_time;
+        } else {
+          showToast("સમય અપડેટ કરવામાં એરર", false);
+        }
+      } catch (e) {
+        showToast("નેટવર્ક એરર", false);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "સમય બદલો";
+      }
+    }
+
+    async function addPhoneNumber() {
+      const input = document.getElementById('inputNewNumber');
+      const val = input.value.trim();
+      if (!val || val.length < 10) {
+        showToast("કૃપા કરીને ૧૦ અંકનો સાચો મોબાઈલ નંબર દાખલ કરો", false);
+        return;
+      }
+      try {
+        const res = await fetch('/api/morning-report/numbers', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ action: 'add', number: val })
+        });
+        const resp = await res.json();
+        if (resp.success) {
+          input.value = '';
+          currentNumbers = resp.whatsapp_numbers;
+          renderNumbersList(currentNumbers);
+          showToast("નવો નંબર ઉમેરાઈ ગયો!");
+        }
+      } catch (e) {
+        showToast("નંબર ઉમેરવામાં એરર", false);
+      }
+    }
+
+    async function removePhoneNumber(num) {
+      if (!confirm(`શું તમે +${num} નંબર કાઢી નાખવા માંગો છો?`)) return;
+      try {
+        const res = await fetch('/api/morning-report/numbers', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ action: 'remove', number: num })
+        });
+        const resp = await res.json();
+        if (resp.success) {
+          currentNumbers = resp.whatsapp_numbers;
+          renderNumbersList(currentNumbers);
+          showToast("નંબર કાઢી નાખ્યો!");
+        }
+      } catch (e) {
+        showToast("નંબર કાઢવામાં એરર", false);
+      }
+    }
+
+    async function triggerSendNow() {
+      const btn = document.getElementById('btnSendNow');
+      btn.disabled = true;
+      btn.innerHTML = `
+        <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+        </svg>
+        <span>રિપોર્ટ મોકલાઈ રહ્યો છે... (થોડીવાર રાહ જુઓ)</span>
+      `;
+      try {
+        const res = await fetch('/api/morning-report/send-now', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({})
+        });
+        const resp = await res.json();
+        if (resp.success) {
+          showToast("✅ રિપોર્ટ ગૂગલ શીટ અને વોટ્સએપ પર મોકલાઈ ગયો!");
+          await refreshData();
+          await loadHistory();
+        } else {
+          showToast("રિપોર્ટ મોકલવામાં સમસ્યા: " + (resp.error || "Unknown"), false);
+        }
+      } catch (e) {
+        showToast("નેટવર્ક એરર", false);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+          </svg>
+          <span>હવે જ મોકલો (Send Report Now)</span>
+        `;
+      }
+    }
+
+    async function loadHistory() {
+      const container = document.getElementById('historyList');
+      try {
+        const res = await fetch('/api/morning-report/history');
+        const data = await res.json();
+        if (!data.history || data.history.length === 0) {
+          container.innerHTML = '<div class="text-xs text-slate-500 p-2 text-center">કોઈ હિસ્ટ્રી નથી</div>';
+          return;
+        }
+        container.innerHTML = data.history.map(item => `
+          <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 text-xs">
+            <div class="flex items-center justify-between font-bold mb-1">
+              <span class="text-amber-400">📅 ${item.date || item.raw_date}</span>
+              <span class="text-emerald-400">✅ મોકલાયેલ</span>
+            </div>
+            <div class="grid grid-cols-5 text-[11px] text-slate-300 gap-1 text-center bg-slate-950/40 p-1.5 rounded-lg">
+              <div><span class="text-slate-500 block text-[9px]">TOTAL</span>${formatNumber(item.TOTAL)}</div>
+              <div><span class="text-slate-500 block text-[9px]">IN</span>${formatNumber(item.INWARD)}</div>
+              <div><span class="text-slate-500 block text-[9px]">OUT</span>${formatNumber(item.OUTWARD)}</div>
+              <div><span class="text-slate-500 block text-[9px]">AUDIT</span>${formatNumber(item.AUDIT)}</div>
+              <div><span class="text-slate-500 block text-[9px]">BLOCK</span>${formatNumber(item.BLOCK)}</div>
+            </div>
+            ${item.created_at ? `<div class="text-[10px] text-slate-500 mt-1">સમય: ${item.created_at}</div>` : ''}
+          </div>
+        `).join('');
+      } catch (e) {
+        container.innerHTML = '<div class="text-xs text-rose-400 p-2 text-center">હિસ્ટ્રી લોડ કરવામાં એરર</div>';
+      }
+    }
+
+    // Auto-refresh on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      refreshData();
+      loadHistory();
+      // Auto-refresh every 30 seconds
+      setInterval(refreshData, 30000);
+    });
+  </script>
+</body>
+</html>
