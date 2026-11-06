@@ -218,25 +218,43 @@ async def manage_numbers(req: NumbersRequest):
     current_numbers = settings.get("whatsapp_numbers", [])
 
     if req.action == "add" and req.number:
-        clean = "".join(filter(str.isdigit, str(req.number)))
-        if len(clean) == 10:
-            clean = "91" + clean
-        elif clean.startswith("0"):
-            clean = "91" + clean[1:]
-        if clean and clean not in current_numbers:
+        raw = str(req.number).strip()
+        digits = "".join(filter(str.isdigit, raw))
+        if len(digits) == 10:
+            clean = "91" + digits
+        elif len(digits) == 11 and digits.startswith("0"):
+            clean = "91" + digits[1:]
+        elif len(digits) == 12 and digits.startswith("91"):
+            clean = digits
+        else:
+            return JSONResponse(
+                status_code=400,
+                content={"success": False, "error": f"અમાન્ય નંબર ({raw}). કૃપા કરીને ૧૦ અંકનો સાચો મોબાઈલ નંબર દાખલ કરો."}
+            )
+        if clean not in current_numbers:
             current_numbers.append(clean)
+
     elif req.action == "remove" and req.number:
-        clean = "".join(filter(str.isdigit, str(req.number)))
-        current_numbers = [n for n in current_numbers if clean not in n]
+        target_digits = "".join(filter(str.isdigit, str(req.number)))
+        if len(target_digits) == 10:
+            target_clean = "91" + target_digits
+        else:
+            target_clean = target_digits
+        current_numbers = [n for n in current_numbers if n != target_clean and not n.endswith(target_digits)]
+
     elif req.action == "set" and req.numbers is not None:
         new_list = []
         for n in req.numbers:
             c = "".join(filter(str.isdigit, str(n)))
             if len(c) == 10:
                 c = "91" + c
-            elif c.startswith("0"):
+            elif len(c) == 11 and c.startswith("0"):
                 c = "91" + c[1:]
-            if c and c not in new_list:
+            elif len(c) == 12 and c.startswith("91"):
+                pass
+            else:
+                continue
+            if c not in new_list:
                 new_list.append(c)
         current_numbers = new_list
 

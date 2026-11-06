@@ -250,7 +250,7 @@ Good Morning Boss
       <div class="flex gap-2">
         <div class="relative flex-1">
           <span class="absolute left-3 top-2.5 text-xs text-slate-400 font-bold">+91</span>
-          <input type="tel" id="inputNewNumber" placeholder="70411 81117" maxlength="10" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-11 pr-3 py-2 text-white font-semibold text-sm focus:outline-none focus:border-indigo-500">
+          <input type="tel" id="inputNewNumber" placeholder="98795 25010" maxlength="16" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-11 pr-3 py-2 text-white font-semibold text-sm focus:outline-none focus:border-indigo-500">
         </div>
         <button onclick="addPhoneNumber()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md transition active:scale-95 flex items-center gap-1">
           <span>+</span> ઉમેરો
@@ -622,7 +622,13 @@ Good Morning Boss
     async function addPhoneNumber() {
       const input = document.getElementById('inputNewNumber');
       const val = input.value.trim();
-      if (!val || val.length < 10) {
+      let digits = val.replace(/\D/g, '');
+      if (digits.length === 12 && digits.startsWith('91')) {
+        digits = digits.substring(2);
+      } else if (digits.length === 11 && digits.startsWith('0')) {
+        digits = digits.substring(1);
+      }
+      if (digits.length !== 10) {
         showToast("કૃપા કરીને ૧૦ અંકનો સાચો મોબાઈલ નંબર દાખલ કરો", false);
         return;
       }
@@ -630,17 +636,19 @@ Good Morning Boss
         const res = await fetch(API_BASE + '/api/morning-report/numbers', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ action: 'add', number: val })
+          body: JSON.stringify({ action: 'add', number: digits })
         });
         const resp = await res.json();
         if (resp.success) {
           input.value = '';
           currentNumbers = resp.whatsapp_numbers;
           renderNumbersList(currentNumbers);
-          showToast("નવો નંબર ઉમેરાઈ ગયો!");
+          showToast("✅ નવો નંબર ઉમેરાઈ ગયો!");
+        } else {
+          showToast(resp.error || "નંબર ઉમેરવામાં એરર", false);
         }
       } catch (e) {
-        showToast("નંબર ઉમેરવામાં એરર", false);
+        showToast("નેટવર્ક એરર", false);
       }
     }
 
@@ -657,9 +665,11 @@ Good Morning Boss
           currentNumbers = resp.whatsapp_numbers;
           renderNumbersList(currentNumbers);
           showToast("નંબર કાઢી નાખ્યો!");
+        } else {
+          showToast(resp.error || "નંબર કાઢવામાં એરર", false);
         }
       } catch (e) {
-        showToast("નંબર કાઢવામાં એરર", false);
+        showToast("નેટવર્ક એરર", false);
       }
     }
 
