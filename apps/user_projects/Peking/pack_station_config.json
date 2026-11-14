@@ -1,1 +1,1 @@
-{"mrp_printer":"TSC TE244","shipping_printer":"TSC DA310","retail_printer":"TSC TE244","mrp_width_mm":100,"mrp_height_mm":50,"shipping_width_mm":100,"shipping_height_mm":150,"host":"0.0.0.0","port":8787}
+{"mrp_printer":"TSC TE244","shipping_printer":"TSC DA310","retail_printer":"\\\\pc-146\\Canon LBP2900","mrp_width_mm":100,"mrp_height_mm":50,"shipping_width_mm":100,"shipping_height_mm":150,"host":"0.0.0.0","port":8787}
