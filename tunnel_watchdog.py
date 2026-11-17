@@ -38,8 +38,8 @@ if sys.stderr is None or not hasattr(sys.stderr, "write"):
 def write_share_links(url: str):
     """Updates Desktop link files with the active live URL."""
     try:
-        cloud_url = "https://oslc-cloud-portal.onrender.com"
-        surge_url = "https://oslcerp-live.surge.sh/"
+        cloud_url = "https://oslchub-live.surge.sh"
+        surge_url = "https://oslchub-live.surge.sh"
 
         # 1. Update BIJA_PC_NE_PHONE_MA_MOKLVA_MATE.txt
         txt1 = DESKTOP / "BIJA_PC_NE_PHONE_MA_MOKLVA_MATE.txt"
@@ -48,33 +48,38 @@ def write_share_links(url: str):
        👑 CREATED BY JEEL VAGHANI • 24x7 ACTIVE 👑
 ========================================================================================
 
-✅ ૧. બીજાના મોબાઈલ ફોનમાં મોકલવા માટે (WhatsApp પર આ લિંક મોકલો):
+✅ ૧. તમામ મોબાઈલ ફોન માટે (WhatsApp પર મોકલવા માટે):
 ----------------------------------------------------------------------------------------
-👉 ૨૪ કલાક લાઈવ ક્લાઉડ લિંક (PC બંધ હોય તોય ચાલશે):
-   {cloud_url}
+👉 ૧. OSLC ERP (લાઈવ ક્લાઉડ સિસ્ટમ):
+   https://oslcerp-live.surge.sh
 
-👉 ફિક્સ સર્જ લિંક (તમામ ફોન માટે):
-   {surge_url}
+👉 ૨. OSLC પેકિંગ કંટ્રોલ (લાઈવ સિસ્ટમ):
+   https://oslcpacking-live.surge.sh
 
-📱 મોબાઈલમાં વાપરવાની રીત:
-૧. આ લિંક કોઈપણ મોબાઈલમાં (Android કે iPhone) ગમે તે બ્રાઉઝર (Chrome/Safari) માં ખોલી શકાય છે.
-૨. તે પર્સનલ નેટ (4G/5G, Jio, Airtel, Wi-Fi) પર ગમે ત્યાંથી ૨૪ કલાક ચાલશે.
-૩. 【ખાસ મહત્વનું】કોઈ નવી APK ઇન્સ્ટોલ કરવાની પણ જરૂર નથી! 
-   બ્રાઉઝરમાં 'Add to Home screen' (એપ ઇન્સ્ટોલ કરો) કરી લેશો એટલે પ્લે સ્ટોર જેવો આઈકન બની જશે!
-૪. ભવિષ્યમાં જ્યારે પણ નવું અપડેટ આવશે ત્યારે માત્ર પેજ રિફ્રેશ કરતા જ તરત નવો ડેટા આવી જશે!
+👉 ૩. OSLC માસ્ટર હબ & તમામ ૩૪ APK ડાઉનલોડ પોર્ટલ:
+   https://oslchub-live.surge.sh
+   (ડાયરેક્ટ ટનલ: {url})
+
+📱 મોબાઈલમાં વાપરવાની સરળ રીત:
+૧. ઉપર આપેલી કોઈપણ લિંક Google Chrome માં ખોલો (4G/5G, Jio, Airtel, Vi, Wi-Fi પર ચાલશે).
+૨. 【Chrome માંથી ડાયરેક્ટ એપ બનાવો】: Chrome ના મેનુ (3 ટપકાં) માં જઈ 'Add to Home screen' (એપ ઇન્સ્ટોલ કરો) આપો.
+   સીધો પ્લે સ્ટોર જેવો આઈકન ફોનની સ્ક્રીન પર આવી જશે - 1 રૂપિયો પણ ખર્ચ્યા વગર 100% FREE!
+૩. જો APK ડાઉનલોડ કરવી હોય તો https://oslchub-live.surge.sh ખોલીને કોઈપણ APK પર ક્લિક કરો એટલે તરત ડાઉનલોડ થઈ જશે!
 
 ----------------------------------------------------------------------------------------
-✅ ૨. બીજાના કમ્પ્યુટર (PC / લેપટોપ) માં ખોલવા માટે:
+✅ ૨. ઓફિસ અથવા બીજા કમ્પ્યુટર (PC / લેપટોપ) માટે:
 ----------------------------------------------------------------------------------------
-👉 ઓફિસના Wi-Fi પર હોય તો:
-   http://192.168.100.106:8080/
+👉 ઓફિસ Wi-Fi પર:
+   http://192.168.100.106:8080/  (માસ્ટર પોર્ટલ & APKs)
+   http://192.168.100.106:8000/  (OSLC ERP)
+   http://192.168.100.106:8787/  (પેકિંગ કંટ્રોલ)
+   http://192.168.100.106:8096/  (કારીગર ગેટ પાસ)
+   http://192.168.100.106:8095/  (ગોડાઉન ઇન-આઉટ)
 
-👉 ઘરના નેટ કે બહારના પર્સનલ નેટ પર હોય તો:
-   {cloud_url}
-
-👉 લોકલ ટનલ લિંક:
-   {url}
-
+👉 બહાર પર્સનલ નેટ પર:
+   https://oslcerp-live.surge.sh
+   https://oslcpacking-live.surge.sh
+   https://oslchub-live.surge.sh
 ========================================================================================
 """
         txt1.write_text(content1, encoding="utf-8")
@@ -109,9 +114,9 @@ def write_share_links(url: str):
         except Exception as je:
             print(f"[WATCHDOG] Failed to save live_url.json: {je}")
 
-        # Direct instant update of Surge domains (oslcerp-live.surge.sh & cerp-live.surge.sh)
+        # Direct instant update of Master Hub Surge domain (oslchub-live.surge.sh)
         try:
-            surge_script = Path(r"D:\JEEL VAGHANI\OSLC ERP\OSLC-PENDING-LIVE-ERP-V17-CATEGORY-LIVE\scratch\update_fixed_link.py")
+            surge_script = ROOT / "update_hub_surge.py"
             if surge_script.exists():
                 cf = 0x08000000 if sys.platform == "win32" else 0
                 si = None
@@ -120,7 +125,7 @@ def write_share_links(url: str):
                     si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
                     si.wShowWindow = 0
                 subprocess.Popen([sys.executable, str(surge_script), url], creationflags=cf, startupinfo=si)
-                print(f"[WATCHDOG] Triggered instant Surge update to: {url}")
+                print(f"[WATCHDOG] Triggered instant Hub Surge update to: {url}")
         except Exception as sge:
             print(f"[WATCHDOG] Surge trigger error: {sge}")
 
