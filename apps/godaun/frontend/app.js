@@ -4,11 +4,12 @@
 
   // Smart Server Discovery with Live Cloudflare Tunnel
   const SERVERS = [
-    'https://storm-among-symantec-honest.trycloudflare.com',
-    'http://192.168.100.106:8080',
+    'https://oslchub-live.surge.sh',
+    'https://suse-incidents-reservations-enb.trycloudflare.com',
     'http://192.168.100.106:8095',
-    'http://localhost:8080',
-    'http://localhost:8095'
+    'http://192.168.100.106:8080',
+    'http://localhost:8095',
+    'http://localhost:8080'
   ];
 
   const isWebOrigin = !!(
@@ -3209,8 +3210,6 @@
       return;
     }
 
-    const fromD = salaryFromDate || todayStr;
-    const toD = salaryToDate || todayStr;
     const rIn = inRate;
     const rOut = outRate;
     const sShift = selectedSalaryShift;
