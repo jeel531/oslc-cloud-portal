@@ -12,6 +12,34 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=24.0">
+  <script>
+    (function() {
+      try {
+        var now = new Date();
+        var y = now.getFullYear();
+        var m = String(now.getMonth() + 1).padStart(2, '0');
+        var d = String(now.getDate()).padStart(2, '0');
+        var todayIso = y + '-' + m + '-' + d;
+        var todayDisp = d + '/' + m + '/' + y;
+        window.__TODAY_ISO = todayIso;
+        window.__TODAY_DISP = todayDisp;
+        document.addEventListener('DOMContentLoaded', function() {
+          try {
+            var fIn = document.getElementById('salaryFromDate');
+            var tIn = document.getElementById('salaryToDate');
+            var fDisp = document.getElementById('dispFromDate');
+            var tDisp = document.getElementById('dispToDate');
+            var rText = document.getElementById('currentRangeText');
+            if (fIn) fIn.value = todayIso;
+            if (tIn) tIn.value = todayIso;
+            if (fDisp) fDisp.textContent = todayDisp;
+            if (tDisp) tDisp.textContent = todayDisp;
+            if (rText) rText.textContent = todayDisp + ' થી ' + todayDisp;
+          } catch(e) {}
+        });
+      } catch(e) {}
+    })();
+  </script>
 </head>
 <body>
   <div class="app-container">
