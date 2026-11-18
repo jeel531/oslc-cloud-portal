@@ -6,7 +6,8 @@
     "AMIT": "piece",
     "SONU": "piece",
     "MAYURVAGHELA": "piece",
-    "PARVEEN": "piece"
+    "PARVEEN": "piece",
+    "JUAEL": "piece"
   },
   "piece_rate_workers": [
     "SEKHRIPAN",
@@ -15,12 +16,13 @@
     "AMIT",
     "SONU",
     "MAYURVAGHELA",
-    "PARVEEN"
+    "PARVEEN",
+    "JUAEL"
   ],
   "fix_workers": [],
   "default_type": "fix",
   "global_default_hours": 12.0,
   "default_daily_hours": 12.0,
   "worker_default_hours": {},
-  "updated_at": "2026-11-02 09:16:04"
+  "updated_at": "2026-11-18 11:05:43"
 }
